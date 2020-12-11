@@ -1,0 +1,10 @@
+^C:\GIT\TACTILEPSYCHOPHYSICS\BUILD\_DEPS\MAHI-DAQ-SUBBUILD\CMAKEFILES\CFF17593BE94D7BD938B3E970DFFE53C\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Git/TactilePsychophysics/build/_deps/mahi-daq-subbuild -BC:/Git/TactilePsychophysics/build/_deps/mahi-daq-subbuild --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Git/TactilePsychophysics/build/_deps/mahi-daq-subbuild/mahi-daq-populate.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

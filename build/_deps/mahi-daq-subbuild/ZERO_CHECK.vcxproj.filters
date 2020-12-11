@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\cff17593be94d7bd938b3e970dffe53c\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{2A93292C-9D20-3CC8-AB85-A6A4A318C4EC}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

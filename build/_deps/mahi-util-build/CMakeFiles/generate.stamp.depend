@@ -1,0 +1,7 @@
+# CMake generation dependency list for this directory.
+C:/Git/TactilePsychophysics/build/_deps/mahi-util-src/CMakeLists.txt
+C:/Git/TactilePsychophysics/build/_deps/mahi-util-src/cmake/mahi-util-config.cmake.in
+C:/Program Files/CMake/share/cmake-3.18/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in
+C:/Program Files/CMake/share/cmake-3.18/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files/CMake/share/cmake-3.18/Modules/GNUInstallDirs.cmake
+C:/Program Files/CMake/share/cmake-3.18/Modules/WriteBasicConfigVersionFile.cmake

@@ -1,0 +1,352 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x86</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BD4B043D-E5D3-39F2-93B0-0AB1EAB939E9}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>daq</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-build\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">daq.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mahi-daq-d</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-build\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">daq.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mahi-daq</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-build\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">daq.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">mahi-daq</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-build\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">daq.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">mahi-daq</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /await</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;MAHI_DAQ;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINSOCK_DEPRECATED_NO_WARNINGS;MAHI_QUANSER;MAHI_UTIL;MAHI_COROUTINES;MAHI_DEFAULT_LOG;MAHI_LOG_CAPTURE_FILE;FMT_LOCALE;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;MAHI_DAQ;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINSOCK_DEPRECATED_NO_WARNINGS;MAHI_QUANSER;MAHI_UTIL;MAHI_COROUTINES;MAHI_DEFAULT_LOG;MAHI_LOG_CAPTURE_FILE;FMT_LOCALE;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /await</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAHI_DAQ;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINSOCK_DEPRECATED_NO_WARNINGS;MAHI_QUANSER;MAHI_UTIL;MAHI_COROUTINES;MAHI_DEFAULT_LOG;MAHI_LOG_CAPTURE_FILE;FMT_LOCALE;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAHI_DAQ;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINSOCK_DEPRECATED_NO_WARNINGS;MAHI_QUANSER;MAHI_UTIL;MAHI_COROUTINES;MAHI_DEFAULT_LOG;MAHI_LOG_CAPTURE_FILE;FMT_LOCALE;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /await</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAHI_DAQ;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINSOCK_DEPRECATED_NO_WARNINGS;MAHI_QUANSER;MAHI_UTIL;MAHI_COROUTINES;MAHI_DEFAULT_LOG;MAHI_LOG_CAPTURE_FILE;FMT_LOCALE;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAHI_DAQ;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINSOCK_DEPRECATED_NO_WARNINGS;MAHI_QUANSER;MAHI_UTIL;MAHI_COROUTINES;MAHI_DEFAULT_LOG;MAHI_LOG_CAPTURE_FILE;FMT_LOCALE;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /await</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAHI_DAQ;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINSOCK_DEPRECATED_NO_WARNINGS;MAHI_QUANSER;MAHI_UTIL;MAHI_COROUTINES;MAHI_DEFAULT_LOG;MAHI_LOG_CAPTURE_FILE;FMT_LOCALE;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAHI_DAQ;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINSOCK_DEPRECATED_NO_WARNINGS;MAHI_QUANSER;MAHI_UTIL;MAHI_COROUTINES;MAHI_DEFAULT_LOG;MAHI_LOG_CAPTURE_FILE;FMT_LOCALE;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\json\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\cxxopts\include;C:\Git\TactilePsychophysics\build\_deps\mahi-util-src\3rdparty\fmt\include;C:\Program Files\Quanser\HIL SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\CMakeLists.txt">
+      <StdOutEncoding>UTF-8</StdOutEncoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Git/TactilePsychophysics/build/_deps/mahi-daq-src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Git/TactilePsychophysics -BC:/Git/TactilePsychophysics/build --check-stamp-file C:/Git/TactilePsychophysics/build/_deps/mahi-daq-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindHIL.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindNIDAQmx.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindSensoray826.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\mahi-daq-config.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FetchContent.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\WriteBasicConfigVersionFile.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Git/TactilePsychophysics/build/_deps/mahi-daq-src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Git/TactilePsychophysics -BC:/Git/TactilePsychophysics/build --check-stamp-file C:/Git/TactilePsychophysics/build/_deps/mahi-daq-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindHIL.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindNIDAQmx.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindSensoray826.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\mahi-daq-config.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FetchContent.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\WriteBasicConfigVersionFile.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Git/TactilePsychophysics/build/_deps/mahi-daq-src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Git/TactilePsychophysics -BC:/Git/TactilePsychophysics/build --check-stamp-file C:/Git/TactilePsychophysics/build/_deps/mahi-daq-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindHIL.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindNIDAQmx.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindSensoray826.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\mahi-daq-config.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FetchContent.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\WriteBasicConfigVersionFile.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Git/TactilePsychophysics/build/_deps/mahi-daq-src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Git/TactilePsychophysics -BC:/Git/TactilePsychophysics/build --check-stamp-file C:/Git/TactilePsychophysics/build/_deps/mahi-daq-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindHIL.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindNIDAQmx.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\FindSensoray826.cmake;C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\cmake\mahi-daq-config.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-3.18\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FetchContent.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.18\Modules\WriteBasicConfigVersionFile.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Git\TactilePsychophysics\build\_deps\mahi-daq-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Daq.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Module.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Buffer.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Watchdog.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Utils.cpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Buffer.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Daq.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Detail\Buffer.inl" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Handle.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Io.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Module.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\NI\MyRio\MyRio.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\NI\MyRio\MyRioAI.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\NI\MyRio\MyRioAO.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\NI\MyRio\MyRioConnector.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\NI\MyRio\MyRioDI.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\NI\MyRio\MyRioDO.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\NI\MyRio\MyRioEncoder.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\NI\MyRio\MyRioLed.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\Q2Usb.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\Q8Usb.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QPid.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserAI.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserAO.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserDI.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserDO.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserDaq.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserEncoder.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserHandle.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserOptions.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserOther.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserPwm.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Quanser\QuanserWatchdog.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Sensoray\S826.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Sensoray\S826AI.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Sensoray\S826AO.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Sensoray\S826Encoder.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Sensoray\S826Watchdog.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Types.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Utils.hpp" />
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\include\Mahi\Daq\Watchdog.hpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserDaq.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserAI.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserAO.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserDI.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserDO.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserEncoder.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserPwm.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserOther.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserWatchdog.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserOptions.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QuanserUtils.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\Q2Usb.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\Q8Usb.cpp" />
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-src\src\Mahi\Daq\Quanser\QPid.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Git\TactilePsychophysics\build\ZERO_CHECK.vcxproj">
+      <Project>{73C3C698-8B6D-3F99-8B81-B0D49F16CD6C}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Git\TactilePsychophysics\build\_deps\mahi-util-build\3rdparty\fmt\fmt.vcxproj">
+      <Project>{CF45D0F9-C934-323B-8221-515FD49A0F70}</Project>
+      <Name>fmt</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Git\TactilePsychophysics\build\_deps\mahi-util-build\util.vcxproj">
+      <Project>{05CDDE80-87D2-3DE4-98FD-278408FDCA52}</Project>
+      <Name>util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

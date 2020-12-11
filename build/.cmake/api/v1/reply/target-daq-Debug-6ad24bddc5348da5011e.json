@@ -1,0 +1,619 @@
+{
+	"archive" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/machine:x64",
+				"role" : "flags"
+			}
+		]
+	},
+	"artifacts" : 
+	[
+		{
+			"path" : "_deps/mahi-daq-build/Debug/mahi-daq-d.lib"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"install",
+			"target_link_libraries",
+			"target_compile_definitions",
+			"add_subdirectory",
+			"target_include_directories",
+			"target_sources"
+		],
+		"files" : 
+		[
+			"build/_deps/mahi-daq-src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 56,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 173,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 80,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 63,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 109,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 88,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 0,
+				"line" : 71,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 66,
+				"parent" : 0
+			},
+			{
+				"command" : 6,
+				"file" : 0,
+				"line" : 70,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MP /MDd /Zi /Ob0 /Od /RTC1"
+				},
+				{
+					"backtrace" : 3,
+					"fragment" : "/await"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "FMT_LOCALE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "MAHI_COROUTINES"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "MAHI_DAQ"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "MAHI_DEFAULT_LOG"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "MAHI_LOG_CAPTURE_FILE"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "MAHI_QUANSER"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "MAHI_UTIL"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "NOMINMAX"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "_CRT_SECURE_NO_WARNINGS"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "_WINSOCK_DEPRECATED_NO_WARNINGS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 7,
+					"path" : "C:/Git/TactilePsychophysics/build/_deps/mahi-daq-src/include"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Git/TactilePsychophysics/build/_deps/mahi-daq-src/src"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Git/TactilePsychophysics/build/_deps/mahi-util-src/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Git/TactilePsychophysics/build/_deps/mahi-util-src/3rdparty/json/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Git/TactilePsychophysics/build/_deps/mahi-util-src/3rdparty/cxxopts/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Git/TactilePsychophysics/build/_deps/mahi-util-src/3rdparty/fmt/include"
+				},
+				{
+					"backtrace" : 5,
+					"isSystem" : true,
+					"path" : "C:/Program Files/Quanser/HIL SDK/include"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				51,
+				52,
+				53,
+				54,
+				55
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "fmt::@1dc5051ce61772968524"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "util::@9e7e004084100b3727b4"
+		}
+	],
+	"id" : "daq::@dfe5ba96642e669d2245",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 2,
+				"path" : "lib"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "C:/Program Files (x86)/HapticPsychMotorControl"
+		}
+	},
+	"name" : "daq",
+	"nameOnDisk" : "mahi-daq-d.lib",
+	"paths" : 
+	{
+		"build" : "_deps/mahi-daq-build",
+		"source" : "build/_deps/mahi-daq-src"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				51,
+				52,
+				53,
+				54,
+				55
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 8,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Daq.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 8,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Module.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 8,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Buffer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 8,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Watchdog.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 8,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Utils.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Buffer.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Daq.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Detail/Buffer.inl",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Handle.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Io.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Module.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/NI/MyRio/MyRio.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/NI/MyRio/MyRioAI.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/NI/MyRio/MyRioAO.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/NI/MyRio/MyRioConnector.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/NI/MyRio/MyRioDI.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/NI/MyRio/MyRioDO.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/NI/MyRio/MyRioEncoder.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/NI/MyRio/MyRioLed.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/Q2Usb.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/Q8Usb.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QPid.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserAI.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserAO.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserDI.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserDO.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserDaq.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserEncoder.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserHandle.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserOptions.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserOther.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserPwm.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Quanser/QuanserWatchdog.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Sensoray/S826.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Sensoray/S826AI.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Sensoray/S826AO.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Sensoray/S826Encoder.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Sensoray/S826Watchdog.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Types.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Utils.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 9,
+			"path" : "build/_deps/mahi-daq-src/include/Mahi/Daq/Watchdog.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserDaq.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserAI.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserAO.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserDI.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserDO.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserEncoder.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserPwm.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserOther.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserWatchdog.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserOptions.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QuanserUtils.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/Q2Usb.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/Q8Usb.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser/QPid.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

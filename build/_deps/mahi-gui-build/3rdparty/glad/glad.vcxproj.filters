@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-gui-src\3rdparty\glad\src\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-gui-src\3rdparty\glad\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{886302CE-611D-3788-8723-BCF2E602CBDF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

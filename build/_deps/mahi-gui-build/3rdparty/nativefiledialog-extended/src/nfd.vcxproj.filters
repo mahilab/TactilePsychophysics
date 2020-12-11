@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Git\TactilePsychophysics\build\_deps\mahi-gui-src\3rdparty\nativefiledialog-extended\src\nfd_win.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-gui-src\3rdparty\nativefiledialog-extended\src\include\nfd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Git\TactilePsychophysics\build\_deps\mahi-gui-src\3rdparty\nativefiledialog-extended\src\include\nfd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-gui-src\3rdparty\nativefiledialog-extended\src\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{D5444D3B-80D2-3706-9CB0-E5E4972F0A3A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{886302CE-611D-3788-8723-BCF2E602CBDF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

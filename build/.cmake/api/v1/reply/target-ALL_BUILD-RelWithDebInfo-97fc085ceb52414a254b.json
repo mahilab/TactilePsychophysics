@@ -1,0 +1,67 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "glad::@8ab0b9cb3b88849ec662"
+		},
+		{
+			"id" : "nfd::@3b80e14ecf71f20e142b"
+		},
+		{
+			"id" : "gui::@b89b3f0f161a861a84d0"
+		},
+		{
+			"id" : "HapticPsychMotorControl::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "glfw::@292da2318190b66a3baa"
+		},
+		{
+			"id" : "nanovg::@c7daccaf0a7753883acf"
+		},
+		{
+			"id" : "fmt::@1dc5051ce61772968524"
+		},
+		{
+			"id" : "clipper::@ee099ffbe401603287c6"
+		},
+		{
+			"id" : "daq::@dfe5ba96642e669d2245"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "util::@9e7e004084100b3727b4"
+		}
+	],
+	"folder" : 
+	{
+		"name" : "CMake"
+	},
+	"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

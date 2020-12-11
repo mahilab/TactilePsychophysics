@@ -1,0 +1,2348 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						18
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						1,
+						7,
+						8
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build",
+					"childIndexes" : 
+					[
+						2,
+						4,
+						5,
+						7,
+						8,
+						9,
+						16
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src",
+					"targetIndexes" : 
+					[
+						5,
+						14
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glfw",
+					"childIndexes" : 
+					[
+						3
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 2,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glfw",
+					"targetIndexes" : 
+					[
+						2,
+						17
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glfw/src",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 2,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glfw/src",
+					"targetIndexes" : 
+					[
+						13
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glad",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glad",
+					"targetIndexes" : 
+					[
+						12
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nativefiledialog-extended",
+					"childIndexes" : 
+					[
+						6
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 3,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nativefiledialog-extended",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nativefiledialog-extended/src",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 3,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nativefiledialog-extended/src",
+					"targetIndexes" : 
+					[
+						16
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nanovg",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nanovg",
+					"targetIndexes" : 
+					[
+						15
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/clipper",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/clipper",
+					"targetIndexes" : 
+					[
+						9
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build",
+					"childIndexes" : 
+					[
+						10,
+						11
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src",
+					"targetIndexes" : 
+					[
+						3,
+						18
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build/3rdparty/fmt",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1.0"
+					},
+					"parentIndex" : 9,
+					"projectIndex" : 5,
+					"source" : "build/_deps/mahi-util-src/3rdparty/fmt",
+					"targetIndexes" : 
+					[
+						0,
+						11
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util",
+					"childIndexes" : 
+					[
+						12,
+						13,
+						14,
+						15
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 9,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Concurrency",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Concurrency"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Logging",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Logging"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Math",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Math"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Timing",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Timing"
+				},
+				{
+					"build" : "_deps/mahi-gui-build/src/Mahi/Gui",
+					"childIndexes" : 
+					[
+						17
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/src/Mahi/Gui"
+				},
+				{
+					"build" : "_deps/mahi-gui-build/src/Mahi/Gui/Fonts",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 16,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/src/Mahi/Gui/Fonts"
+				},
+				{
+					"build" : "_deps/mahi-daq-build",
+					"childIndexes" : 
+					[
+						19,
+						20
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src",
+					"targetIndexes" : 
+					[
+						6,
+						10
+					]
+				},
+				{
+					"build" : "_deps/mahi-daq-build/src/Mahi/Daq",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 18,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src/src/Mahi/Daq"
+				},
+				{
+					"build" : "_deps/mahi-daq-build/src/Mahi/Daq/Quanser",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 18,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser"
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						6
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "HapticPsychMotorControl",
+					"targetIndexes" : 
+					[
+						1,
+						7,
+						8
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						2,
+						3,
+						4
+					],
+					"directoryIndexes" : 
+					[
+						1,
+						4,
+						7,
+						8,
+						16,
+						17
+					],
+					"name" : "mahi-gui",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						5,
+						9,
+						12,
+						14,
+						15
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3
+					],
+					"name" : "GLFW",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						2,
+						13,
+						17
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						5,
+						6
+					],
+					"name" : "nativefiledialog-extended",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						4,
+						16
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						5
+					],
+					"directoryIndexes" : 
+					[
+						9,
+						11,
+						12,
+						13,
+						14,
+						15
+					],
+					"name" : "mahi-util",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						3,
+						18
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						10
+					],
+					"name" : "FMT",
+					"parentIndex" : 4,
+					"targetIndexes" : 
+					[
+						0,
+						11
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						18,
+						19,
+						20
+					],
+					"name" : "mahi-daq",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						6,
+						10
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 10,
+					"id" : "ALL_BUILD::@1dc5051ce61772968524",
+					"jsonFile" : "target-ALL_BUILD-Debug-2225b3261774a1ec0738.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-Debug-97fc085ceb52414a254b.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ALL_BUILD::@bb8c698527e6e1f6c780",
+					"jsonFile" : "target-ALL_BUILD-Debug-714a7b6be0978edc6906.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "ALL_BUILD::@9e7e004084100b3727b4",
+					"jsonFile" : "target-ALL_BUILD-Debug-2bc8bc0811d4f80d8920.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "ALL_BUILD::@980d3981e26c5a2a4114",
+					"jsonFile" : "target-ALL_BUILD-Debug-b4c1b91e5715b62e1eb6.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ALL_BUILD::@b89b3f0f161a861a84d0",
+					"jsonFile" : "target-ALL_BUILD-Debug-5810b7242a2a3f0c3774.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "ALL_BUILD::@dfe5ba96642e669d2245",
+					"jsonFile" : "target-ALL_BUILD-Debug-afedf58912b7c8df279f.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "HapticPsychMotorControl::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-HapticPsychMotorControl-Debug-9164f247cf6b37184c07.json",
+					"name" : "HapticPsychMotorControl",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-Debug-1922538f08af636b6675.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 8,
+					"id" : "clipper::@ee099ffbe401603287c6",
+					"jsonFile" : "target-clipper-Debug-cddc81b27fee04b4b744.json",
+					"name" : "clipper",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "daq::@dfe5ba96642e669d2245",
+					"jsonFile" : "target-daq-Debug-6ad24bddc5348da5011e.json",
+					"name" : "daq",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "fmt::@1dc5051ce61772968524",
+					"jsonFile" : "target-fmt-Debug-847b141cecdff8eb46f6.json",
+					"name" : "fmt",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "glad::@8ab0b9cb3b88849ec662",
+					"jsonFile" : "target-glad-Debug-421c0c775e573485e1f7.json",
+					"name" : "glad",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "glfw::@292da2318190b66a3baa",
+					"jsonFile" : "target-glfw-Debug-1c2fe08fcb1e8799c28f.json",
+					"name" : "glfw",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "gui::@b89b3f0f161a861a84d0",
+					"jsonFile" : "target-gui-Debug-ad1f15fbd1f812ead700.json",
+					"name" : "gui",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "nanovg::@c7daccaf0a7753883acf",
+					"jsonFile" : "target-nanovg-Debug-83f13c98dc00211ec8b0.json",
+					"name" : "nanovg",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "nfd::@3b80e14ecf71f20e142b",
+					"jsonFile" : "target-nfd-Debug-f00b5cd4f8308b22132f.json",
+					"name" : "nfd",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "uninstall::@bb8c698527e6e1f6c780",
+					"jsonFile" : "target-uninstall-Debug-21cbfcc0a784bc8860d8.json",
+					"name" : "uninstall",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "util::@9e7e004084100b3727b4",
+					"jsonFile" : "target-util-Debug-8b5a9b2c26c17d430a59.json",
+					"name" : "util",
+					"projectIndex" : 4
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						18
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						1,
+						7,
+						8
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build",
+					"childIndexes" : 
+					[
+						2,
+						4,
+						5,
+						7,
+						8,
+						9,
+						16
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src",
+					"targetIndexes" : 
+					[
+						5,
+						14
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glfw",
+					"childIndexes" : 
+					[
+						3
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 2,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glfw",
+					"targetIndexes" : 
+					[
+						2,
+						17
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glfw/src",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 2,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glfw/src",
+					"targetIndexes" : 
+					[
+						13
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glad",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glad",
+					"targetIndexes" : 
+					[
+						12
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nativefiledialog-extended",
+					"childIndexes" : 
+					[
+						6
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 3,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nativefiledialog-extended",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nativefiledialog-extended/src",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 3,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nativefiledialog-extended/src",
+					"targetIndexes" : 
+					[
+						16
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nanovg",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nanovg",
+					"targetIndexes" : 
+					[
+						15
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/clipper",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/clipper",
+					"targetIndexes" : 
+					[
+						9
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build",
+					"childIndexes" : 
+					[
+						10,
+						11
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src",
+					"targetIndexes" : 
+					[
+						3,
+						18
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build/3rdparty/fmt",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1.0"
+					},
+					"parentIndex" : 9,
+					"projectIndex" : 5,
+					"source" : "build/_deps/mahi-util-src/3rdparty/fmt",
+					"targetIndexes" : 
+					[
+						0,
+						11
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util",
+					"childIndexes" : 
+					[
+						12,
+						13,
+						14,
+						15
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 9,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Concurrency",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Concurrency"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Logging",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Logging"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Math",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Math"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Timing",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Timing"
+				},
+				{
+					"build" : "_deps/mahi-gui-build/src/Mahi/Gui",
+					"childIndexes" : 
+					[
+						17
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/src/Mahi/Gui"
+				},
+				{
+					"build" : "_deps/mahi-gui-build/src/Mahi/Gui/Fonts",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 16,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/src/Mahi/Gui/Fonts"
+				},
+				{
+					"build" : "_deps/mahi-daq-build",
+					"childIndexes" : 
+					[
+						19,
+						20
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src",
+					"targetIndexes" : 
+					[
+						6,
+						10
+					]
+				},
+				{
+					"build" : "_deps/mahi-daq-build/src/Mahi/Daq",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 18,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src/src/Mahi/Daq"
+				},
+				{
+					"build" : "_deps/mahi-daq-build/src/Mahi/Daq/Quanser",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 18,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser"
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						6
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "HapticPsychMotorControl",
+					"targetIndexes" : 
+					[
+						1,
+						7,
+						8
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						2,
+						3,
+						4
+					],
+					"directoryIndexes" : 
+					[
+						1,
+						4,
+						7,
+						8,
+						16,
+						17
+					],
+					"name" : "mahi-gui",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						5,
+						9,
+						12,
+						14,
+						15
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3
+					],
+					"name" : "GLFW",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						2,
+						13,
+						17
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						5,
+						6
+					],
+					"name" : "nativefiledialog-extended",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						4,
+						16
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						5
+					],
+					"directoryIndexes" : 
+					[
+						9,
+						11,
+						12,
+						13,
+						14,
+						15
+					],
+					"name" : "mahi-util",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						3,
+						18
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						10
+					],
+					"name" : "FMT",
+					"parentIndex" : 4,
+					"targetIndexes" : 
+					[
+						0,
+						11
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						18,
+						19,
+						20
+					],
+					"name" : "mahi-daq",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						6,
+						10
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 10,
+					"id" : "ALL_BUILD::@1dc5051ce61772968524",
+					"jsonFile" : "target-ALL_BUILD-Release-2225b3261774a1ec0738.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-Release-97fc085ceb52414a254b.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ALL_BUILD::@bb8c698527e6e1f6c780",
+					"jsonFile" : "target-ALL_BUILD-Release-714a7b6be0978edc6906.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "ALL_BUILD::@9e7e004084100b3727b4",
+					"jsonFile" : "target-ALL_BUILD-Release-2bc8bc0811d4f80d8920.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "ALL_BUILD::@980d3981e26c5a2a4114",
+					"jsonFile" : "target-ALL_BUILD-Release-b4c1b91e5715b62e1eb6.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ALL_BUILD::@b89b3f0f161a861a84d0",
+					"jsonFile" : "target-ALL_BUILD-Release-5810b7242a2a3f0c3774.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "ALL_BUILD::@dfe5ba96642e669d2245",
+					"jsonFile" : "target-ALL_BUILD-Release-afedf58912b7c8df279f.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "HapticPsychMotorControl::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-HapticPsychMotorControl-Release-103ec7bb41440e23f38a.json",
+					"name" : "HapticPsychMotorControl",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-Release-1922538f08af636b6675.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 8,
+					"id" : "clipper::@ee099ffbe401603287c6",
+					"jsonFile" : "target-clipper-Release-aee5048b4285ab084554.json",
+					"name" : "clipper",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "daq::@dfe5ba96642e669d2245",
+					"jsonFile" : "target-daq-Release-eb32e50c9a67531cf243.json",
+					"name" : "daq",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "fmt::@1dc5051ce61772968524",
+					"jsonFile" : "target-fmt-Release-3df941eb56b3605ad669.json",
+					"name" : "fmt",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "glad::@8ab0b9cb3b88849ec662",
+					"jsonFile" : "target-glad-Release-aea73121815f40cac05c.json",
+					"name" : "glad",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "glfw::@292da2318190b66a3baa",
+					"jsonFile" : "target-glfw-Release-886b4f652a973eaef687.json",
+					"name" : "glfw",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "gui::@b89b3f0f161a861a84d0",
+					"jsonFile" : "target-gui-Release-c31c8e16771d6ff346b0.json",
+					"name" : "gui",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "nanovg::@c7daccaf0a7753883acf",
+					"jsonFile" : "target-nanovg-Release-72fd7f9a9cfaf59fae87.json",
+					"name" : "nanovg",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "nfd::@3b80e14ecf71f20e142b",
+					"jsonFile" : "target-nfd-Release-aaabb2754f7646a2c88b.json",
+					"name" : "nfd",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "uninstall::@bb8c698527e6e1f6c780",
+					"jsonFile" : "target-uninstall-Release-21cbfcc0a784bc8860d8.json",
+					"name" : "uninstall",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "util::@9e7e004084100b3727b4",
+					"jsonFile" : "target-util-Release-54dfa974de1e961bc714.json",
+					"name" : "util",
+					"projectIndex" : 4
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						18
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						1,
+						7,
+						8
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build",
+					"childIndexes" : 
+					[
+						2,
+						4,
+						5,
+						7,
+						8,
+						9,
+						16
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src",
+					"targetIndexes" : 
+					[
+						5,
+						14
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glfw",
+					"childIndexes" : 
+					[
+						3
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 2,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glfw",
+					"targetIndexes" : 
+					[
+						2,
+						17
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glfw/src",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 2,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glfw/src",
+					"targetIndexes" : 
+					[
+						13
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glad",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glad",
+					"targetIndexes" : 
+					[
+						12
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nativefiledialog-extended",
+					"childIndexes" : 
+					[
+						6
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 3,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nativefiledialog-extended",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nativefiledialog-extended/src",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 3,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nativefiledialog-extended/src",
+					"targetIndexes" : 
+					[
+						16
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nanovg",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nanovg",
+					"targetIndexes" : 
+					[
+						15
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/clipper",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/clipper",
+					"targetIndexes" : 
+					[
+						9
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build",
+					"childIndexes" : 
+					[
+						10,
+						11
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src",
+					"targetIndexes" : 
+					[
+						3,
+						18
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build/3rdparty/fmt",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1.0"
+					},
+					"parentIndex" : 9,
+					"projectIndex" : 5,
+					"source" : "build/_deps/mahi-util-src/3rdparty/fmt",
+					"targetIndexes" : 
+					[
+						0,
+						11
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util",
+					"childIndexes" : 
+					[
+						12,
+						13,
+						14,
+						15
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 9,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Concurrency",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Concurrency"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Logging",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Logging"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Math",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Math"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Timing",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Timing"
+				},
+				{
+					"build" : "_deps/mahi-gui-build/src/Mahi/Gui",
+					"childIndexes" : 
+					[
+						17
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/src/Mahi/Gui"
+				},
+				{
+					"build" : "_deps/mahi-gui-build/src/Mahi/Gui/Fonts",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 16,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/src/Mahi/Gui/Fonts"
+				},
+				{
+					"build" : "_deps/mahi-daq-build",
+					"childIndexes" : 
+					[
+						19,
+						20
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src",
+					"targetIndexes" : 
+					[
+						6,
+						10
+					]
+				},
+				{
+					"build" : "_deps/mahi-daq-build/src/Mahi/Daq",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 18,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src/src/Mahi/Daq"
+				},
+				{
+					"build" : "_deps/mahi-daq-build/src/Mahi/Daq/Quanser",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 18,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser"
+				}
+			],
+			"name" : "MinSizeRel",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						6
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "HapticPsychMotorControl",
+					"targetIndexes" : 
+					[
+						1,
+						7,
+						8
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						2,
+						3,
+						4
+					],
+					"directoryIndexes" : 
+					[
+						1,
+						4,
+						7,
+						8,
+						16,
+						17
+					],
+					"name" : "mahi-gui",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						5,
+						9,
+						12,
+						14,
+						15
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3
+					],
+					"name" : "GLFW",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						2,
+						13,
+						17
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						5,
+						6
+					],
+					"name" : "nativefiledialog-extended",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						4,
+						16
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						5
+					],
+					"directoryIndexes" : 
+					[
+						9,
+						11,
+						12,
+						13,
+						14,
+						15
+					],
+					"name" : "mahi-util",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						3,
+						18
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						10
+					],
+					"name" : "FMT",
+					"parentIndex" : 4,
+					"targetIndexes" : 
+					[
+						0,
+						11
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						18,
+						19,
+						20
+					],
+					"name" : "mahi-daq",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						6,
+						10
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 10,
+					"id" : "ALL_BUILD::@1dc5051ce61772968524",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-2225b3261774a1ec0738.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-97fc085ceb52414a254b.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ALL_BUILD::@bb8c698527e6e1f6c780",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-714a7b6be0978edc6906.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "ALL_BUILD::@9e7e004084100b3727b4",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-2bc8bc0811d4f80d8920.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "ALL_BUILD::@980d3981e26c5a2a4114",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-b4c1b91e5715b62e1eb6.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ALL_BUILD::@b89b3f0f161a861a84d0",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-5810b7242a2a3f0c3774.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "ALL_BUILD::@dfe5ba96642e669d2245",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-afedf58912b7c8df279f.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "HapticPsychMotorControl::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-HapticPsychMotorControl-MinSizeRel-e75bba8e974f10a89b09.json",
+					"name" : "HapticPsychMotorControl",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-MinSizeRel-1922538f08af636b6675.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 8,
+					"id" : "clipper::@ee099ffbe401603287c6",
+					"jsonFile" : "target-clipper-MinSizeRel-d1dadece488b2d6dffe4.json",
+					"name" : "clipper",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "daq::@dfe5ba96642e669d2245",
+					"jsonFile" : "target-daq-MinSizeRel-e9025cd057d66e0ffee7.json",
+					"name" : "daq",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "fmt::@1dc5051ce61772968524",
+					"jsonFile" : "target-fmt-MinSizeRel-a58565511f5141473681.json",
+					"name" : "fmt",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "glad::@8ab0b9cb3b88849ec662",
+					"jsonFile" : "target-glad-MinSizeRel-189ed0d61f3b9152f690.json",
+					"name" : "glad",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "glfw::@292da2318190b66a3baa",
+					"jsonFile" : "target-glfw-MinSizeRel-7c3c0db7a9eb92a3cd88.json",
+					"name" : "glfw",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "gui::@b89b3f0f161a861a84d0",
+					"jsonFile" : "target-gui-MinSizeRel-914232b495e6289c02fb.json",
+					"name" : "gui",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "nanovg::@c7daccaf0a7753883acf",
+					"jsonFile" : "target-nanovg-MinSizeRel-f736070258ae7f8f79d1.json",
+					"name" : "nanovg",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "nfd::@3b80e14ecf71f20e142b",
+					"jsonFile" : "target-nfd-MinSizeRel-f9a3b82394722c28a073.json",
+					"name" : "nfd",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "uninstall::@bb8c698527e6e1f6c780",
+					"jsonFile" : "target-uninstall-MinSizeRel-21cbfcc0a784bc8860d8.json",
+					"name" : "uninstall",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "util::@9e7e004084100b3727b4",
+					"jsonFile" : "target-util-MinSizeRel-4b31d4d12eef0ef136aa.json",
+					"name" : "util",
+					"projectIndex" : 4
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						18
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						1,
+						7,
+						8
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build",
+					"childIndexes" : 
+					[
+						2,
+						4,
+						5,
+						7,
+						8,
+						9,
+						16
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src",
+					"targetIndexes" : 
+					[
+						5,
+						14
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glfw",
+					"childIndexes" : 
+					[
+						3
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 2,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glfw",
+					"targetIndexes" : 
+					[
+						2,
+						17
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glfw/src",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 2,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glfw/src",
+					"targetIndexes" : 
+					[
+						13
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/glad",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/glad",
+					"targetIndexes" : 
+					[
+						12
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nativefiledialog-extended",
+					"childIndexes" : 
+					[
+						6
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 3,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nativefiledialog-extended",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nativefiledialog-extended/src",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 3,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nativefiledialog-extended/src",
+					"targetIndexes" : 
+					[
+						16
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/nanovg",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/nanovg",
+					"targetIndexes" : 
+					[
+						15
+					]
+				},
+				{
+					"build" : "_deps/mahi-gui-build/3rdparty/clipper",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/3rdparty/clipper",
+					"targetIndexes" : 
+					[
+						9
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build",
+					"childIndexes" : 
+					[
+						10,
+						11
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src",
+					"targetIndexes" : 
+					[
+						3,
+						18
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build/3rdparty/fmt",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1.0"
+					},
+					"parentIndex" : 9,
+					"projectIndex" : 5,
+					"source" : "build/_deps/mahi-util-src/3rdparty/fmt",
+					"targetIndexes" : 
+					[
+						0,
+						11
+					]
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util",
+					"childIndexes" : 
+					[
+						12,
+						13,
+						14,
+						15
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 9,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Concurrency",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Concurrency"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Logging",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Logging"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Math",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Math"
+				},
+				{
+					"build" : "_deps/mahi-util-build/src/Mahi/Util/Timing",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 11,
+					"projectIndex" : 4,
+					"source" : "build/_deps/mahi-util-src/src/Mahi/Util/Timing"
+				},
+				{
+					"build" : "_deps/mahi-gui-build/src/Mahi/Gui",
+					"childIndexes" : 
+					[
+						17
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/src/Mahi/Gui"
+				},
+				{
+					"build" : "_deps/mahi-gui-build/src/Mahi/Gui/Fonts",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 16,
+					"projectIndex" : 1,
+					"source" : "build/_deps/mahi-gui-src/src/Mahi/Gui/Fonts"
+				},
+				{
+					"build" : "_deps/mahi-daq-build",
+					"childIndexes" : 
+					[
+						19,
+						20
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src",
+					"targetIndexes" : 
+					[
+						6,
+						10
+					]
+				},
+				{
+					"build" : "_deps/mahi-daq-build/src/Mahi/Daq",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 18,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src/src/Mahi/Daq"
+				},
+				{
+					"build" : "_deps/mahi-daq-build/src/Mahi/Daq/Quanser",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13.0"
+					},
+					"parentIndex" : 18,
+					"projectIndex" : 6,
+					"source" : "build/_deps/mahi-daq-src/src/Mahi/Daq/Quanser"
+				}
+			],
+			"name" : "RelWithDebInfo",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						6
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "HapticPsychMotorControl",
+					"targetIndexes" : 
+					[
+						1,
+						7,
+						8
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						2,
+						3,
+						4
+					],
+					"directoryIndexes" : 
+					[
+						1,
+						4,
+						7,
+						8,
+						16,
+						17
+					],
+					"name" : "mahi-gui",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						5,
+						9,
+						12,
+						14,
+						15
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3
+					],
+					"name" : "GLFW",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						2,
+						13,
+						17
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						5,
+						6
+					],
+					"name" : "nativefiledialog-extended",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						4,
+						16
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						5
+					],
+					"directoryIndexes" : 
+					[
+						9,
+						11,
+						12,
+						13,
+						14,
+						15
+					],
+					"name" : "mahi-util",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						3,
+						18
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						10
+					],
+					"name" : "FMT",
+					"parentIndex" : 4,
+					"targetIndexes" : 
+					[
+						0,
+						11
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						18,
+						19,
+						20
+					],
+					"name" : "mahi-daq",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						6,
+						10
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 10,
+					"id" : "ALL_BUILD::@1dc5051ce61772968524",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-2225b3261774a1ec0738.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-97fc085ceb52414a254b.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ALL_BUILD::@bb8c698527e6e1f6c780",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-714a7b6be0978edc6906.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "ALL_BUILD::@9e7e004084100b3727b4",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-2bc8bc0811d4f80d8920.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "ALL_BUILD::@980d3981e26c5a2a4114",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-b4c1b91e5715b62e1eb6.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ALL_BUILD::@b89b3f0f161a861a84d0",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-5810b7242a2a3f0c3774.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "ALL_BUILD::@dfe5ba96642e669d2245",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-afedf58912b7c8df279f.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "HapticPsychMotorControl::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-HapticPsychMotorControl-RelWithDebInfo-2528ef7431b4c74ca17f.json",
+					"name" : "HapticPsychMotorControl",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-RelWithDebInfo-1922538f08af636b6675.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 8,
+					"id" : "clipper::@ee099ffbe401603287c6",
+					"jsonFile" : "target-clipper-RelWithDebInfo-048e9a1dabe7a2696ee5.json",
+					"name" : "clipper",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "daq::@dfe5ba96642e669d2245",
+					"jsonFile" : "target-daq-RelWithDebInfo-32db0a15aeef281c5987.json",
+					"name" : "daq",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "fmt::@1dc5051ce61772968524",
+					"jsonFile" : "target-fmt-RelWithDebInfo-c4ea406f9b2479a48580.json",
+					"name" : "fmt",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "glad::@8ab0b9cb3b88849ec662",
+					"jsonFile" : "target-glad-RelWithDebInfo-2958e4ddb8ce37889be0.json",
+					"name" : "glad",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "glfw::@292da2318190b66a3baa",
+					"jsonFile" : "target-glfw-RelWithDebInfo-5913a918a8a797170d57.json",
+					"name" : "glfw",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "gui::@b89b3f0f161a861a84d0",
+					"jsonFile" : "target-gui-RelWithDebInfo-a62dd60bad032cade7b2.json",
+					"name" : "gui",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "nanovg::@c7daccaf0a7753883acf",
+					"jsonFile" : "target-nanovg-RelWithDebInfo-3cff00b7a28bbc3881bc.json",
+					"name" : "nanovg",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "nfd::@3b80e14ecf71f20e142b",
+					"jsonFile" : "target-nfd-RelWithDebInfo-7112de4cb0c654d6a68a.json",
+					"name" : "nfd",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "uninstall::@bb8c698527e6e1f6c780",
+					"jsonFile" : "target-uninstall-RelWithDebInfo-21cbfcc0a784bc8860d8.json",
+					"name" : "uninstall",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "util::@9e7e004084100b3727b4",
+					"jsonFile" : "target-util-RelWithDebInfo-be2129543843b3e1f1af.json",
+					"name" : "util",
+					"projectIndex" : 4
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Git/TactilePsychophysics/build",
+		"source" : "C:/Git/TactilePsychophysics"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 1
+	}
+}

@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\fd2e3cd89df4cfa00c2ebc9519b03b4f\mahi-daq-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\fd2e3cd89df4cfa00c2ebc9519b03b4f\mahi-daq-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\fd2e3cd89df4cfa00c2ebc9519b03b4f\mahi-daq-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\fd2e3cd89df4cfa00c2ebc9519b03b4f\mahi-daq-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\fd2e3cd89df4cfa00c2ebc9519b03b4f\mahi-daq-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\fd2e3cd89df4cfa00c2ebc9519b03b4f\mahi-daq-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\fd2e3cd89df4cfa00c2ebc9519b03b4f\mahi-daq-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\fd2e3cd89df4cfa00c2ebc9519b03b4f\mahi-daq-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\a09422d1cb184cb451b74c0349922f79\mahi-daq-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\cff17593be94d7bd938b3e970dffe53c\mahi-daq-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Git\TactilePsychophysics\build\_deps\mahi-daq-subbuild\CMakeFiles\mahi-daq-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{2A93292C-9D20-3CC8-AB85-A6A4A318C4EC}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
