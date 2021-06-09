@@ -10,6 +10,6 @@ FetchContent_Declare(mahi-daq GIT_REPOSITORY https://github.com/mahilab/mahi-daq
 FetchContent_MakeAvailable(mahi-daq)
 
 
-add_executable(HapticPsychMotorControl src/runSingleMotor.cpp)
+add_executable(HapticPsychMotorControl src/runSingleMotorPos.cpp)
 target_link_libraries(HapticPsychMotorControl mahi::gui)
 target_link_libraries(HapticPsychMotorControl mahi::daq)
