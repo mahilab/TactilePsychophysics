@@ -1,2 +1,2 @@
-# TactilePsychophysics
-Janelle's Psychophysical Haptic Testbed
+# CM
+CM Software Development 

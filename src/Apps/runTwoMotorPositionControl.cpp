@@ -1,5 +1,27 @@
 #include <iostream>
-#include "Robot.hpp"
+#include <Mahi/Daq.hpp>
+#include <Mahi/Gui.hpp>
+#include <Mahi/Robo.hpp>
+
+using namespace mahi::gui;
+using namespace mahi::util;
+using namespace mahi::robo;
+using namespace mahi::daq;
+
+struct RollingBuffer {
+    float Span;
+    ImVector<ImVec2> Data;
+    RollingBuffer() {
+        Span = 10.0f;
+        Data.reserve(2000);
+    }
+    void AddPoint(float x, float y) {
+        float xmod = fmodf(x, Span);
+        if (!Data.empty() && xmod < Data.back().x)
+            Data.shrink(0);
+        Data.push_back(ImVec2(xmod, y));
+    }
+};
 
 class MyGui : public Application
 {
@@ -24,11 +46,11 @@ public:
         ImGui::Begin("my widget");
         
         if(ImGui::Button("Enable")){
-            q8.DO[0] = TTL_HIGH;    //M1 Fault/Ready
-            q8.AO[0] = 0;           //M1 motor cmd
+            q8.DO[0] = TTL_HIGH;
+            q8.AO[0] = 0;
 
-            q8.DO[2] = TTL_HIGH;    //M2 Fault/Ready
-            q8.AO[1] = 0;           //M2 motor cmd
+            q8.DO[2] = TTL_HIGH;
+            q8.AO[1] = 0;
         }
 
         ImGui::SameLine();
@@ -57,7 +79,7 @@ public:
             x_ref2 = 3 * std::cos(2 * PI * 0.25 * time().as_seconds() - toff.as_seconds());
         }
         else {
-            ImGui::DragDouble("X Ref Normal", &x_ref1, 0.1f, -3, 3);
+            ImGui::DragDouble("X Ref Normal", &x_ref1, 0.1f, 0, 3);
             ImGui::DragDouble("X Ref Shear", &x_ref2, 0.1f, -3, 3);
         }
 
@@ -75,9 +97,10 @@ public:
         double volts2 = amps2 * amp_gain_inv;
         q8.AO[1] = volts2;
 
+        //double curr1 = q8.AO[3];
+        //double curr2 = q8.AO[4];
+
         //ImGui::DragDouble("Motor Torque", &torque, 0.01f, -0.5, 0.5, "%.3f mNm");
-
-
         
         ImGui::PushItemWidth(100);
         ImGui::LabelText("normal motor encoder counts", "%d", q8.encoder[0]);
@@ -87,6 +110,25 @@ public:
         ImGui::LabelText("shear motor encoder position", "%f", q8.encoder.positions[1]);
         ImGui::LabelText("shear motor encoder velocity", "%f", q8.velocity.velocities[1]);
         ImGui::PopItemWidth();
+
+        t += ImGui::GetIO().DeltaTime;
+        pdata1.AddPoint(t, pos1* 1.0f);
+        pdata2.AddPoint(t, pos2* 1.0f);
+        std::cout << std::endl;
+        std::cout << pdata1.Data[0].x << " | " << pdata2.Data[0].x << " || " << t << std::endl;
+        std::cout << "pdata1/2" << pdata1.Data[0].y << " | " << pdata2.Data[0].y << " || pos1/2: " << pos1 << " | " << pos2 << std::endl;
+
+        ImGui::SliderFloat("History",&history,1,30,"%.1f s");
+        pdata1.Span = history;
+        pdata2.Span = history;
+
+        static ImPlotAxisFlags pt_axis = ImPlotAxisFlags_NoTickLabels;
+        ImPlot::SetNextPlotLimitsX(0, history, ImGuiCond_Always);
+        if (ImPlot::BeginPlot("##Rolling", NULL, NULL, ImVec2(-1,150), 0, 0, 0)) {
+            ImPlot::PlotLine("Motor 1 Encoder Position", &pdata1.Data[0].x, &pdata1.Data[0].y, pdata1.Data.size(), 0, 2 * sizeof(float));
+            ImPlot::PlotLine("Motor 2 Encoder Position", &pdata2.Data[0].x, &pdata2.Data[0].y, pdata2.Data.size(), 0, 2 * sizeof(float));
+            ImPlot::EndPlot();
+        }
 
         ImGui::End();
         q8.write_all();
@@ -107,6 +149,10 @@ public:
     const double amp_gain_inv = 10 / 1.35;  // V/A
     const double motor_kt_inv = 1.0 / 14.6; // A/mNm
 
+    RollingBuffer pdata1, pdata2;
+    float t = 0;
+    float history = 10.0f;
+
 };
 
 int main(int, char **)
@@ -114,3 +160,6 @@ int main(int, char **)
     MyGui gui;
     gui.run();
 }
+
+
+
