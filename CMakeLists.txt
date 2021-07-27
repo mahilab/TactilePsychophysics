@@ -75,9 +75,11 @@ target_link_libraries(gaurav PUBLIC cm syntacts)
 add_executable(kalman src/Apps/kalman.cpp)
 target_link_libraries(kalman PUBLIC mahi::gui mahi::robo)
 
-
 add_executable(PosControl2DOF src/Apps/runTwoMotorPositionControl.cpp)
 target_link_libraries(PosControl2DOF mahi::gui mahi::daq mahi::robo)
+
+add_executable(PosThreaded src/Apps/runTwoMotorPositionControl_threaded.cpp)
+target_link_libraries(PosThreaded mahi::gui mahi::daq mahi::robo mahi::util)
 
 add_executable(ForceControl2DOF src/Apps/runTwoMotorForceControl.cpp)
 target_link_libraries(ForceControl2DOF mahi::gui mahi::daq mahi::robo)

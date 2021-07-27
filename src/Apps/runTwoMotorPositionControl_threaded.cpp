@@ -2,11 +2,14 @@
 #include <Mahi/Daq.hpp>
 #include <Mahi/Gui.hpp>
 #include <Mahi/Robo.hpp>
+#include <thread>
+#include <mutex>
 
 using namespace mahi::gui;
 using namespace mahi::util;
 using namespace mahi::robo;
 using namespace mahi::daq;
+
 
 struct RollingBuffer {
     float Span;
@@ -26,22 +29,25 @@ struct RollingBuffer {
 class MyGui : public Application
 {
 public:
-     MyGui(): 
-        Application(500, 500, "MyGui")
+     MyGui(): Application(500, 500, "MyGui")
     {
         q8.enable();
         q8.encoder.units[0] = 2 * PI / (1024 * 35);
         q8.encoder.units[1] = 2 * PI / (1024 * 35);
+        control_thread = std::thread(&MyGui::control_loop, this);
 
     }
 
     ~MyGui(){
         q8.disable();
         q8.close();
+        stop = true;
+        control_thread.join();
     }
 
     void update() override
     {
+        std::lock_guard<std::mutex> lock(mtx);
         q8.read_all();
         ImGui::Begin("my widget");
         
@@ -83,24 +89,7 @@ public:
             ImGui::DragDouble("X Ref Shear", &x_ref2, 0.1f, -3, 3);
         }
 
-        double pos1 = q8.encoder.positions[0];
-        double vel1 = q8.velocity.velocities[0];
-        double torque1 = kp * (x_ref1 - pos1) + kd * (0 - vel1);
-        double amps1 = torque1 * motor_kt_inv;
-        double volts1 = amps1 * amp_gain_inv;
-        q8.AO[0] = volts1;
-
-        double pos2 = q8.encoder.positions[1];
-        double vel2 = q8.velocity.velocities[1];
-        double torque2 = kp * (x_ref2 - pos2) + kd * (0 - vel2);
-        double amps2 = torque2 * motor_kt_inv;
-        double volts2 = amps2 * amp_gain_inv;
-        q8.AO[1] = volts2;
-
-        //double curr1 = q8.AO[3];
-        //double curr2 = q8.AO[4];
-
-        //ImGui::DragDouble("Motor Torque", &torque, 0.01f, -0.5, 0.5, "%.3f mNm");
+                //ImGui::DragDouble("Motor Torque", &torque, 0.01f, -0.5, 0.5, "%.3f mNm");
         
         ImGui::PushItemWidth(100);
         ImGui::LabelText("normal motor encoder counts", "%d", q8.encoder[0]);
@@ -113,13 +102,6 @@ public:
         ImGui::LabelText("shear motor encoder velocity", "%f", q8.velocity.velocities[1]);
         ImGui::LabelText("shear motor translational commanded torque", "%f", torque2);
         ImGui::PopItemWidth();
-
-        t += ImGui::GetIO().DeltaTime;
-        pdata1.AddPoint(t, pos1* 1.0f);
-        pdata2.AddPoint(t, pos2* 1.0f);
-        std::cout << std::endl;
-        std::cout << pdata1.Data[0].x << " | " << pdata2.Data[0].x << " || " << t << std::endl;
-        std::cout << "pdata1/2" << pdata1.Data[0].y << " | " << pdata2.Data[0].y << " || pos1/2: " << pos1 << " | " << pos2 << std::endl;
 
         ImGui::SliderFloat("History",&history,1,30,"%.1f s");
         pdata1.Span = history;
@@ -137,6 +119,37 @@ public:
         q8.write_all();
     }
 
+    void control_loop() {
+        Timer timer = Timer(1000_Hz); 
+        Time t = Time::Zero;    
+        while(!stop) {
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                double pos1 = q8.encoder.positions[0];
+                double vel1 = q8.velocity.velocities[0];
+                torque1 = kp * (x_ref1 - pos1) + kd * (0 - vel1);
+                double amps1 = torque1 * motor_kt_inv;
+                double volts1 = amps1 * amp_gain_inv;
+                q8.AO[0] = volts1;
+
+                double pos2 = q8.encoder.positions[1];
+                double vel2 = q8.velocity.velocities[1];
+                torque2 = kp * (x_ref2 - pos2) + kd * (0 - vel2);
+                double amps2 = torque2 * motor_kt_inv;
+                double volts2 = amps2 * amp_gain_inv;
+                q8.AO[1] = volts2;
+
+                t += ImGui::GetIO().DeltaTime;
+                pdata1.AddPoint(t, pos1* 1.0f);
+                pdata2.AddPoint(t, pos2* 1.0f);
+
+                //double curr1 = q8.AO[3];
+                //double curr2 = q8.AO[4];
+            }
+            t = timer.wait();
+        }
+    }
+
     Q8Usb q8;
 
     double kp = 1;
@@ -145,6 +158,9 @@ public:
     //double torque = 0;
     double x_ref1 = 0;
     double x_ref2 = 0;
+
+    double torque1 = 0;
+    double torque2 = 0;
 
     bool followSine = false;
     Time toff = Time::Zero;
@@ -156,12 +172,17 @@ public:
     float t = 0;
     float history = 10.0f;
 
+    std::thread control_thread;
+    std::atomic_bool stop = false;
+    std::mutex mtx;
+
 };
 
 int main(int, char **)
 {
     MyGui gui;
     gui.run();
+    return 0;
 }
 
 
