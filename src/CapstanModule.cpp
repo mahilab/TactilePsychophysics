@@ -50,7 +50,7 @@ void CM::update(const Time &t) {
     //std::cout << m_ctrlValue << " "; // 
     m_ctrlValueFiltered  = m_ctrlFilter.update(m_ctrlValue);
     double ctrlValueUsed = m_params.filterControlValue ? m_ctrlValueFiltered : m_ctrlValue;
-    // software velocity estimation
+    // software velocity estimation ??????????? or should use q8 encoder velocity?
     auto vel = m_posDiff.update(getMotorPosition(), t);
     m_velocityFilter.update(vel);
     // control upate

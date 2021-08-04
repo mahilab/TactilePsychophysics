@@ -32,7 +32,7 @@ int main(int argc, char const *argv[])
     // initialize tangential capstan module
     cm_t->zeroPosition(); //makes wherever it is when the program starts the zero position
     cm_t->setControlMode(CM::ControlMode::Position);
-    cm_t->setVelocityMax(10, 1);               // what should limit be?
+    cm_t->setVelocityMax(100, 1); 
     cm_t->setPositionRange(-3,3); //(0, 65); //[mm]
     cm_t->setPositionGains(10,1);
     cm_t->enable();

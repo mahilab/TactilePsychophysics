@@ -2,6 +2,8 @@
 #include <Mahi/Daq.hpp>
 #include <Mahi/Gui.hpp>
 #include <Mahi/Robo.hpp>
+#include <thread>
+#include <mutex>
 #include <Mahi/Util.hpp>
 #include <Mahi/Robo/Mechatronics/AtiSensor.hpp>
 
@@ -9,6 +11,7 @@ using namespace mahi::gui;
 using namespace mahi::util;
 using namespace mahi::robo;
 using namespace mahi::daq;
+
 
 struct ScrollingBuffer {
     int MaxSize;
@@ -68,8 +71,7 @@ bool torque_limit_exceeded(double tor, bool has_torque_limit_, double torqueMax)
 class MyGui : public Application
 {
 public:
-     MyGui(): 
-        Application(500, 500, "MyGui")
+     MyGui(): Application(500, 500, "MyGui")
     {
         q8.enable();
         q8.encoder.units[0] = 2 * mahi::util::PI / (1024 * 35);
@@ -81,129 +83,74 @@ public:
         nano17.set_channels(&q8.AI[0], &q8.AI[1], &q8.AI[2], &q8.AI[3], &q8.AI[4], &q8.AI[5]);
         q8.read_all();
         nano17.zero();
+        control_thread = std::thread(&MyGui::control_loop, this);
+
     }
 
     ~MyGui(){
         q8.disable();
         q8.close();
+        stop = true;
+        control_thread.join();
     }
 
     void update() override
     {
         q8.read_all();
         ImGui::Begin("my widget", &open);
-        
-        if(ImGui::Button("Enable")){
-            q8.DO[0] = TTL_HIGH;
-            q8.AO[0] = 0;
 
-            q8.DO[2] = TTL_HIGH;
-            q8.AO[1] = 0;
+        {   std::lock_guard<std::mutex> lock(mtx);
+            
+            if(ImGui::Button("Enable")){
+                q8.DO[0] = TTL_HIGH;
+                q8.AO[0] = 0;
+
+                q8.DO[2] = TTL_HIGH;
+                q8.AO[1] = 0;
+            }
+
+            ImGui::SameLine();
+
+            if(ImGui::Button("Disable")) {
+                q8.DO[0] = TTL_LOW;
+                q8.AO[0] = 0;
+
+                q8.DO[2] = TTL_LOW;
+                q8.AO[1] = 0;
+            }
+
+            if(ImGui::Button("Zero Encoder")){
+                q8.encoder.zero(0);
+                q8.encoder.zero(1);
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Zero Force"))
+                nano17.zero();
+
+            ImGui::DragDouble("Kp1 Normal", &kp1, 1.0f, 0, 300);
+            ImGui::DragDouble("Kd1 Normal", &kd1, 0.1f, 0, 30);
+            ImGui::DragDouble("Force Kff Normal", &forceKff1, 0.001, -1, 1);
+
+            ImGui::DragDouble("Kp2 Shear", &kp2, 1.01f, 0, 300);
+            ImGui::DragDouble("Kd2 Shear", &kd2, 0.1f, 0, 30);
+            ImGui::DragDouble("Force Kff Shear", &forceKff2, 0.001, -1, 1);
+
+            if (ImGui::Checkbox("Follow Sine", &followSine))
+                toff = time();
+
+            if (followSine) {
+                f_ref1 = 3 * std::sin(2 * mahi::util::PI * 0.25 * time().as_seconds() - toff.as_seconds());
+                f_ref2 = 3 * std::cos(2 * mahi::util::PI * 0.25 * time().as_seconds() - toff.as_seconds());
+            }
+            else {
+                ImGui::DragDouble("F Ref Normal", &f_ref1, 0.1f, 0, 3);
+                ImGui::DragDouble("F Ref Shear", &f_ref2, 0.1f, -3, 3);
+            }
+
         }
 
-        ImGui::SameLine();
-
-        if(ImGui::Button("Disable")) {
-            q8.DO[0] = TTL_LOW;
-            q8.AO[0] = 0;
-
-            q8.DO[2] = TTL_LOW;
-            q8.AO[1] = 0;
-        }
-
-        if(ImGui::Button("Zero Encoder")){
-            q8.encoder.zero(0);
-            q8.encoder.zero(1);
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("Zero Force"))
-            nano17.zero();
-
-        ImGui::DragDouble("Kp1 Normal", &kp1, 0.001f, 0, 300);
-        ImGui::DragDouble("Kd1 Normal", &kd1, 0.0001f, 0, 30);
-        ImGui::DragDouble("Force Kff Normal", &forceKff1, 0.001, -1, 1);
-
-        ImGui::DragDouble("Kp2 Shear", &kp2, 0.01f, 0, 300);
-        ImGui::DragDouble("Kd2 Shear", &kd2, 0.001f, 0, 30);
-        ImGui::DragDouble("Force Kff Shear", &forceKff2, 0.001, -1, 1);
-
-        if (ImGui::Checkbox("Follow Sine", &followSine))
-            toff = time();
-
-        if (followSine) {
-            f_ref1 = 3 * std::sin(2 * mahi::util::PI * 0.25 * time().as_seconds() - toff.as_seconds());
-            f_ref2 = 3 * std::cos(2 * mahi::util::PI * 0.25 * time().as_seconds() - toff.as_seconds());
-        }
-        else {
-            ImGui::DragDouble("F Ref Normal", &f_ref1, 0.1f, 0, 3);
-            ImGui::DragDouble("F Ref Shear", &f_ref2, 0.1f, -3, 3);
-        }
-
-        // Motor 1 - Normal Force ////////////////////////////////////
-        double f_act1 = -nano17.get_force(Axis::AxisZ);
-        double v_enc1  = q8.velocity.velocities[0];
-        double v_spool1  = v_enc1 * gearRatio;
-        double p_enc1 = q8.encoder.positions[0];
-        double p_spool1 = p_enc1 * gearRatio;;
-
-        double torque1 = (kp1/1e6) * (f_ref1 - f_act1) + (kd1/1e6) * (0 - v_spool1);
-    
-        // ff term
-        double torque_ff1 = motorStallTorque * (forceKff1/1e6);
-        torque1 += torque_ff1 * f_ref1;
-        // prevent unwinding when controller wants to do less force the the weight of cm
-        //if (p_spool1 < -10 && torque1 < 0)
-        //    torque1 = 0;
-        //if (m_params.filterOutputValue)
-        //    torque1 = m_outputFilter.update(torque);
-        double amps1 = torque1 * motor_kt_inv; // divide in other code / m_params.motorTorqueConstant;
-        double volts1 = amps1 * amp_gain_inv; //  divide in other code / m_params.commandGain;
-        q8.AO[0] = volts1;
-        if(velocity_limit_exceeded(v_spool1, has_velocity_limit_, velocityMax) ||
-           force_limit_exceeded(f_act1, has_force_limit_, forceMax) || torque_limit_exceeded(torque1, has_torque_limit_, torqueMax)){
-               open = false;
-           }
-        
-        // Motor 2 - Shear Force ////////////////////////////////////////
-        double f_act2 = -nano17.get_force(Axis::AxisX);
-        double v_enc2  = q8.velocity.velocities[0];
-        double v_spool2  = v_enc2 * gearRatio;
-        double p_enc2 = q8.encoder.positions[0];
-        double p_spool2 = p_enc2 * gearRatio;;
-
-        double torque2 = (kp2/1e6) * (f_ref2 - f_act2) + (kd2/1e6) * (0 - v_spool2);
-        // ff term
-        double torque_ff2 = motorStallTorque * (forceKff2/1e6);
-        torque2 += torque_ff2 * f_ref2;
-        // prevent unwinding when controller wants to do less force the the weight of cm
-        if (p_spool2 < -10 && torque2 < 0)
-            torque2 = 0;
-        //if (m_params.filterOutputValue)
-        //    torque2 = m_outputFilter.update(torque);
-        double amps2 = torque2 * motor_kt_inv; // divide in other code / m_params.motorTorqueConstant;
-        double volts2 = amps2 * amp_gain_inv; //  divide in other code / m_params.commandGain;
-        q8.AO[1] = 0; //volts2;
-        if(velocity_limit_exceeded(v_spool2, has_velocity_limit_, velocityMax) ||
-           force_limit_exceeded(f_act2, has_force_limit_, forceMax) || torque_limit_exceeded(torque1, has_torque_limit_, torqueMax)){
-               open = false;
-           }
-
-        // Out of haptic plane - Orthogonal Force ////////////////////////
-        double f_act3 = -nano17.get_force(Axis::AxisY);
-        if(force_limit_exceeded(f_act3, has_force_limit_, forceMax)){
-               open = false;
-           }
-
-        // Actual Current of Motors //////////////////////////////////////
-        //double curr1 = q8.AO[3];
-        //double curr2 = q8.AO[4];
-
-        // GUI Data Output ////////////////////////////////////////////////
-
-        //ImGui::DragDouble("Motor Torque", &torque, 0.01f, -0.5, 0.5, "%.3f mNm");
-        
         ImGui::PushItemWidth(100);
         ImGui::Text("Motor 1 - Normal Dir - Encoder Info");
         ImGui::LabelText("normal motor encoder counts", "%d", q8.encoder[0]);
@@ -261,7 +208,93 @@ public:
         }
     }
 
-    bool open = true;
+    void control_loop() {
+        Timer timer(hertz(1000));
+        Time t = Time::Zero;    
+        while(!stop) {
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                // Motor 1 - Normal Force ////////////////////////////////////
+                f_act1 = -nano17.get_force(Axis::AxisZ);
+                v_enc1  = q8.velocity.velocities[0];
+                p_enc1 = q8.encoder.positions[0];
+                //double curr1 = q8.AO[3];
+            }
+
+            v_spool1  = v_enc1 * gearRatio;
+            p_spool1 = p_enc1 * gearRatio;
+
+            torque1 = -((kp1/1e6) * (f_ref1 - f_act1) + (kd1/1e6) * (0 - v_spool1));
+        
+            // ff term
+            torque_ff1 = motorStallTorque * (forceKff1/1e6);
+            torque1 += torque_ff1 * f_ref1;
+            // prevent unwinding when controller wants to do less force the the weight of cm
+            //if (p_spool1 < -10 && torque1 < 0)
+            //    torque1 = 0;
+            //if (m_params.filterOutputValue)
+            //    torque1 = m_outputFilter.update(torque);
+            amps1 = torque1 * motor_kt_inv; // divide in other code / m_params.motorTorqueConstant;
+            volts1 = amps1 * amp_gain_inv; //  divide in other code / m_params.commandGain;
+            
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                q8.AO[0] = volts1;
+            }
+
+
+            if(velocity_limit_exceeded(v_spool1, has_velocity_limit_, velocityMax) ||
+            force_limit_exceeded(f_act1, has_force_limit_, forceMax) || torque_limit_exceeded(torque1, has_torque_limit_, torqueMax)){
+                open = false;
+            }
+
+            // Motor 2 - Shear Force ////////////////////////////////////////
+            {    
+                std::lock_guard<std::mutex> lock(mtx);
+                f_act2 = -nano17.get_force(Axis::AxisX);
+                v_enc2  = q8.velocity.velocities[0];
+                p_enc2 = q8.encoder.positions[0];
+                //double curr2 = q8.AO[4];
+            }
+
+            v_spool2  = v_enc2 * gearRatio;
+            p_spool2 = p_enc2 * gearRatio;
+
+            torque2 = -((kp2/1e6) * (f_ref2 - f_act2) + (kd2/1e6) * (0 - v_spool2));
+            // ff term
+            torque_ff2 = motorStallTorque * (forceKff2/1e6);
+            torque2 += torque_ff2 * f_ref2;
+            // prevent unwinding when controller wants to do less force the the weight of cm
+            if (p_spool2 < -10 && torque2 < 0)
+                torque2 = 0;
+            //if (m_params.filterOutputValue)
+            //    torque2 = m_outputFilter.update(torque);
+            amps2 = torque2 * motor_kt_inv; // divide in other code / m_params.motorTorqueConstant;
+            volts2 = amps2 * amp_gain_inv; //  divide in other code / m_params.commandGain;
+            
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                q8.AO[1] = volts2;
+            }
+
+            if(velocity_limit_exceeded(v_spool2, has_velocity_limit_, velocityMax) ||
+            force_limit_exceeded(f_act2, has_force_limit_, forceMax) || torque_limit_exceeded(torque1, has_torque_limit_, torqueMax)){
+                open = false;
+            }
+
+            // Out of haptic plane - Orthogonal Force ////////////////////////
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                f_act3 = -nano17.get_force(Axis::AxisY);
+            }
+            if(force_limit_exceeded(f_act3, has_force_limit_, forceMax)){
+                open = false;
+            }
+            t = timer.wait();
+        }
+    }
+
+ bool open = true;
 
     Q8Usb q8;
     AtiSensor nano17;
@@ -278,24 +311,51 @@ public:
     double f_ref1 = 0;
     double f_ref2 = 0;
 
+    double f_act1 = 0;
+    double f_act2 = 0;
+    double f_act3 = 0;
+
+    double v_enc1  = 0;
+    double v_spool1  = 0;
+    double p_enc1 = 0;
+    double p_spool1 = 0;
+    double torque_ff1 = 0;
+    double torque1 = 0;
+    double volts1 = 0;
+    double amps1 = 0;
+
+    double v_enc2  = 0;
+    double v_spool2  = 0;
+    double p_enc2 = 0;
+    double p_spool2 = 0;
+    double torque_ff2 = 0;
+    double torque2 = 0;
+    double volts2 = 0;
+    double amps2 = 0;
+
+
     bool followSine = false;
     Time toff = Time::Zero;
 
     const double amp_gain_inv = 10 / 1.35;  // V/A
     const double motor_kt_inv = 1.0 / 0.0146; // A/Nm
-    double motorStallTorque    = 0.0197;        // [Nm]
+    double motorStallTorque    = 0.0197;    // [Nm]
     double gearRatio           = 0.332*25.4*mahi::util::PI/180.0;    // [mm/deg] from spool pitch diameter (.332") and capstan radius if applicable, converted to mm
 
     bool   has_velocity_limit_ = 1;
     bool   has_force_limit_   = 1;
     bool   has_torque_limit_   = 1;
     double velocityMax         = 100; // [mm/s] ????
-    double forceMax           = 20; // [N] ?????
-    double torqueMax          = 20;
+    double forceMax           = 20; // [N]
+    double torqueMax          = 1; //[Nm]
 
     ScrollingBuffer fdata1, fdata2, fdata3;
     float t = 0;
     float history = 10.0f;
+
+    std::thread control_thread;
+    std::atomic_bool stop = false;
+    std::mutex mtx;
 
 };
 
@@ -303,6 +363,7 @@ int main(int, char **)
 {
     MyGui gui;
     gui.run();
+    return 0;
 }
 
 

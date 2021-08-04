@@ -68,8 +68,9 @@ public:
             q8.encoder.zero(1);
         }
 
-        ImGui::DragDouble("Kp", &kp, 0.01f, 0, 10);
-        ImGui::DragDouble("Kd", &kd, 0.001f, 0, 1);
+        ImGui::DragDouble("Kp", &kp, 0.00001f, 0, 2);
+        ImGui::DragDouble("Kd", &kd, 0.000001f, 0, 0.2);
+    
 
         if (ImGui::Checkbox("Follow Sine", &followSine))
             toff = time();
@@ -85,14 +86,14 @@ public:
 
         double pos1 = q8.encoder.positions[0];
         double vel1 = q8.velocity.velocities[0];
-        double torque1 = kp * (x_ref1 - pos1) + kd * (0 - vel1);
+        double torque1 = (kp/1e3) * (x_ref1 - pos1) + (kd/1e3) * (0 - vel1);
         double amps1 = torque1 * motor_kt_inv;
         double volts1 = amps1 * amp_gain_inv;
         q8.AO[0] = volts1;
 
         double pos2 = q8.encoder.positions[1];
         double vel2 = q8.velocity.velocities[1];
-        double torque2 = kp * (x_ref2 - pos2) + kd * (0 - vel2);
+        double torque2 = (kp/1e3) * (x_ref2 - pos2) + (kd/1e3) * (0 - vel2);
         double amps2 = torque2 * motor_kt_inv;
         double volts2 = amps2 * amp_gain_inv;
         q8.AO[1] = volts2;
@@ -150,7 +151,7 @@ public:
     Time toff = Time::Zero;
 
     const double amp_gain_inv = 10 / 1.35;  // V/A
-    const double motor_kt_inv = 1.0 / 14.6; // A/mNm
+    const double motor_kt_inv = 1.0 / 0.0146; // A/mNm
 
     RollingBuffer pdata1, pdata2;
     float t = 0;

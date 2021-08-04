@@ -4,6 +4,7 @@
 #include <Mahi/Robo.hpp>
 #include <thread>
 #include <mutex>
+#include <Mahi/Util.hpp>
 
 using namespace mahi::gui;
 using namespace mahi::util;
@@ -47,50 +48,51 @@ public:
 
     void update() override
     {
-        std::lock_guard<std::mutex> lock(mtx);
         q8.read_all();
         ImGui::Begin("my widget");
-        
-        if(ImGui::Button("Enable")){
-            q8.DO[0] = TTL_HIGH;
-            q8.AO[0] = 0;
 
-            q8.DO[2] = TTL_HIGH;
-            q8.AO[1] = 0;
+        {   std::lock_guard<std::mutex> lock(mtx);
+            
+            if(ImGui::Button("Enable")){
+                q8.DO[0] = TTL_HIGH;
+                q8.AO[0] = 0;
+
+                q8.DO[2] = TTL_HIGH;
+                q8.AO[1] = 0;
+            }
+
+            ImGui::SameLine();
+
+            if(ImGui::Button("Disable")) {
+                q8.DO[0] = TTL_LOW;
+                q8.AO[0] = 0;
+
+                q8.DO[2] = TTL_LOW;
+                q8.AO[1] = 0;
+            }
+
+            if(ImGui::Button("Zero Encoder")){
+                q8.encoder.zero(0);
+                q8.encoder.zero(1);
+            }
+
+            ImGui::DragDouble("Kp", &kp, 0.01f, 0, 2.0);
+            ImGui::DragDouble("Kd", &kd, 0.001f, 0, 0.2);
+
+            if (ImGui::Checkbox("Follow Sine", &followSine))
+                toff = time();
+
+            if (followSine) {
+                x_ref1 = 3 * std::sin(2 * PI * 0.25 * time().as_seconds() - toff.as_seconds());
+                x_ref2 = 3 * std::cos(2 * PI * 0.25 * time().as_seconds() - toff.as_seconds());
+            }
+            else {
+                ImGui::DragDouble("X Ref Normal", &x_ref1, 0.1f, 0, 3);
+                ImGui::DragDouble("X Ref Shear", &x_ref2, 0.1f, -3, 3);
+            }
+
         }
 
-        ImGui::SameLine();
-
-        if(ImGui::Button("Disable")) {
-            q8.DO[0] = TTL_LOW;
-            q8.AO[0] = 0;
-
-            q8.DO[2] = TTL_LOW;
-            q8.AO[1] = 0;
-        }
-
-        if(ImGui::Button("Zero Encoder")){
-            q8.encoder.zero(0);
-            q8.encoder.zero(1);
-        }
-
-        ImGui::DragDouble("Kp", &kp, 0.01f, 0, 10);
-        ImGui::DragDouble("Kd", &kd, 0.001f, 0, 1);
-
-        if (ImGui::Checkbox("Follow Sine", &followSine))
-            toff = time();
-
-        if (followSine) {
-            x_ref1 = 3 * std::sin(2 * PI * 0.25 * time().as_seconds() - toff.as_seconds());
-            x_ref2 = 3 * std::cos(2 * PI * 0.25 * time().as_seconds() - toff.as_seconds());
-        }
-        else {
-            ImGui::DragDouble("X Ref Normal", &x_ref1, 0.1f, 0, 3);
-            ImGui::DragDouble("X Ref Shear", &x_ref2, 0.1f, -3, 3);
-        }
-
-                //ImGui::DragDouble("Motor Torque", &torque, 0.01f, -0.5, 0.5, "%.3f mNm");
-        
         ImGui::PushItemWidth(100);
         ImGui::LabelText("normal motor encoder counts", "%d", q8.encoder[0]);
         ImGui::LabelText("normal motor encoder position", "%f", q8.encoder.positions[0]);
@@ -120,32 +122,38 @@ public:
     }
 
     void control_loop() {
-        Timer timer = Timer(1000_Hz); 
+        Timer timer(hertz(1000)); //= Timer(1000_Hz); 
         Time t = Time::Zero;    
         while(!stop) {
-            {
-                std::lock_guard<std::mutex> lock(mtx);
-                double pos1 = q8.encoder.positions[0];
-                double vel1 = q8.velocity.velocities[0];
-                torque1 = kp * (x_ref1 - pos1) + kd * (0 - vel1);
-                double amps1 = torque1 * motor_kt_inv;
-                double volts1 = amps1 * amp_gain_inv;
-                q8.AO[0] = volts1;
+                {
+                    std::lock_guard<std::mutex> lock(mtx);
+                    pos1 = q8.encoder.positions[0];
+                    vel1 = q8.velocity.velocities[0];
 
-                double pos2 = q8.encoder.positions[1];
-                double vel2 = q8.velocity.velocities[1];
-                torque2 = kp * (x_ref2 - pos2) + kd * (0 - vel2);
+                    pos2 = q8.encoder.positions[1];
+                    vel2 = q8.velocity.velocities[1];
+                }
+
+                torque1 = (kp/1e3) * (x_ref1 - pos1) + (kd/1e3) * (0 - vel1);
+                double amps1 = torque1 * motor_kt_inv;
+                double volts1 = amps1 * amp_gain_inv;            
+                
+                torque2 = (kp/1e3) * (x_ref2 - pos2) + (kd/1e3) * (0 - vel2);
                 double amps2 = torque2 * motor_kt_inv;
                 double volts2 = amps2 * amp_gain_inv;
-                q8.AO[1] = volts2;
-
-                t += ImGui::GetIO().DeltaTime;
-                pdata1.AddPoint(t, pos1* 1.0f);
-                pdata2.AddPoint(t, pos2* 1.0f);
-
-                //double curr1 = q8.AO[3];
-                //double curr2 = q8.AO[4];
-            }
+                
+                {
+                    std::lock_guard<std::mutex> lock(mtx);
+                    q8.AO[0] = volts1;
+                    q8.AO[1] = volts2;
+                    //double curr1 = q8.AO[3];
+                    //double curr2 = q8.AO[4];
+                }
+                
+                //t += ImGui::GetIO().DeltaTime;
+                pdata1.AddPoint(t.as_seconds(), pos1* 1.0f);
+                pdata2.AddPoint(t.as_seconds(), pos2* 1.0f);
+                
             t = timer.wait();
         }
     }
@@ -153,7 +161,12 @@ public:
     Q8Usb q8;
 
     double kp = 1;
-    double kd = 0.1;
+    double kd = .1;
+
+    double pos1 = 0;
+    double pos2 = 0;
+    double vel1 = 0;
+    double vel2 = 0;
 
     //double torque = 0;
     double x_ref1 = 0;
@@ -166,7 +179,7 @@ public:
     Time toff = Time::Zero;
 
     const double amp_gain_inv = 10 / 1.35;  // V/A
-    const double motor_kt_inv = 1.0 / 14.6; // A/mNm
+    const double motor_kt_inv = 1.0 / 0.0146; // A/mNm
 
     RollingBuffer pdata1, pdata2;
     float t = 0;
