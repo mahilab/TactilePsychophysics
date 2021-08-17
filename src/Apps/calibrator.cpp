@@ -1,4 +1,5 @@
 #include <Mahi/Robo/Mechatronics/AtiSensor.hpp>
+#include <Mahi/Robo/Mechatronics/AIForceSensor.hpp>
 #include <Mahi/Util/Logging/Log.hpp>
 
 #include "CMGui.hpp"
@@ -307,14 +308,19 @@ public:
             MahiLogger->set_max_severity(Debug);
         }
 
+        AIForceSensor forcesensor;
+        forcesensor.set_channel(&m_hub.daq.AI[7]);
+        forcesensor.set_force_calibration(0,1,0);
+
         AtiSensor nano17;
         nano17.load_calibration("FT06833.cal");
         nano17.set_channels(&m_hub.daq.AI[0], &m_hub.daq.AI[1], &m_hub.daq.AI[2], &m_hub.daq.AI[3],
                             &m_hub.daq.AI[4], &m_hub.daq.AI[5]);
 
         CM::Io io = {DOHandle(m_hub.daq.DO, 7),           DIHandle(m_hub.daq.DI, 7),
-                        AOHandle(m_hub.daq.AO, 7),           AIHandle(m_hub.daq.AI, 7),
-                        EncoderHandle(m_hub.daq.encoder, 7), &m_hub.daq.velocity[7],
+                        AOHandle(m_hub.daq.AO, 7),        EncoderHandle(m_hub.daq.encoder, 7), 
+                        forcesensor,                      Axis::AxisX,
+                        &m_hub.daq.velocity[7],
                         &m_hub.daq.velocity.velocities[7]};
         
         // set range of force channel

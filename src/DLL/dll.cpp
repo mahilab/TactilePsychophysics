@@ -103,8 +103,8 @@ int queryDaq(CMHub::Query& q) {
 // TASBI DEVICE API
 //=============================================================================
 
-int createDevice(int id, int enable, int fault, int command, int force, int encoder) {
-    return g_hub.createDevice(id, enable, fault, command, force, encoder);
+int createDevice(int id, int enable, int fault, int command, int encoder, int force, std::vector<double> forceCal) {
+    return g_hub.createDevice(id, enable, fault, command, encoder, force, forceCal);
 }
 
 int destroyDevice(int id) {

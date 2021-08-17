@@ -2,6 +2,8 @@
 
 #include <Mahi/Daq.hpp>
 #include <Mahi/Robo/Control/PdController.hpp>
+#include <Mahi/Robo/Mechatronics/ForceSensor.hpp>
+#include <Mahi/Robo/Mechatronics/AtiSensor.hpp>
 #include <Mahi/Robo/Mechatronics/CurrentAmplifier.hpp>
 #include <Mahi/Robo/Mechatronics/DcMotor.hpp>
 #include <Mahi/Util.hpp>
@@ -28,6 +30,9 @@ using mahi::daq::DIHandle;
 using mahi::daq::DOHandle;
 using mahi::daq::EncoderHandle;
 using mahi::robo::PdController;
+using mahi::robo::ForceSensor;
+using mahi::robo::AtiSensor;
+using mahi::robo::Axis;
 using mahi::util::Butterworth;
 using mahi::util::Time;
 using mahi::util::Differentiator;
@@ -70,8 +75,9 @@ public:
         DOHandle      enableCh;   //< digital output that enables motor controller
         DIHandle      faultCh;    //< digital input that detects motor controller fault
         AOHandle      commandCh;  //< analog output that commands motor controller
-        AIHandle      forceCh;    //< analog input that measures force sensor
         EncoderHandle encoderCh;  //< encoder input for motor
+        ForceSensor&  forceCh;    //< force sensor, either analog input or ati
+        Axis          forceaxis;  //< The ati axis relevant for this dof, defaults to X in case of an AI force sensor
         const double *cps;        //< pointer to encoder counts per second value
         const double *vel;        //< pointer to encoder deg/s value
     };
@@ -85,23 +91,24 @@ public:
         double motorTorqueConstant = 0.0146;        // [Nm/A] make 14.6 [mNm/A]???? need to adjust kp/kd, maybe why they're multiplied by 10e3 in tasbi code for gui
         double motorNominalSpeed   = 31320.0;        // [deg/s]
         double motorMaxSpeed       = 46440.0;        // [deg/s]
-        double gearRatio           = 0.332*25.4*mahi::util::PI/180.0;    // [mm/deg] from spool pitch diameter (.332") and capstan radius if applicable, converted to mm
+        double gearRatio           = 0.332*25.4*mahi::util::PI/360.0;    // [mm/deg] from spool pitch diameter (.332") and capstan radius if applicable, converted to mm
         double degPerCount         = 2 * mahi::util::PI / (1024 * 35); //360.0 / (1024.0 * (4554.0 / 130.0));  // [deg/count] for motor shaft, including gearbox if applicable
         double commandGain         = 1.35 / 10.0;   // [A/V]
+        bool commandSignFlip       = 1;
         double senseGain           = 0.261 / 4.0;    // [A/V] ?????
         bool   has_velocity_limit_ = 1;
         bool   has_torque_limit_   = 1;
-        double velocityMax         = 100; // [mm/s] ????
-        double torqueMax           = 1; // [Nm]
-        double positionMin         = -3.0;              // [deg] ????
-        double positionMax         = 3.0;            // [deg] ????
-        double positionKp          = 10.0; //?????
-        double positionKd          = 1.0; //????
+        double velocityMax         = 30; // [mm/s] ????
+        double torqueMax           = 0.75; // [Nm]
+        double positionMin         = -5.5; // [deg] ???? 
+        double positionMax         = 5.5;  // [deg] ????
+        double positionKp          = 1.0/1e3; //?????
+        double positionKd          = 0.1/1e3; //????
         double forceMin            = 0;            // [N] ?????
         double forceMax            = 20;             // [N] ?????
-        double forceKp             = 500.0;
+        double forceKp             = 500.0/1e6;
         double forceKi             = 0;
-        double forceKd             = 15.0;
+        double forceKd             = 15.0/1e6;
         double forceKff            = 0;
         double forceCalibA         = 2.5;
         double forceCalibB         = -10;
@@ -170,6 +177,10 @@ public:
     Query getQuery(bool immediate = false);
     /// Get most recent 10k Queries. WILL TEMPORAIRLY STALL CONTROLLER (thread safe)
     void dumpQueries(const std::string& filepath);
+    /// 
+    void setCommandSign(bool commandSignFlip);
+    /// Zero force sensor (thread safe)
+    void zeroForce();
     /// Zero position to current value (thread safe)
     void zeroPosition();
     /// Zero position to exact value(thread safe)
@@ -255,7 +266,11 @@ public:
     /// Ensures the velocity does not exceed the velocity limit
     bool velocity_limit_exceeded();
     /// Ensures the torque does not exceed the torque limit
-    bool torque_limit_exceeded(double tor);
+    bool torque_limit_exceeded();
+    /// Ensures the torque and velocity do not exceed acceptable limits
+    void limits_exceeded();
+    /// Convert control reference value for to the normalized value [-1 to 1] for torque or [0 to 1] for position/force 
+    virtual double scaleRefToCtrlValue(double ref);
     /// Scales the current control value into the units corresponding to the mode.
     virtual double scaleCtrlValue(double ctrlValue, ControlMode mode);
     /// Called when CM is enabled (thread safe)

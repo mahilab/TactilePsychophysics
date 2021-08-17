@@ -41,8 +41,10 @@ public:
     CMHub(int Fs = 1000);
     /// Destructor
     ~CMHub();
-    /// Initializes a base CM device to this Daq
-    int createDevice(int id, int enable, int fault, int command, int force, int encoder);
+    /// Initializes a base CM device to this Daq with a AI force sensor
+    int createDevice(int id, int enable, int fault, int command, int encoder, int force, std::vector<double> forceCal);
+    /// Initializes a base CM device to this Daq with an ati force sensor
+    int createDevice(int id, int enable, int fault, int command, int encoder, Axis forceAxis, const std::string& filepath, std::vector<int> ati_chan);
     /// Adds an exsiting (and possibly derived) CM device to this Daq
     int addDevice(int id, std::shared_ptr<CM> cm);
     /// Destroys a CM device on this Daq

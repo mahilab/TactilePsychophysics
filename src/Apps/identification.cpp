@@ -1,5 +1,6 @@
 #include <Mahi/Gui.hpp>
 #include <Mahi/Util.hpp>
+#include <Mahi/Robo.hpp>
 #include <stb_image.h>
 #include <syntacts>
 #include <algorithm>
@@ -9,6 +10,7 @@
 
 using namespace mahi::gui;
 using namespace mahi::util;
+using namespace mahi::robo;
 
 bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height);
 
@@ -21,7 +23,7 @@ public:
 
     IdentificationGui(int subject) : Application(500,500,"CM Perceptual Study (Subject " + std::to_string(subject) + ")" ,false), m_subject(subject)
     { 
-        m_hub.createDevice(1,7,7,7,7,7);
+        m_hub.createDevice(1, 7, 7, 7, 7, 7, {0,1,0});
         m_cm = m_hub.getDevice(1);
 
         std::string calibration_file = "/cm2/calibs/subject_" + std::to_string(m_subject) + ".json";
@@ -523,7 +525,7 @@ public:
 
     // CM
     CMHub m_hub;
-    std::shared_ptr<CM> m_cm;  
+    std::shared_ptr<CM> m_cm;
 
     // Syntacts
     tact::Session m_session;

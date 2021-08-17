@@ -1,8 +1,10 @@
 #include "CMHub.hpp"
 #include <Mahi/Util.hpp>
+#include <Mahi/Robo.hpp>
 
 using namespace mahi::daq;
 using namespace mahi::util;
+using namespace mahi::robo;
 
 #define TASBI_THREAD_SAFE
 #ifdef TASBI_THREAD_SAFE
@@ -24,36 +26,62 @@ CMHub::CMHub(int Fs) :
 
 CMHub::~CMHub() {
     if (m_running)
-        stop();
+        stop();    
 }
 
-int CMHub::createDevice(int id, int enable, int fault, int command, int force, int encoder) {
+int CMHub::createDevice(int id, int enable, int fault, int command, int encoder, int force, std::vector<double> forceCal) {
     TASBI_DAQ_LOCK
     if (m_devices.count(id)) {
         LOG(Info) << "CM " << m_devices[id]->name() << " already initialized.";
         return ErrorCode::InvalidID;
     }
     else {
+        AIForceSensor* aisensor = new AIForceSensor();
+        aisensor->set_force_calibration(forceCal[0], forceCal[1], forceCal[2]);
+        aisensor->set_channel(&daq.AI[force]);
+
         CM::Io io = {
             DOHandle(daq.DO,enable),
             DIHandle(daq.DI,fault),
             AOHandle(daq.AO,command),
-            AIHandle(daq.AI,force), // replace with proposed structure below
             EncoderHandle(daq.encoder,encoder),
+            *aisensor,
+            Axis::AxisX,
             &daq.velocity[encoder],
             &daq.velocity.velocities[encoder]
-            //if (istype(force)=char) { // if ATI force direction
-                //add if statement to sort ati axis to the correct notation below, maybe in a new function with options for custom force transformations
-                // m_ati.get_force(Axis::AxisZ)
-            //}
-            //else{
-                //AIHandle(daq.AI,force)
-            //};
         };
         m_devices[id] = std::make_shared<CM>( "cm_" + std::to_string(id), io, CM::Params());
     }
     return ErrorCode::NoError;
 }
+
+int CMHub::createDevice(int id, int enable, int fault, int command, int encoder, Axis forceAxis, const std::string& filepath, std::vector<int> ati_chan) {
+    TASBI_DAQ_LOCK
+    if (m_devices.count(id)) {
+        LOG(Info) << "CM " << m_devices[id]->name() << " already initialized.";
+        return ErrorCode::InvalidID;
+    }
+    else {
+        AtiSensor* ati = new AtiSensor();
+        ati->set_channels(&daq.AI[ati_chan[0]], &daq.AI[ati_chan[1]], &daq.AI[ati_chan[2]], &daq.AI[ati_chan[3]], &daq.AI[ati_chan[4]], &daq.AI[ati_chan[5]]);
+        ati->load_calibration(filepath);
+
+        CM::Io io = {
+            DOHandle(daq.DO,enable),
+            DIHandle(daq.DI,fault),
+            AOHandle(daq.AO,command),
+            EncoderHandle(daq.encoder,encoder),
+            *ati,
+            forceAxis,
+            &daq.velocity[encoder],
+            &daq.velocity.velocities[encoder]
+        };
+
+        m_devices[id] = std::make_shared<CM>( "cm_" + std::to_string(id), io, CM::Params());
+    }
+    return ErrorCode::NoError;
+}
+
 
 int CMHub::addDevice(int id, std::shared_ptr<CM> cm) {
     TASBI_DAQ_LOCK

@@ -38,6 +38,8 @@ CM::~CM() {
     if (is_enabled())
         disable();
     LOG(Info) << "Destroyed CM " << name() << ".";
+
+    if (&m_io.forceCh != nullptr) delete &m_io.forceCh;
 }
 
 //=============================================================================
@@ -102,6 +104,7 @@ bool CM::exportParams(const std::string& filepath) {
     j["gearRatio"]           = params.gearRatio;
     j["degPerCount"]         = params.degPerCount;
     j["commandGain"]         = params.commandGain;
+    j["commandSignFlip"]     = params.commandSignFlip;
     j["senseGain"]           = params.senseGain;
     j["has_velocity_limit_"] = params.has_velocity_limit_;
     j["has_torque_limit_"]   = params.has_torque_limit_;
@@ -153,6 +156,7 @@ bool CM::importParams(const std::string& filepath) {
             params.gearRatio          = j["gearRatio"].get<double>();
             params.degPerCount        = j["degPerCount"].get<double>();
             params.commandGain        = j["commandGain"].get<double>();
+            params.commandSignFlip    = j["commandSignFlip"].get<bool>();
             params.senseGain          = j["senseGain"].get<double>();
             params.has_velocity_limit_= j["has_velocity_limit_"].get<bool>();
             params.has_torque_limit_  = j["has_torque_limit_"].get<bool>();
@@ -255,6 +259,12 @@ void CM::dumpQueries(const std::string& filepath) {
     }
 }
 
+void CM::zeroForce(){
+    TASBI_LOCK
+    m_io.forceCh.zero();
+    std::cout << "sono qui" << std::endl;
+}
+
 void CM::zeroPosition() {
     TASBI_LOCK
     if (m_io.encoderCh.zero())
@@ -276,21 +286,27 @@ void CM::setVelocityMax(double vel, bool has_limit_) {
     TASBI_LOCK
     m_params.velocityMax = vel;
     m_params.has_velocity_limit_ = has_limit_;
-    LOG(Info) << "Set CM " << name() << " velocity maximum to " << vel << " what units?? .";
+    LOG(Info) << "Set CM " << name() << " velocity maximum to " << vel << " deg/s.";
 }
 
-void CM::setTorqueMax(double tor, bool has_limit_) {
+void CM::setTorqueMax(double torque, bool has_limit_) {
     TASBI_LOCK
-    m_params.torqueMax = tor;
     m_params.has_torque_limit_ = has_limit_;
-    LOG(Info) << "Set CM " << name() << " torque maximum to " << tor << " Nm .";
+    if (abs(torque)>m_params.motorStallTorque){
+        m_params.torqueMax = torque*m_params.motorStallTorque/abs(torque); // tor/abs(tor) to maintain sign of output
+        LOG(Info) << "Torque limit of " << torque << " Nm is higher than motor stall torque, " << m_params.motorStallTorque << " Nm for CM " << name() << ". Torque max set at stall torque.";
+    }
+    else{
+        m_params.torqueMax = torque;
+        LOG(Info) << "Set CM " << name() << " torque maximum to " << torque << " Nm .";
+    }
 }
 
 void CM::setPositionRange(double min, double max) {
     TASBI_LOCK
     m_params.positionMin = min;
     m_params.positionMax = max;
-    LOG(Info) << "Set CM " << name() << " position range to [ " << min << " , " << max << " ].";
+    LOG(Info) << "Set CM " << name() << " position range to [ " << min << " , " << max << " mm].";
 }
 
 void CM::setPositionGains(double kp, double kd) {
@@ -306,7 +322,7 @@ void CM::setForceRange(double min, double max) {
     TASBI_LOCK
     m_params.forceMin = min;
     m_params.forceMax = max;
-    LOG(Info) << "Set CM " << name() << " force range to [ " << min << " , " << max << " ].";
+    LOG(Info) << "Set CM " << name() << " force range to [ " << min << " , " << max << " N].";
 }
 
 void CM::setForceGains(double kp, double ki, double kd) {
@@ -358,10 +374,12 @@ void CM::setControlMode(CM::ControlMode mode) {
 
 void CM::setControlValue(double value) {
     TASBI_LOCK
-    if (m_ctrlMode == ControlMode::Torque)
+    if (m_ctrlMode == ControlMode::Torque){
         m_ctrlValue = clamp(value, -1.0, 1.0);
-    else
+    }
+    else{
         m_ctrlValue = clamp(value, 0.0, 1.0);
+    }
     m_feedRate.tick();
 }
 
@@ -431,14 +449,18 @@ void CM::controlUpdate(double ctrlValue, Time t) {
 void CM::setMotorTorque(double torque) {
     if (m_params.filterOutputValue)
         torque = m_outputFilter.update(torque);
-    double amps = torque / m_params.motorTorqueConstant;
+    double commandSign = m_params.commandSignFlip ? -1.0 : 1.0;
+    double amps = torque*commandSign / m_params.motorTorqueConstant;
     double volts = amps / m_params.commandGain;
+    std::cout << "device:  " << name() << " volts:  " << volts << std::endl;
     m_io.commandCh.set_volts(volts);
 }
 
 void CM::controlMotorPosition(double degrees, Time t) {
     double motor_torque = m_positionPd.calculate(degrees, getMotorPosition(), 0, getMotorVelocity());
+    //std::cout << "motor_torque: " << motor_torque << "degrees: " << degrees << "getMotorPosition(): " << getMotorPosition() << "getMotorVelocity(): " << getMotorVelocity() << std::endl;
     setMotorTorque(motor_torque);
+    //std::cout << "motor_torque" << motor_torque << std::endl;
 }
 
 void CM::controlSpoolPosition(double degrees, Time t) {
@@ -487,7 +509,8 @@ double CM::getEncoderCountsPerSecond() {
 
 double CM::getMotorTorqueCommand() {
     double volts = m_io.commandCh.get_volts();
-    double amps = volts * m_params.commandGain;
+    double commandSign = m_params.commandSignFlip ? -1.0 : 1.0;
+    double amps = volts * m_params.commandGain*commandSign;
     return amps * m_params.motorTorqueConstant;
 }
 
@@ -500,7 +523,7 @@ double CM::getSpoolPosition() { return getMotorPosition() * m_params.gearRatio; 
 double CM::getSpoolVelocity() { return getMotorVelocity() * m_params.gearRatio; }
 
 double CM::getForceRaw(bool filtered) {
-    double raw = m_io.forceCh.get_volts();
+    double raw = m_io.forceCh.get_force(m_io.forceaxis);
     if (!filtered)
         return raw;
     switch(m_forceFiltMode) {
@@ -535,24 +558,57 @@ double CM::forceToPosition(double force) {
 
 bool CM::velocity_limit_exceeded() {
     double m_velocity = getMotorVelocity();
-    std::cout << m_velocity << " ";
+    //std::cout << m_velocity << " ";
     bool exceeded = false;
     if (m_params.has_velocity_limit_ && abs(m_velocity) > m_params.velocityMax) {
-        LOG(Warning) << "Capstan Module " << name() << " velocity exceeded the velocity limit " << m_params.velocityMax << " with a value of " << m_velocity;
+        LOG(Warning) << "Capstan Module " << name() << " velocity exceeded the velocity limit " << m_params.velocityMax << " deg/s with a value of " << m_velocity << " deg/s.";
         exceeded = true;
         on_disable();
     }
     return exceeded;
 }
 
-bool CM::torque_limit_exceeded(double tor) {
+bool CM::torque_limit_exceeded() {
     bool exceeded = false;
-    if (m_params.has_torque_limit_ && abs(tor) > m_params.torqueMax) {
-        LOG(Warning) << "Capstan Module " << name() << " command torque exceeded the torque limit " << m_params.torqueMax << " with a value of " << tor;
+    double torque = getMotorTorqueCommand();
+    if (m_params.has_torque_limit_ && abs(torque) > m_params.torqueMax) {
+        LOG(Warning) << "Capstan Module " << name() << " command torque exceeded the torque limit " << m_params.torqueMax << " Nm with a value of " << torque << " Nm.";
         exceeded = true;
         on_disable();
     }
     return exceeded;
+}
+
+void CM::limits_exceeded(){
+    torque_limit_exceeded();
+    velocity_limit_exceeded();
+}
+
+double CM::scaleRefToCtrlValue(double ref) {
+    TASBI_LOCK
+
+    if (m_ctrlMode == ControlMode::Torque){
+         double cv = (ref + m_params.torqueMax)/(2*m_params.torqueMax);
+         LOG(Info) << "Reference value " << ref << " Nm for CM " << name() << " converted to " << cv << " for torque control.";
+         return cv;
+    }
+    else if (m_ctrlMode == ControlMode::Position){
+         double cv = (ref - m_params.positionMin)/(m_params.positionMax - m_params.positionMin);
+         LOG(Info) << "Reference value " << ref << " deg for CM " << name() << " converted to " << cv << " for position control.";
+         return cv;
+    }
+    else if (m_ctrlMode == ControlMode::Force){
+         double cv = (ref - m_params.forceMin)/(m_params.forceMax - m_params.forceMin);
+         LOG(Info) << "Reference value " << ref << " N for CM " << name() << " converted to " << cv << " for force control.";
+         return cv;
+    }
+    else if (m_ctrlMode == ControlMode::Force2){
+         double cv = (ref - m_params.forceMin)/(m_params.forceMax - m_params.forceMin);
+         LOG(Info) << "Reference value " << ref << " N for CM " << name() << " converted to " << cv << " for force 2 control.";
+         return cv;
+    }
+    else
+        LOG(Info) << "Control scheme not found for scaling control reference value" << " ].";
 }
 
 double CM::scaleCtrlValue(double ctrlValue, ControlMode mode) {

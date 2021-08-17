@@ -136,7 +136,11 @@ public:
 
                 torque1 = (kp/1e3) * (x_ref1 - pos1) + (kd/1e3) * (0 - vel1);
                 double amps1 = torque1 * motor_kt_inv;
-                double volts1 = amps1 * amp_gain_inv;            
+                double volts1 = amps1 * amp_gain_inv; 
+                //std::cout << "volts" << volts1 << std::endl;
+
+                //std::cout << "torque1: " << torque1 << "x_ref1: " << x_ref1 << "pos1: " << pos1 << "vel1: " << vel1 << std::endl;
+               
                 
                 torque2 = (kp/1e3) * (x_ref2 - pos2) + (kd/1e3) * (0 - vel2);
                 double amps2 = torque2 * motor_kt_inv;

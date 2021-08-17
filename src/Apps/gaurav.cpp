@@ -1,9 +1,13 @@
 #include "CMHub.hpp"
 #include "CapstanModule.hpp"
+#include <Mahi/Daq.hpp>
+#include <Mahi/Robo.hpp>
 #include <syntacts>
 
 
 using namespace mahi::util;
+using namespace mahi::daq;
+using namespace mahi::robo;
 using namespace tact;       //syntacts
 
 int main(int argc, char const *argv[])
@@ -11,7 +15,7 @@ int main(int argc, char const *argv[])
     // make hub and CM
     CMHub hub;
     int id = 0;
-    hub.createDevice(id, 7, 7, 7, 7, 7);
+    hub.createDevice(id, 7, 7, 7, 7, 7, {0,1,0});
     auto cm = hub.getDevice(id);  
     // start hub (runs asynchronously in another thread)
     hub.start();
@@ -20,6 +24,8 @@ int main(int argc, char const *argv[])
     cm->setControlMode(CM::ControlMode::Position);
     cm->setPositionRange(0, 100);
     cm->enable();
+    //cm->set_channel(&hub.daq.AI[7]);
+    //cm->set_force_calibration(0,1,0);
     // make Syntacts session
     Session session;
     session.open("MOTU Pro Audio", API::ASIO);  
