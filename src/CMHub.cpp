@@ -39,6 +39,7 @@ int CMHub::createDevice(int id, int enable, int fault, int command, int encoder,
         AIForceSensor* aisensor = new AIForceSensor();
         aisensor->set_force_calibration(forceCal[0], forceCal[1], forceCal[2]);
         aisensor->set_channel(&daq.AI[force]);
+        aisensor->zero();
 
         CM::Io io = {
             DOHandle(daq.DO,enable),
@@ -65,6 +66,7 @@ int CMHub::createDevice(int id, int enable, int fault, int command, int encoder,
         AtiSensor* ati = new AtiSensor();
         ati->set_channels(&daq.AI[ati_chan[0]], &daq.AI[ati_chan[1]], &daq.AI[ati_chan[2]], &daq.AI[ati_chan[3]], &daq.AI[ati_chan[4]], &daq.AI[ati_chan[5]]);
         ati->load_calibration(filepath);
+        ati->zero();
 
         CM::Io io = {
             DOHandle(daq.DO,enable),

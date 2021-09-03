@@ -1,0 +1,25 @@
+{
+          "name": 50,  
+          "sex": "NoGender",  
+          "handedness": "Right",
+          "age": 0,         
+          "bmi": 0,
+          "skinfold": 0,
+          "armCircum": 0,
+          "hairLength": 0,
+          "hairThick": 0,
+          "hairSqInch": 0,
+          "positionMax_n": 100.0,
+          "positionMin_n": 0.0,
+          "positionMax_t": 100.0,
+          "positionMin_t": 0.0,
+          "forceMax_n": 6.0,
+          "forceMin_n": 1.0,
+          "forceMax_t": 6.0,
+          "forceMin_t": 1.0,
+          "n_msc_comparisons": 7.0,
+          "n_msc_reps": 10.0,
+          "n_msc_windows": 5.0,
+          "msc_stimulus_time": 0.33
+  
+}

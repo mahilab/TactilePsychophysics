@@ -28,7 +28,6 @@ CM::CM(const std::string &name, Io io, Params config) :
     m_ctrlValueFiltered(0.0),
     m_feedRate(seconds(0.5)),
     m_customController(std::make_shared<CMController>())
-//  m_melshare(name)
 {
     setParams(config);
     LOG(Info) << "Created CM " << this->name() << ".";
@@ -49,13 +48,11 @@ CM::~CM() {
 void CM::update(const Time &t) {
     TASBI_LOCK
     // filter incomming control value
-    //std::cout << m_ctrlValue << " "; // 
     m_ctrlValueFiltered  = m_ctrlFilter.update(m_ctrlValue);
     double ctrlValueUsed = m_params.filterControlValue ? m_ctrlValueFiltered : m_ctrlValue;
-    // software velocity estimation ??????????? or should use q8 encoder velocity?
     auto vel = m_posDiff.update(getMotorPosition(), t);
     m_velocityFilter.update(vel);
-    // control upate
+    // control update
     if (m_status == Status::Enabled)
         controlUpdate(ctrlValueUsed, t);
     // update feedrate
@@ -105,7 +102,6 @@ bool CM::exportParams(const std::string& filepath) {
     j["degPerCount"]         = params.degPerCount;
     j["commandGain"]         = params.commandGain;
     j["commandSignFlip"]     = params.commandSignFlip;
-    j["senseGain"]           = params.senseGain;
     j["has_velocity_limit_"] = params.has_velocity_limit_;
     j["has_torque_limit_"]   = params.has_torque_limit_;
     j["velocityMax"]         = params.velocityMax;
@@ -118,9 +114,6 @@ bool CM::exportParams(const std::string& filepath) {
     j["forceMax"]            = params.forceMax;
     j["forceKp"]             = params.forceKp;
     j["forceKd"]             = params.forceKd;
-    j["forceCalibA"]         = params.forceCalibA;
-    j["forceCalibB"]         = params.forceCalibB;
-    j["forceCalibC"]         = params.forceCalibC;
     j["forceFilterCutoff"]   = params.forceFilterCutoff;
     j["cvFilterCutoff"]      = params.cvFilterCutoff;
     j["filterControlValue"]  = params.filterControlValue;
@@ -157,7 +150,6 @@ bool CM::importParams(const std::string& filepath) {
             params.degPerCount        = j["degPerCount"].get<double>();
             params.commandGain        = j["commandGain"].get<double>();
             params.commandSignFlip    = j["commandSignFlip"].get<bool>();
-            params.senseGain          = j["senseGain"].get<double>();
             params.has_velocity_limit_= j["has_velocity_limit_"].get<bool>();
             params.has_torque_limit_  = j["has_torque_limit_"].get<bool>();
             params.velocityMax        = j["velocityMax"].get<double>();
@@ -170,9 +162,6 @@ bool CM::importParams(const std::string& filepath) {
             params.forceMax           = j["forceMax"].get<double>();
             params.forceKp            = j["forceKp"].get<double>();
             params.forceKd            = j["forceKd"].get<double>();
-            params.forceCalibA        = j["forceCalibA"].get<double>();
-            params.forceCalibB        = j["forceCalibB"].get<double>();
-            params.forceCalibC        = j["forceCalibC"].get<double>();
             params.forceFilterCutoff  = j["forceFilterCutoff"].get<double>();
             params.cvFilterCutoff     = j["cvFilterCutoff"].get<double>();
             params.filterControlValue = j["filterControlValue"].get<bool>();
@@ -241,8 +230,6 @@ void CM::dumpQueries(const std::string& filepath) {
                           q.motorTorqueCommand,
                           q.spoolPosition,     
                           q.spoolVelocity,     
-                          q.forceRaw,         
-                          q.forceRawFiltered,  
                           q.force,             
                           q.forceFiltered,     
                           q.forceEst,          
@@ -259,10 +246,18 @@ void CM::dumpQueries(const std::string& filepath) {
     }
 }
 
+void CM::setCommandSign(bool commandSignFlip) {
+    
+    m_params.commandSignFlip = commandSignFlip;
+    if (m_params.commandSignFlip = 0)
+        std::cout << "device:  " << name() << " command current as wired (flip = 0)" << std::endl;
+    else
+        std::cout << "device:  " << name() << " command current is flipped (flip = 1)" << std::endl;
+}
+
 void CM::zeroForce(){
     TASBI_LOCK
-    m_io.forceCh.zero();
-    std::cout << "sono qui" << std::endl;
+    //m_io.forceCh.zero();
 }
 
 void CM::zeroPosition() {
@@ -337,14 +332,6 @@ void CM::setForceGains(double kp, double ki, double kd) {
     LOG(Info) << "Set CM " << name() << " position gains to kp = " << kp << ", kd = " << kd << ".";
 }
 
-
-void CM::setForceCalibration(double a, double b, double c) {
-    TASBI_LOCK
-    m_params.forceCalibA = a;
-    m_params.forceCalibB = b;
-    m_params.forceCalibC = c;
-}
-
 void CM::setPositionForceCalibration(double p2fA, double p2fB, double p2fC, double f2pA, double f2pB, double f2pC) {
     TASBI_LOCK
     m_params.posToFrcCalibA = p2fA;
@@ -364,12 +351,13 @@ void CM::setControlMode(CM::ControlMode mode) {
     TASBI_LOCK
     m_ctrlMode  = mode;
     m_ctrlValue = 0.0;
-    if (m_ctrlMode == ControlMode::Torque)
+    /* if (m_ctrlMode == ControlMode::Torque)
         LOG(Info) << "Set CM " << name() << " Control Mode to Torque.";
     else if (m_ctrlMode == ControlMode::Position)
         LOG(Info) << "Set CM " << name() << " Control Mode to Position.";
     else if (m_ctrlMode == ControlMode::Force)
         LOG(Info) << "Set CM " << name() << " Control Mode to Force.";
+        */
 }
 
 void CM::setControlValue(double value) {
@@ -419,8 +407,8 @@ void CM::getFilterIo(std::vector<double>& u, std::vector<double>& y) {
     TASBI_LOCK
     std::size_t avail = m_Q.size();
     for (std::size_t i = 0; i < avail; ++i) {
-        u[i] = m_Q[i].forceRaw;
-        y[i] = m_Q[i].forceRawFiltered;
+        u[i] = m_Q[i].force;
+        y[i] = m_Q[i].forceFiltered;
     }
 }
 
@@ -452,15 +440,12 @@ void CM::setMotorTorque(double torque) {
     double commandSign = m_params.commandSignFlip ? -1.0 : 1.0;
     double amps = torque*commandSign / m_params.motorTorqueConstant;
     double volts = amps / m_params.commandGain;
-    std::cout << "device:  " << name() << " volts:  " << volts << std::endl;
     m_io.commandCh.set_volts(volts);
 }
 
 void CM::controlMotorPosition(double degrees, Time t) {
     double motor_torque = m_positionPd.calculate(degrees, getMotorPosition(), 0, getMotorVelocity());
-    //std::cout << "motor_torque: " << motor_torque << "degrees: " << degrees << "getMotorPosition(): " << getMotorPosition() << "getMotorVelocity(): " << getMotorVelocity() << std::endl;
     setMotorTorque(motor_torque);
-    //std::cout << "motor_torque" << motor_torque << std::endl;
 }
 
 void CM::controlSpoolPosition(double degrees, Time t) {
@@ -522,7 +507,7 @@ double CM::getSpoolPosition() { return getMotorPosition() * m_params.gearRatio; 
 
 double CM::getSpoolVelocity() { return getMotorVelocity() * m_params.gearRatio; }
 
-double CM::getForceRaw(bool filtered) {
+double CM::getForce(bool filtered) {
     double raw = m_io.forceCh.get_force(m_io.forceaxis);
     if (!filtered)
         return raw;
@@ -533,17 +518,6 @@ double CM::getForceRaw(bool filtered) {
         case Cascade: return m_forceFilterL.update(m_forceFilterM.filter(raw));
         default:      return raw;
     }
-}
-
-double CM::getForce(bool filtered) {
-    double force_raw = getForceRaw(filtered);
-    double force_con = convertForce(force_raw);
-    return force_con;
-}
-
-double CM::convertForce(double volts) {
-    double force  = m_params.forceCalibA + volts * m_params.forceCalibB + volts * volts * m_params.forceCalibC;
-    return force;
 }
 
 double CM::positionToForce(double position) {
@@ -558,7 +532,6 @@ double CM::forceToPosition(double force) {
 
 bool CM::velocity_limit_exceeded() {
     double m_velocity = getMotorVelocity();
-    //std::cout << m_velocity << " ";
     bool exceeded = false;
     if (m_params.has_velocity_limit_ && abs(m_velocity) > m_params.velocityMax) {
         LOG(Warning) << "Capstan Module " << name() << " velocity exceeded the velocity limit " << m_params.velocityMax << " deg/s with a value of " << m_velocity << " deg/s.";
@@ -651,8 +624,6 @@ void CM::fillQuery(CM::Query &q) {
     q.motorTorqueCommand = getMotorTorqueCommand();
     q.spoolPosition      = getSpoolPosition();
     q.spoolVelocity      = getSpoolVelocity();
-    q.forceRaw           = getForceRaw(false);
-    q.forceRawFiltered   = getForceRaw(true);
     q.force              = getForce(false);
     q.forceFiltered      = getForce(true);
     q.forceEst           = positionToForce(getSpoolPosition());

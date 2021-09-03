@@ -94,8 +94,7 @@ public:
         double gearRatio           = 0.332*25.4*mahi::util::PI/360.0;    // [mm/deg] from spool pitch diameter (.332") and capstan radius if applicable, converted to mm
         double degPerCount         = 2 * mahi::util::PI / (1024 * 35); //360.0 / (1024.0 * (4554.0 / 130.0));  // [deg/count] for motor shaft, including gearbox if applicable
         double commandGain         = 1.35 / 10.0;   // [A/V]
-        bool commandSignFlip       = 1;
-        double senseGain           = 0.261 / 4.0;    // [A/V] ?????
+        bool   commandSignFlip       = 0;
         bool   has_velocity_limit_ = 1;
         bool   has_torque_limit_   = 1;
         double velocityMax         = 30; // [mm/s] ????
@@ -104,15 +103,12 @@ public:
         double positionMax         = 5.5;  // [deg] ????
         double positionKp          = 1.0/1e3; //?????
         double positionKd          = 0.1/1e3; //????
-        double forceMin            = 0;            // [N] ?????
+        double forceMin            = -20;            // [N] ?????
         double forceMax            = 20;             // [N] ?????
         double forceKp             = 500.0/1e6;
         double forceKi             = 0;
         double forceKd             = 15.0/1e6;
         double forceKff            = 0;
-        double forceCalibA         = 2.5;
-        double forceCalibB         = -10;
-        double forceCalibC         = 15;
         double posToFrcCalibA      = 0;
         double posToFrcCalibB      = 0;
         double posToFrcCalibC      = 0;
@@ -140,8 +136,6 @@ public:
         double      motorTorqueCommand = 0;
         double      spoolPosition      = 0;
         double      spoolVelocity      = 0;
-        double      forceRaw           = 0;
-        double      forceRawFiltered   = 0;
         double      force              = 0;
         double      forceFiltered      = 0;
         double      forceEst           = 0;
@@ -177,7 +171,7 @@ public:
     Query getQuery(bool immediate = false);
     /// Get most recent 10k Queries. WILL TEMPORAIRLY STALL CONTROLLER (thread safe)
     void dumpQueries(const std::string& filepath);
-    /// 
+    /// Set boolean to flip command cuurent if necessary
     void setCommandSign(bool commandSignFlip);
     /// Zero force sensor (thread safe)
     void zeroForce();
@@ -193,8 +187,6 @@ public:
     void setPositionRange(double min, double max);
     /// Sets spool position control PD gains (thread safe)
     void setPositionGains(double kp, double kd);
-    /// Sets the force calibration (thread safe)
-    void setForceCalibration(double a, double b, double c);
     /// Sets the position-force calibration curves (thread safe)
     void setPositionForceCalibration(double p2fA, double p2fB, double p2fC, double f2pA, double f2pB, double f2pC);
     /// Sets force control range (thread safe)
@@ -253,12 +245,8 @@ public:
     double getSpoolPosition();
     /// Returns the spool velocity in [deg/s]
     double getSpoolVelocity();
-    /// Returns the force sensor reading in [volts]
-    double getForceRaw(bool filtered = true);
     /// Returns the force sensor reading in [N]
     virtual double getForce(bool filtered = true);
-    /// Converts raw force reading in volts to Newtons
-    double convertForce(double volts);
     /// Converts a spool position to squeeze force
     double positionToForce(double position);
     /// Converts a squeeze force to spool position

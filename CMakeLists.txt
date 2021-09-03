@@ -27,19 +27,22 @@ FetchContent_MakeAvailable(syntacts)
 
 add_library(cm 
     src/CapstanModule.hpp 
-    src/CapstanModule.hpp 
     src/CapstanModule.cpp 
     src/CMHub.hpp 
-    src/CMHub.cpp 
+    src/CMHub.cpp
+    src/PsychophysicalTesting.hpp
+    src/PsychophysicalTesting.cpp
     src/Util/RateMonitor.hpp
     src/Util/PolyFit.hpp
     src/Util/PolyFit.cpp
     src/Util/MedianFilter.hpp
     src/Util/MiniPID.hpp
     src/Util/MiniPID.cpp
+    src/Util/XboxController.cpp
+    src/Util/XboxController.hpp
 )
 target_include_directories(cm PUBLIC src)
-target_link_libraries(cm PUBLIC mahi::daq mahi::robo)
+target_link_libraries(cm PUBLIC mahi::daq mahi::robo XInput)
 target_compile_features(cm PUBLIC cxx_std_17)
 
 # ANSI C DLL
@@ -95,3 +98,9 @@ target_link_libraries(ForceModule mahi::gui mahi::daq mahi::robo mahi::util cm)
 
 add_executable(PosControl2DOF_CMtest src/Apps/janelle_haptic_testbed.cpp)
 target_link_libraries(PosControl2DOF_CMtest mahi::daq mahi::robo mahi::util cm)
+
+add_executable(xboxContoller src/Apps/xbox_adaptive_controller_test.cpp)
+target_link_libraries(xboxContoller mahi::util cm)
+
+add_executable(psychMCSGui src/Apps/capstan2DofpsychMCSGuiExp.cpp)
+target_link_libraries(psychMCSGui mahi::util mahi::gui mahi::robo cm)

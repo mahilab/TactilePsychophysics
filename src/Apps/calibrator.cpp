@@ -130,19 +130,19 @@ struct CMPositionBWS : public CMController {
         m_t_data.reserve(25000);
         m_i_data.reserve(25000);
         m_o_data.reserve(25000);
-        m_schroder = generateShroeder(f1,f2,1000,T);
+        m_schroeder = generateShroeder(f1,f2,1000,T);
     }
 
     void update(double ctrlValue, Time t, CM& cm) override {
-        if (m_i < m_schroder.size()) {
-            double cv = m_schroder[m_i];
+        if (m_i < m_schroeder.size()) {
+            double cv = m_schroeder[m_i];
             double position = cm.scaleCtrlValue(cv, CM::ControlMode::Position);
             cm.controlSpoolPosition(position, t);
             m_t_data.push_back(m_i * 0.001);
             m_i_data.push_back(position);
             m_o_data.push_back(cm.getSpoolPosition());
             m_i++;
-            if (m_i == m_schroder.size())
+            if (m_i == m_schroeder.size())
                 dumpData();
         }
         else {
@@ -160,7 +160,7 @@ struct CMPositionBWS : public CMController {
     std::vector<double> m_t_data;
     std::vector<double> m_i_data;
     std::vector<double> m_o_data; 
-    std::vector<double> m_schroder;
+    std::vector<double> m_schroeder;
     int                 m_i = 0;
 };
 
@@ -221,19 +221,19 @@ struct CMForceBWS : public CMController {
         m_t_data.reserve(25000);
         m_i_data.reserve(25000);
         m_o_data.reserve(25000);
-        m_schroder = generateShroeder(f1,f2,1000,T);
+        m_schroeder = generateShroeder(f1,f2,1000,T);
     }
 
     void update(double ctrlValue, Time t, CM& cm) override {
-        if (m_i < m_schroder.size()) {
-            double cv = m_schroder[m_i];
+        if (m_i < m_schroeder.size()) {
+            double cv = m_schroeder[m_i];
             double force = cm.scaleCtrlValue(cv, CM::ControlMode::Force);
             cm.controlForce(force, t);
             m_t_data.push_back(m_i * 0.001);
             m_i_data.push_back(force);
             m_o_data.push_back(cm.getForce());
             m_i++;
-            if (m_i == m_schroder.size())
+            if (m_i == m_schroeder.size())
                 dumpData();
         }
         else {
@@ -251,7 +251,7 @@ struct CMForceBWS : public CMController {
     std::vector<double> m_t_data;
     std::vector<double> m_i_data;
     std::vector<double> m_o_data; 
-    std::vector<double> m_schroder;
+    std::vector<double> m_schroeder;
     int                 m_i = 0;
 };
 
