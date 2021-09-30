@@ -40,26 +40,17 @@ add_library(cm
     src/Util/MiniPID.cpp
     src/Util/XboxController.cpp
     src/Util/XboxController.hpp
+    src/Util/ATI_windowCal.cpp
+    src/Util/ATI_windowCal.hpp
 )
 target_include_directories(cm PUBLIC src)
 target_link_libraries(cm PUBLIC mahi::daq mahi::robo XInput)
 target_compile_features(cm PUBLIC cxx_std_17)
 
 # ANSI C DLL
-#add_library(cm-c SHARED  src/DLL/dll.hpp src/DLL/dll.cpp)
-#target_link_libraries(cm-c cm)
-
-#add_library(test_dll SHARED src/DLL/test.cpp)
-#target_link_libraries(test_dll cm)
 
 #add_executable(calibrator src/Apps/calibrator.cpp misc/cm.rc)
 #target_link_libraries(calibrator cm mahi::gui etfe)
-
-#add_executable(identification src/Apps/identification.cpp misc/cm.rc)
-#target_link_libraries(identification cm mahi::gui syntacts)
-
-add_executable(control_display src/Apps/control_display.cpp misc/cm.rc)
-target_link_libraries(control_display mahi::gui)
 
 add_executable(survey src/Apps/survey.cpp misc/cm.rc)
 target_link_libraries(survey mahi::gui)
@@ -67,13 +58,6 @@ target_link_libraries(survey mahi::gui)
 add_executable(vsb src/Apps/vsb.cpp)
 target_include_directories(vsb PUBLIC src)
 target_link_libraries(vsb mahi::gui mahi::daq mahi::robo)
-
-#add_library(vsb_plugin SHARED src/DLL/vsb_plugin.cpp)
-#target_include_directories(vsb_plugin PUBLIC src)
-#target_link_libraries(vsb_plugin mahi::gui mahi::daq mahi::robo)
-
-#add_executable(gaurav src/Apps/gaurav.cpp)
-#target_link_libraries(gaurav PUBLIC cm syntacts)
 
 add_executable(kalman src/Apps/kalman.cpp)
 target_link_libraries(kalman PUBLIC mahi::gui mahi::robo)
@@ -102,5 +86,8 @@ target_link_libraries(PosControl2DOF_CMtest mahi::daq mahi::robo mahi::util cm)
 add_executable(xboxContoller src/Apps/xbox_adaptive_controller_test.cpp)
 target_link_libraries(xboxContoller mahi::util cm)
 
-add_executable(psychMCSGui src/Apps/capstan2DofpsychMCSGuiExp.cpp)
+add_executable(psychMCSGui src/Apps/capstan2DofpsychMCSGuiExp.cpp src/Apps/PsychGui.hpp src/Apps/PsychGui.cpp)
 target_link_libraries(psychMCSGui mahi::util mahi::gui mahi::robo cm)
+
+add_executable(testWindowCal src/Apps/ex_testAtiWindowCal.cpp)
+target_link_libraries(testWindowCal mahi::util mahi::gui mahi::robo cm)

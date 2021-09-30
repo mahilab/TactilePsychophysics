@@ -1,16 +1,17 @@
 #include "CMHub.hpp"
 #include <Mahi/Util.hpp>
 #include <Mahi/Robo.hpp>
+#include "Util/ATI_windowCal.hpp"
 
 using namespace mahi::daq;
 using namespace mahi::util;
 using namespace mahi::robo;
 
-#define TASBI_THREAD_SAFE
-#ifdef TASBI_THREAD_SAFE
-#define TASBI_DAQ_LOCK std::lock_guard<std::mutex> lock(m_mutex); m_lockCount++;
+#define CM_THREAD_SAFE
+#ifdef CM_THREAD_SAFE
+#define CM_DAQ_LOCK std::lock_guard<std::mutex> lock(m_mutex); m_lockCount++;
 #else
-#define TASBI_DAQ_LOCK
+#define CM_DAQ_LOCK
 #endif
 
 CMHub::CMHub(int Fs) :
@@ -30,7 +31,7 @@ CMHub::~CMHub() {
 }
 
 int CMHub::createDevice(int id, int enable, int fault, int command, int encoder, int force, std::vector<double> forceCal) {
-    TASBI_DAQ_LOCK
+    CM_DAQ_LOCK
     if (m_devices.count(id)) {
         LOG(Info) << "CM " << m_devices[id]->name() << " already initialized.";
         return ErrorCode::InvalidID;
@@ -56,13 +57,12 @@ int CMHub::createDevice(int id, int enable, int fault, int command, int encoder,
     return ErrorCode::NoError;
 }
 
-int CMHub::createDevice(int id, int enable, int fault, int command, int encoder, Axis forceAxis, const std::string& filepath, std::vector<int> ati_chan) {
-    TASBI_DAQ_LOCK
+int CMHub::createDevice(int id, int enable, int fault, int command, int encoder, Axis forceAxis, const std::string& filepath, std::vector<int> ati_chan, bool windowCal) {
+    CM_DAQ_LOCK
     if (m_devices.count(id)) {
         LOG(Info) << "CM " << m_devices[id]->name() << " already initialized.";
         return ErrorCode::InvalidID;
-    }
-    else {
+    } else if (windowCal == 0){
         AtiSensor* ati = new AtiSensor();
         ati->set_channels(&daq.AI[ati_chan[0]], &daq.AI[ati_chan[1]], &daq.AI[ati_chan[2]], &daq.AI[ati_chan[3]], &daq.AI[ati_chan[4]], &daq.AI[ati_chan[5]]);
         ati->load_calibration(filepath);
@@ -80,13 +80,31 @@ int CMHub::createDevice(int id, int enable, int fault, int command, int encoder,
         };
 
         m_devices[id] = std::make_shared<CM>( "cm_" + std::to_string(id), io, CM::Params());
+     }else if (windowCal == 1) {
+        AtiWindowCal* wAti = new AtiWindowCal();
+        wAti->set_channels(&daq.AI[ati_chan[0]], &daq.AI[ati_chan[1]], &daq.AI[ati_chan[2]], &daq.AI[ati_chan[3]], &daq.AI[ati_chan[4]], &daq.AI[ati_chan[5]]);
+        wAti->load_calibration(filepath);
+        wAti->zero();
+
+        CM::Io io = {
+            DOHandle(daq.DO,enable),
+            DIHandle(daq.DI,fault),
+            AOHandle(daq.AO,command),
+            EncoderHandle(daq.encoder,encoder),
+            *wAti,
+            forceAxis,
+            &daq.velocity[encoder],
+            &daq.velocity.velocities[encoder]
+        };
+
+        m_devices[id] = std::make_shared<CM>( "cm_" + std::to_string(id), io, CM::Params());
     }
     return ErrorCode::NoError;
 }
 
 
 int CMHub::addDevice(int id, std::shared_ptr<CM> cm) {
-    TASBI_DAQ_LOCK
+    CM_DAQ_LOCK
     if (m_devices.count(id)) {
         LOG(Info) << "CM " << m_devices[id]->name() << " already initialized.";
         return ErrorCode::InvalidID;
@@ -98,7 +116,7 @@ int CMHub::addDevice(int id, std::shared_ptr<CM> cm) {
 }
 
 int CMHub::destroyDevice(int id) {
-    TASBI_DAQ_LOCK
+    CM_DAQ_LOCK
     if (m_devices.count(id) == 0) { 
         LOG(mahi::util::Error) << "CM ID " << id << " invalid."; 
         return ErrorCode::InvalidID;
@@ -108,7 +126,7 @@ int CMHub::destroyDevice(int id) {
 }
 
 void CMHub::setSampleRate(int Fs) {
-    TASBI_DAQ_LOCK
+    CM_DAQ_LOCK
     m_timer = Timer(hertz(Fs), Timer::WaitMode::Busy);
 }
 
@@ -192,7 +210,7 @@ void CMHub::controlThreadFunction(bool soft) {
 }
 
 bool CMHub::update() {
-    TASBI_DAQ_LOCK
+    CM_DAQ_LOCK
     Time t = m_timer.get_elapsed_time();
     // update inputs
     if (!daq.read_all())
@@ -212,7 +230,7 @@ bool CMHub::update() {
 }
 
 bool CMHub::updateSoft() {
-    TASBI_DAQ_LOCK
+    CM_DAQ_LOCK
     Time t = m_timer.get_elapsed_time();
     // update devices
     for (auto& device : m_devices)
@@ -226,14 +244,14 @@ bool CMHub::updateSoft() {
 }
 
 bool CMHub::validateDeviceId(int id) {
-    TASBI_DAQ_LOCK
+    CM_DAQ_LOCK
     if (m_devices.count(id))
         return true;
     return false;
 }
 
 std::shared_ptr<CM> CMHub::getDevice(int id) {
-    TASBI_DAQ_LOCK
+    CM_DAQ_LOCK
     if (m_devices.count(id)) 
         return m_devices[id];
     LOG(mahi::util::Error) << "CM ID " << id << " invalid.";
@@ -241,7 +259,7 @@ std::shared_ptr<CM> CMHub::getDevice(int id) {
 }
 
 CMHub::Query CMHub::getQuery(bool immediate) {
-    TASBI_DAQ_LOCK
+    CM_DAQ_LOCK
     if (immediate) {
         Query q;
         fillQuery(q);

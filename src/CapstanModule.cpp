@@ -113,10 +113,17 @@ bool CM::exportParams(const std::string& filepath) {
     j["forceMin"]            = params.forceMin;
     j["forceMax"]            = params.forceMax;
     j["forceKp"]             = params.forceKp;
+    j["forceKi"]             = params.forceKi;
     j["forceKd"]             = params.forceKd;
+    j["forceKff"]            = params.forceKff;
     j["forceFilterCutoff"]   = params.forceFilterCutoff;
+    j["forceFilterN"]        = params.forceFilterN;
     j["cvFilterCutoff"]      = params.cvFilterCutoff;
     j["filterControlValue"]  = params.filterControlValue;
+    j["outputFilterCutoff"]  = params.outputFilterCutoff;
+    j["filterOutputValue"]   = params.filterOutputValue;
+    j["velFilterCutoff"]     = params.velFilterCutoff;
+    j["useSoftwareVelocity"] = params.useSoftwareVelocity;
     std::ofstream file(path);
     if (file.is_open()) {
         file << std::setw(10) << j;
@@ -161,10 +168,18 @@ bool CM::importParams(const std::string& filepath) {
             params.forceMin           = j["forceMin"].get<double>();
             params.forceMax           = j["forceMax"].get<double>();
             params.forceKp            = j["forceKp"].get<double>();
+            params.forceKi            = j["forceKi"].get<double>();
             params.forceKd            = j["forceKd"].get<double>();
+            params.forceKff           = j["forceKff"].get<double>();
             params.forceFilterCutoff  = j["forceFilterCutoff"].get<double>();
+            params.forceFilterN       = j["forceFilterN"].get<int>();
             params.cvFilterCutoff     = j["cvFilterCutoff"].get<double>();
             params.filterControlValue = j["filterControlValue"].get<bool>();
+            params.outputFilterCutoff = j["outputFilterCutoff"].get<double>();
+            params.filterOutputValue  = j["filterOutputValue"].get<bool>();
+            params.velFilterCutoff    = j["velFilterCutoff"].get<double>();
+            params.useSoftwareVelocity = j["useSoftwareVelocity"].get<bool>();
+            
             setParams(params);
             LOG(Info) << "Imported CM " << name() << " parameters from " << path.generic_string();
         }
@@ -210,7 +225,6 @@ void CM::dumpQueries(const std::string& filepath) {
                       "forceRawFiltered",
                       "force",
                       "forceFiltered",
-                      "forceEst",
                       "ctrlMode",
                       "filtMode",
                       "ctrlValue",
@@ -231,8 +245,7 @@ void CM::dumpQueries(const std::string& filepath) {
                           q.spoolPosition,     
                           q.spoolVelocity,     
                           q.force,             
-                          q.forceFiltered,     
-                          q.forceEst,          
+                          q.forceFiltered,         
                           q.ctrlMode,          
                           q.filtMode,          
                           q.ctrlValue,         
@@ -257,7 +270,7 @@ void CM::setCommandSign(bool commandSignFlip) {
 
 void CM::zeroForce(){
     TASBI_LOCK
-    //m_io.forceCh.zero();
+    m_io.forceCh.zero();
 }
 
 void CM::zeroPosition() {
@@ -332,15 +345,6 @@ void CM::setForceGains(double kp, double ki, double kd) {
     LOG(Info) << "Set CM " << name() << " position gains to kp = " << kp << ", kd = " << kd << ".";
 }
 
-void CM::setPositionForceCalibration(double p2fA, double p2fB, double p2fC, double f2pA, double f2pB, double f2pC) {
-    TASBI_LOCK
-    m_params.posToFrcCalibA = p2fA;
-    m_params.posToFrcCalibB = p2fB;
-    m_params.posToFrcCalibC = p2fC;
-    m_params.frcToPosCalibA = f2pA;
-    m_params.frcToPosCalibB = f2pB;
-    m_params.frcToPosCalibC = f2pC;
-}
 void CM::setForceFilterMode(FilterMode mode) {
     TASBI_LOCK
     m_forceFiltMode = mode;
@@ -520,16 +524,6 @@ double CM::getForce(bool filtered) {
     }
 }
 
-double CM::positionToForce(double position) {
-    double force = m_params.posToFrcCalibA + position * m_params.posToFrcCalibB + position * position * m_params.posToFrcCalibC;
-    return force;
-}
-
-double CM::forceToPosition(double force) {
-    double position = m_params.frcToPosCalibA + force * m_params.frcToPosCalibB + force * force * m_params.frcToPosCalibC;
-    return position;
-}
-
 bool CM::velocity_limit_exceeded() {
     double m_velocity = getMotorVelocity();
     bool exceeded = false;
@@ -567,12 +561,12 @@ double CM::scaleRefToCtrlValue(double ref) {
     }
     else if (m_ctrlMode == ControlMode::Position){
          double cv = (ref - m_params.positionMin)/(m_params.positionMax - m_params.positionMin);
-         LOG(Info) << "Reference value " << ref << " deg for CM " << name() << " converted to " << cv << " for position control.";
+         //LOG(Info) << "Reference value " << ref << " deg for CM " << name() << " converted to " << cv << " for position control.";
          return cv;
     }
     else if (m_ctrlMode == ControlMode::Force){
          double cv = (ref - m_params.forceMin)/(m_params.forceMax - m_params.forceMin);
-         LOG(Info) << "Reference value " << ref << " N for CM " << name() << " converted to " << cv << " for force control.";
+         //LOG(Info) << "Reference value " << ref << " N for CM " << name() << " converted to " << cv << " for force control.";
          return cv;
     }
     else if (m_ctrlMode == ControlMode::Force2){
@@ -626,7 +620,6 @@ void CM::fillQuery(CM::Query &q) {
     q.spoolVelocity      = getSpoolVelocity();
     q.force              = getForce(false);
     q.forceFiltered      = getForce(true);
-    q.forceEst           = positionToForce(getSpoolPosition());
     q.ctrlMode           = m_ctrlMode;
     q.filtMode           = m_forceFiltMode;
     q.ctrlValue          = m_ctrlValue;

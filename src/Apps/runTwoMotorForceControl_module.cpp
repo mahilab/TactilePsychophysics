@@ -45,10 +45,10 @@ public:
      MyGui(): Application(500, 500, "MyGui")
     {
         //&hub.daq.enable(); // does the hub start take care of this?
-        hub.createDevice(id_n, 0, 0, 0, 0, Axis::AxisZ, "FT06833.cal", {0,1,2,3,4,5}); 
+        hub.createDevice(id_n, 0, 0, 0, 0, Axis::AxisZ, "FT06833.cal", {0,1,2,3,4,5},0); 
         cm_n = hub.getDevice(id_n); 
 
-        hub.createDevice(id_t, 2, 2, 1, 1, Axis::AxisX, "FT06833.cal", {0,1,2,3,4,5}); 
+        hub.createDevice(id_t, 2, 2, 1, 1, Axis::AxisX, "FT06833.cal", {0,1,2,3,4,5},0); 
         cm_t = hub.getDevice(id_t);
 
         // start hub (runs asynchronously in another thread)

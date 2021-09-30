@@ -109,12 +109,6 @@ public:
         double forceKi             = 0;
         double forceKd             = 15.0/1e6;
         double forceKff            = 0;
-        double posToFrcCalibA      = 0;
-        double posToFrcCalibB      = 0;
-        double posToFrcCalibC      = 0;
-        double frcToPosCalibA      = 0;
-        double frcToPosCalibB      = 0;
-        double frcToPosCalibC      = 0;
         double forceFilterCutoff   = 0.25;           // normalized [0,1]
         int    forceFilterN        = 31;  
         double cvFilterCutoff      = 0.02;           // normalized [0,1]
@@ -138,7 +132,6 @@ public:
         double      spoolVelocity      = 0;
         double      force              = 0;
         double      forceFiltered      = 0;
-        double      forceEst           = 0;
         int         ctrlMode           = ControlMode::Torque;
         int         filtMode           = FilterMode::Lowpass;
         double      ctrlValue          = 0;
@@ -187,8 +180,6 @@ public:
     void setPositionRange(double min, double max);
     /// Sets spool position control PD gains (thread safe)
     void setPositionGains(double kp, double kd);
-    /// Sets the position-force calibration curves (thread safe)
-    void setPositionForceCalibration(double p2fA, double p2fB, double p2fC, double f2pA, double f2pB, double f2pC);
     /// Sets force control range (thread safe)
     void setForceRange(double min, double max);
     /// Sets spool position control PD gains (thread safe)
@@ -247,10 +238,6 @@ public:
     double getSpoolVelocity();
     /// Returns the force sensor reading in [N]
     virtual double getForce(bool filtered = true);
-    /// Converts a spool position to squeeze force
-    double positionToForce(double position);
-    /// Converts a squeeze force to spool position
-    double forceToPosition(double force);
     /// Ensures the velocity does not exceed the velocity limit
     bool velocity_limit_exceeded();
     /// Ensures the torque does not exceed the torque limit

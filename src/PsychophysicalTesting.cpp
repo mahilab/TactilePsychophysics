@@ -2,21 +2,25 @@
 #include "PsychophysicalTesting.hpp"
 #include <filesystem>
 #include <fstream>
-#include <random>
 
 using namespace mahi::daq;
 using namespace mahi::util;
 namespace fs = std::filesystem;
 
-PsychTest::PsychTest(int subnum, Params config, WhichDof whichdof, ControlType controller) :
-    m_Q(10000),
-    m_jnd_stim_levels(m_params.n_msc_comparisons, 0)
+PsychTest::PsychTest(int subnum, Params config, PsychTest::WhichExp whichExp, WhichDof whichdof, ControlType controller) :
+    m_jnd_stim_levels(m_params.n_mcs_comparisons, 0)
 {
-    m_subnum = subnum;
-    m_whichdof = whichdof;
+    m_subject = subnum;
+    m_whichExp = whichExp;
+    m_whichDof = whichdof;
     m_controller = controller;
+    if (m_whichExp == PsychTest::MCS){
+        m_stim_trials_mcs.reserve(300); // arbitrary, more than we'll need
+    } else if (m_whichExp == PsychTest::SM) {
+        m_stim_trials_sm.reserve(300); // arbitrary, more than we'll need
+    }    
     setParams(config);
-    LOG(Info) << "Opened PsychTest for subject " << m_subnum << ". Set to default settings";
+    LOG(Info) << "Opened PsychTest for subject " << m_subject << ". Set to default settings";
 }
 
 PsychTest::~PsychTest(){};
@@ -25,33 +29,51 @@ PsychTest::~PsychTest(){};
 // PUBLIC (THREAD SAFE)
 //=============================================================================
 
-void PsychTest::update(const Time &t) {
-    // update fixed query
-    fillQuery(m_q);
-    m_q.time = t.as_microseconds();
-    m_Q.push_back(m_q);
-}
-
 void PsychTest::setParams(Params config) {
     m_params = config;
 
-    n_jnd_trials_window = m_params.n_msc_comparisons * m_params.n_msc_reps * 2; // 180 trials per window
-    n_jnd_trials_total  = n_jnd_trials_window * m_params.n_msc_windows; // 900 trials total
-    m_jnd_ref_index     = int(floor(double(m_params.n_msc_comparisons)/2)); // this is the index since indexing starts at 0
-
-    if (m_whichdof == Shear){
-        if (m_controller == Position)
-            m_jnd_stimulus_min  = m_params.positionCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
-        else if (m_controller == Force)
-            m_jnd_stimulus_min  = m_params.forceCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
-    }else if (m_whichdof == Normal){
-        if (m_controller == Position)
-            m_jnd_stimulus_min  = m_params.positionCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
-        else if (m_controller == Force)
-            m_jnd_stimulus_min  = m_params.forceCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+    if (m_whichExp == PsychTest::MCS){
+        n_jnd_trials_window = m_params.n_mcs_comparisons * m_params.n_mcs_reps * 2; // 180 trials per window
+        n_jnd_trials_total  = n_jnd_trials_window * m_params.n_mcs_windows; // 900 trials total
+        m_jnd_ref_index     = int(floor(double(m_params.n_mcs_comparisons)/2)); // this is the index since indexing starts at 0
+    } else if (m_whichExp == PsychTest::SM) {
+        if (m_controller == PsychTest::Position){
+            m_jnd_stimulus_interval = m_params.sm_pos_inc; // Question - or defined by subject range??????????????
+        } else if (m_controller == PsychTest::Force){
+            m_jnd_stimulus_interval = m_params.sm_force_inc; // Question - or defined by subject range??????????????
+        }
     }
 
-    buildComparisonVector();
+    
+    if (m_whichDof == Shear){
+        if (m_controller == Position){
+            m_userStimulusContact  = m_params.positionCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusMin = m_params.positionMin_t;
+            m_userStimulusMax = m_params.positionMax_t;
+        }else if (m_controller == Force){
+            m_userStimulusContact  = m_params.forceCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusMin = m_params.forceMin_t;
+            m_userStimulusMax = m_params.forceMax_t;
+        }
+    }else if (m_whichDof == Normal){
+        if (m_controller == Position){
+            m_userStimulusContact  = m_params.positionCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusMin = m_params.positionMin_n;
+            m_userStimulusMax = m_params.positionMax_n;
+        }else if (m_controller == Force){
+            m_userStimulusContact  = m_params.forceCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusMin = m_params.forceMin_n;
+            m_userStimulusMax = m_params.forceMax_n;
+        }
+    }
+    
+    if (m_whichExp == PsychTest::MCS){
+        m_jnd_stimulus_reference = 0.75*(m_userStimulusMax - m_userStimulusMin) + m_userStimulusMin;
+        m_jnd_stimulus_interval  = 0.02*(m_userStimulusMax - m_userStimulusMin); /// ????????????? base this value on lit/pilots
+        buildComparisonVector();
+    } else if (m_whichExp == PsychTest::SM){
+        m_jnd_stimulus_reference = 0;
+    }
     
 }
 
@@ -61,7 +83,6 @@ bool PsychTest::exportParams(const std::string& filepath) {
     Timestamp ts;
     json j;
     j["subnum"]                 = params.subnum;
-    j["date"]                   = ts.yyyy_mm_dd();
     j["sex"]                    = params.sex;
     j["handedness"]             = params.handedness;
     j["age"]                    = params.age;
@@ -83,19 +104,23 @@ bool PsychTest::exportParams(const std::string& filepath) {
     j["forceMin_t"]             = params.forceMin_t;
     j["forceMax_t"]             = params.forceMax_t;
     j["forceCont_t"]            = params.forceCont_t;
-    j["n_msc_comparisons"]      = params.n_msc_comparisons;
-    j["n_msc_reps"]             = params.n_msc_reps;
-    j["n_msc_windows"]          = params.n_msc_windows;
-    j["msc_stimulus_time"]      = params.msc_stimulus_time;
+    j["n_mcs_comparisons"]      = params.n_mcs_comparisons;
+    j["n_mcs_reps"]             = params.n_mcs_reps;
+    j["n_mcs_windows"]          = params.n_mcs_windows;
+    j["n_sm_staircases"]        = params.n_sm_staircases;
+    j["n_sm_crossovers"]        = params.n_sm_crossovers;
+    j["sm_pos_inc"]             = params.sm_pos_inc;
+    j["sm_force_inc"]           = params.sm_force_inc;
+    j["stimulus_time"]          = params.stimulus_time;
 
     std::ofstream file(path);
     if (file.is_open()) {
         file << std::setw(10) << j;
-        LOG(Info) << "Exported PsychTest Subject " << m_subnum << " parameters to " << path.generic_string();
+        LOG(Info) << "Exported PsychTest Subject " << m_subject << " parameters to " << path.generic_string();
         file.close();
         return true;
     }
-    LOG(Error) << "Failed to export PsychTest Subject " << m_subnum << " parameters because because " << path << " could not be created or opened.";
+    LOG(Error) << "Failed to export PsychTest Subject " << m_subject << " parameters because because " << path << " could not be created or opened.";
     return false;
 }
 
@@ -131,24 +156,28 @@ bool PsychTest::importParams(const std::string& filepath) {
             params.forceMin_t           = j["forceMin_t"].get<double>();
             params.forceMax_t           = j["forceMax_t"].get<double>();
             params.forceCont_t          = j["forceCont_t"].get<double>();
-            params.n_msc_comparisons    = j["n_msc_comparisons"].get<int>();
-            params.n_msc_reps           = j["n_msc_reps"].get<int>();
-            params.n_msc_windows        = j["n_msc_windows"].get<int>();
-            params.msc_stimulus_time    = j["msc_stimulus_time"].get<double>();
+            params.n_mcs_comparisons    = j["n_mcs_comparisons"].get<int>();
+            params.n_mcs_reps           = j["n_mcs_reps"].get<int>();
+            params.n_mcs_windows        = j["n_mcs_windows"].get<int>(); 
+            params.n_sm_staircases      = j["n_sm_staircases"].get<int>();
+            params.n_sm_crossovers      = j["n_sm_crossovers"].get<int>();
+            params.sm_pos_inc           = j["sm_pos_inc"].get<double>();
+            params.sm_force_inc         = j["sm_force_inc"].get<double>();
+            params.stimulus_time        = j["stimulus_time"].get<double>();
                 
             setParams(params);
-            LOG(Info) << "Imported PsychTest Subject " << m_subnum << " parameters from " << path.generic_string();
-            if (m_subnum != params.subnum)
-                LOG(Error) << "Subject number at construction, " << m_subnum << "is not the same as in the imported parameters.";
+            LOG(Info) << "Imported PsychTest Subject " << m_subject << " parameters from " << path.generic_string();
+            if (m_subject != params.subnum)
+                LOG(Error) << "Subject number at construction, " << m_subject << "is not the same as in the imported parameters.";
 
         }
         catch(...) {
-            LOG(Error) << "Failed to import PsychTest Subject " << m_subnum << " parameters.";
+            LOG(Error) << "Failed to import PsychTest Subject " << m_subject << " parameters.";
         }
 
         return true;
     }
-    LOG(Error) << "Failed to import PsychTest Subject " << m_subnum << " parameters because " << path << " does not exist.";
+    LOG(Error) << "Failed to import PsychTest Subject " << m_subject << " parameters because " << path << " does not exist.";
     return false;
 }
 
@@ -156,79 +185,61 @@ PsychTest::Params PsychTest::getParams() const {
     return m_params;
 }
 
-PsychTest::Query PsychTest::getQuery(bool immediate) {
-    if (immediate) {
-        Query q;
-        fillQuery(q);
-        return q;
-    }
-    return m_q;
+void PsychTest::setNormalPositionRange(double min, double max) {
+    m_params.positionMin_n = min;
+    m_params.positionMax_n = max;
+    LOG(Info) << "Set PsychTest Subject " << m_subject << " normal position range to [ " << min << " , " << max << " mm].";
 }
 
-void PsychTest::dumpQueries(const std::string& filepath) {
-    Csv csv(filepath);
-    if (csv.is_open()) {
-        csv.write_row("time",
-                      "testmode"
-                      "controller"
-                      "trialnum",
-                      "generated_num",
-                      "window",
-                      "level",
-                      "stimulus1",
-                      "stimulus2",
-                      "standard",
-                      "comparison",
-                      "correct",
-                      "answer",
-                      "greater");
-        for (int i = 0; i < m_Q.size(); ++i) {
-            Query& q = m_Q[i];
-            csv.write_row(q.time,
-                          q.testmode,
-                          q.controller,          
-                          q.trialnum,            
-                          q.generated_num,            
-                          q.window,   
-                          q.level,     
-                          q.stimulus1,     
-                          q.stimulus2,
-                          q.standard,     
-                          q.comparison,     
-                          q.correct,             
-                          q.answer,     
-                          q.greater);
-        }
-        csv.close();
-    }
+void PsychTest::setShearPositionRange(double min, double max) {
+    m_params.positionMin_t = min;
+    m_params.positionMax_t = max;
+    LOG(Info) << "Set PsychTest Subject" << m_subject << " shear position range to [ " << min << " , " << max << " mm].";
+}
+
+void PsychTest::setNormalForceRange(double min, double max) {
+    m_params.forceMin_n = min;
+    m_params.forceMax_n = max;
+    LOG(Info) << "Set PsychTest Subject" << m_subject << " normal force range to [ " << min << " , " << max << " N].";
+}
+
+void PsychTest::setShearForceRange(double min, double max) {
+    m_params.forceMin_t = min;
+    m_params.forceMax_t = max;
+    LOG(Info) << "Set PsychTest Subject" << m_subject << " shear force range to [ " << min << " , " << max << " N].";
+}
+
+//////////// Method of Constant Stimuli (MCS) Functions ///////////////
+
+void PsychTest::setResponseMCS(int answer, int greater){
+    m_q_mcs.answer = answer;
+    m_q_mcs.greater = greater;
+}
+
+void PsychTest::printQueriesMCS(QueryMCS q) {
+    std::cout << "time " << q.time << std::endl;
+    std::cout << "testmode " << q.testmode << std::endl; 
+    std::cout << "whichExp " << q.whichExp << std::endl;
+    std::cout << "whichDof " << q.whichDof << std::endl;
+    std::cout << "controller " << q.controller << std::endl;
+    std::cout << "trialnum " << q.trialnum << std::endl;
+    std::cout << "generated_num " << q.generated_num << std::endl;
+    std::cout << "window " << q.window << std::endl; 
+    std::cout << "level " << q.level << std::endl;
+    std::cout << "stimulus1 " << q.stimulus1 << std::endl;
+    std::cout << "stimulus2 " << q.stimulus2 << std::endl;
+    std::cout << "standard " << q.standard << std::endl; 
+    std::cout << "comparison " << q.comparison << std::endl;
+    std::cout << "correct " << q.correct << std::endl;
+    std::cout << "answer " << q.answer << std::endl;
+    std::cout << "greater " << q.greater << std::endl; 
 }
 
 void PsychTest::buildComparisonVector(){
 
-    if (m_whichdof == Shear){
-        if (m_controller == Position){
-            m_userStimulusMin = m_params.positionMin_t;
-            m_userStimulusMax = m_params.positionMax_t;
-        }else if (m_controller == Force){
-            m_userStimulusMin = m_params.forceMin_t;
-            m_userStimulusMax = m_params.forceMax_t;
-        }
-    }else if (m_whichdof == Normal){
-        if (m_controller == Position){
-            m_userStimulusMin = m_params.positionMin_n;
-            m_userStimulusMax = m_params.positionMax_n;
-        }else if (m_controller == Force){
-            m_userStimulusMin = m_params.forceMin_n;
-            m_userStimulusMax = m_params.forceMax_n;
-        }
-    }
-    
-    m_jnd_stimulus_reference = 0.75*(m_userStimulusMax - m_userStimulusMin) + m_userStimulusMin;
-    m_jnd_stimulus_interval  = 0.02*(m_userStimulusMax - m_userStimulusMin); /// ????????????? base this value on lit/pilots
     double min_comparison = m_jnd_stimulus_reference - double(m_jnd_ref_index) * m_jnd_stimulus_interval;
     
-    
-    for (int i = 0; i < m_params.n_msc_comparisons; ++i) { // this writes a vector of length "m_params.n_msc_comparisons" centered at "m_jnd_stimulus_reference"
+    for (int i = 0; i < m_params.n_mcs_comparisons; ++i) { // this writes a vector of length "m_params.n_mcs_comparisons" centered at "m_jnd_stimulus_reference"
         m_jnd_stim_levels[i] = min_comparison + double(i) * m_jnd_stimulus_interval;
     std::cout << "m_jnd_stim_levels[i] " << m_jnd_stim_levels[i] << " i " << i << " ref " << m_jnd_stimulus_reference << std::endl;
     }
@@ -238,35 +249,43 @@ void PsychTest::buildComparisonVector(){
 void PsychTest::buildStimTrials() {
         std::random_device rd;
         std::mt19937 g(rd());
-        g.seed(m_subnum);
+        g.seed(m_subject);
         int i = 0;
-        for (int w = 0; w < m_params.n_msc_windows; ++w) {
-            std::vector<Query> window_trials;
+        for (int w = 0; w < m_params.n_mcs_windows; ++w) {
+            std::vector<QueryMCS> window_trials;
             window_trials.reserve(n_jnd_trials_window);
-            for (int r = 0; r < m_params.n_msc_reps; ++r) {
-                for (int f = 0; f < m_params.n_msc_comparisons; ++f) {
-                    Query trial;
-                    //  standard first // ??????????????????? replace with psychtest set parameters
+            for (int r = 0; r < m_params.n_mcs_reps; ++r) {
+                for (int f = 0; f < m_params.n_mcs_comparisons; ++f) {
+                    QueryMCS trial;
+                    //  standard first
+                    trial.testmode   = m_testmode;
+                    trial.whichExp   = m_whichExp;
+                    trial.whichDof   = m_whichDof; // minus m_jnd_stimulus_reference?
+                    trial.controller = m_controller;
                     trial.generated_num     = i++;
-                    trial.window      = w;
-                    trial.level       = f-5; // minus m_jnd_stimulus_reference?
-                    trial.stimulus1    = m_jnd_stimulus_reference;
-                    trial.stimulus2    = m_jnd_stim_levels[f];
+                    trial.window     = w;
+                    trial.level      = f-5; // minus m_jnd_stimulus_reference?
+                    trial.stimulus1  = m_jnd_stimulus_reference;
+                    trial.stimulus2  = m_jnd_stim_levels[f];
                     trial.standard   = 1;
                     trial.comparison = 2;
                     trial.correct    = trial.stimulus1 == trial.stimulus2 ? 0 : trial.stimulus1 > trial.stimulus2 ? 1 : 2;
                     trial.answer     = -1;
-                    trial.greater     = -1;
+                    trial.greater    = -1;
                     window_trials.push_back(trial);
                     // standard second
+                    trial.testmode   = m_testmode;
+                    trial.whichExp   = m_whichExp;
+                    trial.whichDof   = m_whichDof; // minus m_jnd_stimulus_reference?
+                    trial.controller = m_controller;
                     trial.generated_num     = i++;
-                    trial.window      = w;
-                    trial.level       = f-5; // minus m_jnd_stimulus_reference?
-                    trial.stimulus1    = m_jnd_stim_levels[f];
-                    trial.stimulus2    = m_jnd_stimulus_reference;
+                    trial.window     = w;
+                    trial.level      = f-5; // minus m_jnd_stimulus_reference?
+                    trial.stimulus1  = m_jnd_stim_levels[f];
+                    trial.stimulus2  = m_jnd_stimulus_reference;
                     trial.standard   = 2;
                     trial.comparison = 1;
-                    trial.correct    =  trial.stimulus1 == trial.stimulus2 ? 0 : trial.stimulus1 > trial.stimulus2 ? 1 : 2;
+                    trial.correct    = trial.stimulus1 == trial.stimulus2 ? 0 : trial.stimulus1 > trial.stimulus2 ? 1 : 2;
                     trial.answer     = -1;
                     trial.greater    = -1;
                     window_trials.push_back(trial);
@@ -275,59 +294,158 @@ void PsychTest::buildStimTrials() {
             // shuffle window trials
             std::shuffle(window_trials.begin(), window_trials.end(), g);
             // append
-            m_stimulus_trials.push_back(window_trials);
+            m_stim_trials_mcs.push_back(window_trials);
         }
         // assign trial numbers
         i = 0;
-        for (int w = 0; w < m_params.n_msc_windows; ++w) {
-            for (auto& trial : m_stimulus_trials[w])
+        for (int w = 0; w < m_params.n_mcs_windows; ++w) {
+            for (auto& trial : m_stim_trials_mcs[w])
                 trial.trialnum = i++;
         }
     }
 
+//////////// Staircase Method (SM) Functions ///////////////
 
-
-void PsychTest::setNormalPositionRange(double min, double max) {
-    m_params.positionMin_n = min;
-    m_params.positionMax_n = max;
-    LOG(Info) << "Set PsychTest Subject " << m_subnum << " normal position range to [ " << min << " , " << max << " mm].";
+void PsychTest::setResponseSM(int answer, int greater){
+    m_q_sm.answer = answer;
+    m_q_sm.greater = greater;
+    m_stim_trials_sm.push_back(m_q_sm);
 }
 
-void PsychTest::setShearPositionRange(double min, double max) {
-    m_params.positionMin_t = min;
-    m_params.positionMax_t = max;
-    LOG(Info) << "Set PsychTest Subject" << m_subnum << " shear position range to [ " << min << " , " << max << " mm].";
+void PsychTest::printQueriesSM(QuerySM q) {
+    std::cout << "time " << q.time << std::endl;
+    std::cout << "testmode " << q.testmode << std::endl; 
+    std::cout << "whichExp " << expchoice[q.whichExp] << std::endl;
+    std::cout << "whichDof " << dofChoice[q.whichDof] << std::endl;
+    std::cout << "controller " << controlChoice[q.controller] << std::endl;
+    std::cout << "trialnum " << q.trialnum << std::endl;
+    std::cout << "num_staircase " << q.num_staircase << std::endl;
+    std::cout << "direction " << currdirection[q.direction] << std::endl; 
+    std::cout << "lastSlope " << currdirection[q.lastSlope] << std::endl; 
+    std::cout << "num_reversal " << q.num_reversal << std::endl;
+    std::cout << "stimulus1 " << q.stimulus1 << std::endl;
+    std::cout << "stimulus2 " << q.stimulus2 << std::endl;
+    std::cout << "standard " << q.standard << std::endl; 
+    std::cout << "comparison " << q.comparison << std::endl;
+    std::cout << "correct " << q.correct << std::endl;
+    std::cout << "answer " << q.answer << std::endl;
+    std::cout << "greater " << q.greater << std::endl; 
 }
 
-void PsychTest::setNormalForceRange(double min, double max) {
-    m_params.forceMin_n = min;
-    m_params.forceMax_n = max;
-    LOG(Info) << "Set PsychTest Subject" << m_subnum << " normal force range to [ " << min << " , " << max << " N].";
-}
+void PsychTest::setNextTrial(){
+    // randomly determine order of comparison and reference and starting comparison
+    int n_randBool = 5; // final vector will be twice this length, if not 5, also update the ==9 term at the end of the loop
+    static std::random_device rd;
+    static std::mt19937 g(rd());
+    static std::vector<bool>   m_stdFirst;
 
-void PsychTest::setShearForceRange(double min, double max) {
-    m_params.forceMin_t = min;
-    m_params.forceMax_t = max;
-    LOG(Info) << "Set PsychTest Subject" << m_subnum << " shear force range to [ " << min << " , " << max << " N].";
-}
+    if (isNewStair){
+        isNewStair = 0;
+        // order of reference and comparison values
+        for (size_t i = 0; i < n_randBool; i++)
+        {
+            m_stdFirst.push_back(true);
+            m_stdFirst.push_back(false);
+        }
+        std::shuffle(m_stdFirst.begin(),m_stdFirst.end(),g);
 
-//=============================================================================
-// PRIVATE (NOT THREAD SAFE)
-//=============================================================================
+        // intitial starting value
+        double maxStartVal = 0.25*m_userStimulusMax; // start between 0 and 25% of their max value
+        int n_startComps = floor(maxStartVal/m_jnd_stimulus_interval); // divide the range into chunks by the step-size from the params
+        std::cout << "n_startComps: " << n_startComps << std::endl; // ????????????????????????????????????
+        double maxStartComp = n_startComps*m_jnd_stimulus_interval; // max start value as a multiple of the interval
+        std::vector<double> startComps(n_startComps);
+        startComps[0] = m_jnd_stimulus_interval; 
+        for (int i = 1; i < n_startComps; i++){
+            startComps[i] = startComps[i-1] + m_jnd_stimulus_interval;
+        }
+        shuffle(startComps.begin(),startComps.end(),g);
 
-void PsychTest::fillQuery(PsychTest::Query &q) {
+        m_jnd_stimulus_comparison = startComps[1]; //randomly decide starting point by first index in the shuffle
+        m_num_reversal = 0;
+        m_lastSlope = None;
+        std::cout << " sono qui 1   " << std::endl;
+
+    }else{
+        if(m_q_sm.answer == -1){
+            LOG(Error) << "Repsonse for last trial is not recorded, unable to continue.";
+        }else{
+            double lastComp = m_q_sm.comparison == 1 ? m_q_sm.stimulus1 : m_q_sm.stimulus2;
+
+            std::cout << "____________________________" << std::endl;
+            std::cout << "Last Query" << std::endl;
+            printQueriesSM(m_q_sm); // ?????????????????????????????????????????
+            std::cout << " " << std::endl;
+            
+            // Determine if the next trial has a larger or smaller comparison (if right, toward the std, if wrong, away from it)
+            if (m_q_sm.answer == m_q_sm.correct){ // answered correctly
+                m_jnd_stimulus_comparison = (lastComp > m_jnd_stimulus_reference) ? (lastComp - m_jnd_stimulus_interval) : (lastComp + m_jnd_stimulus_interval);
+            }else{ // answered incorrectly
+                m_jnd_stimulus_comparison = (lastComp > m_jnd_stimulus_reference) ? (lastComp + m_jnd_stimulus_interval) : (lastComp - m_jnd_stimulus_interval);
+            }
+            // clamp at stimulus max and stimulus min (comfort threshold and absolute threshold (or 0 if determining it))
+            m_jnd_stimulus_comparison = clamp(m_jnd_stimulus_comparison, m_userStimulusMin, m_userStimulusMax);
+
+            // Determine the direction change since last trial
+            if (m_jnd_stimulus_comparison > lastComp)
+                m_direction = Up;
+            else if (m_jnd_stimulus_comparison < lastComp)
+                m_direction = Down;
+            else
+                m_direction = None;
+
+            // Determine if a reversal has taken place
+            bool ifReversal = m_direction != m_lastSlope && m_direction !=None && m_lastSlope !=None;
+                
+            if(m_direction !=None){
+                m_lastSlope = m_direction;
+            }
+            
+            m_num_reversal = m_q_sm.num_reversal + (ifReversal ? 1 : 0); // if a reveral has taken place increment the number of reversals
+
+        } // is response recorded?
+    } // is it a new stair?
+
+    // index for trial order boolean (standard or comparison first)
+    auto num_0_9 = m_trialnum%(n_randBool*2);
     
-    q.testmode             = m_testmode;
-    q.controller           = m_controller;
-    q.trialnum             = m_trialnum;
-    q.generated_num        = m_generated_num;
-    q.window               = m_window;
-    q.level                = m_level;
-    q.stimulus1            = m_stimulus1;
-    q.stimulus2            = m_stimulus2;
-    q.standard             = m_standard;
-    q.comparison           = m_comparison;
-    q.correct              = m_correct;
-    q.answer               = m_answer;
-    q.greater              = m_greater;
+    // Update m_q_sm query to puch to vector for the next trial 
+    int time = 0;
+    m_q_sm.testmode      = m_testmode;
+    m_q_sm.whichExp      = m_whichExp;
+    m_q_sm.whichDof      = m_whichDof;
+    m_q_sm.controller    = m_controller;
+    m_q_sm.trialnum      = m_trialnum++;
+    m_q_sm.num_staircase = m_num_staircase;
+    m_q_sm.direction     = m_direction;
+    m_q_sm.lastSlope     = m_lastSlope;
+    m_q_sm.num_reversal  = m_num_reversal;
+    m_q_sm.stimulus1     = m_stdFirst[num_0_9] ? m_jnd_stimulus_reference : m_jnd_stimulus_comparison;
+    m_q_sm.stimulus2     = m_stdFirst[num_0_9] ? m_jnd_stimulus_comparison : m_jnd_stimulus_reference;
+    m_q_sm.standard      = m_stdFirst[num_0_9] ? 1 : 2;
+    m_q_sm.comparison    = m_stdFirst[num_0_9] ? 2 : 1;
+    m_q_sm.correct       = m_q_sm.stimulus1 == m_q_sm.stimulus2 ? 0 : m_q_sm.stimulus1 > m_q_sm.stimulus2 ? 1 : 2;
+    m_q_sm.answer        = -1;
+    m_q_sm.greater       = -1;
+    
+    // reshuffle trial order vector every 10 trials
+    if (num_0_9 == 9){
+        std::shuffle(m_stdFirst.begin(),m_stdFirst.end(),g);
+    }
+}
+
+void PsychTest::setNewStaircase(){
+    // reinitialize variables
+    m_trialnum = 0;
+    m_direction = None;
+    m_lastSlope = None;
+    m_num_reversal = 0;
+    m_jnd_stimulus_comparison = 0;
+
+std::cout << " sono qui 2   " << std::endl;
+
+    //increment num of staircases
+    m_num_staircase++;
+    isNewStair = 1;
+
 }

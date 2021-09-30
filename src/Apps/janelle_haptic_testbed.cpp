@@ -12,11 +12,11 @@ int main(int argc, char const *argv[])
     CMHub hub; 
 
     int id_n = 0;
-    hub.createDevice(id_n, 0, 0, 0, 0, Axis::AxisZ, "FT06833.cal", {0,1,2,3,4,5}); 
+    hub.createDevice(id_n, 0, 0, 0, 0, Axis::AxisZ, "FT06833.cal", {0,1,2,3,4,5},0); 
     auto cm_n = hub.getDevice(id_n); 
 
     int id_t = 1;
-    hub.createDevice(id_t, 2, 2, 1, 1, Axis::AxisX, "FT06833.cal", {0,1,2,3,4,5}); 
+    hub.createDevice(id_t, 2, 2, 1, 1, Axis::AxisX, "FT06833.cal", {0,1,2,3,4,5},0); 
     auto cm_t = hub.getDevice(id_t); 
 
     // start hub (runs asynchronously in another thread)
