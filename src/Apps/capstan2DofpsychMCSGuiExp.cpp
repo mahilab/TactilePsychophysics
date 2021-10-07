@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
         ("s,subject","Subject ID Number: -s subnum",value<int>())
         ("c,constants","Method of Constant Stimuli Experiment: -c")
         ("w,staircase","Staircase Method Experiment: -w")
+        ("a,adjustments","Method of Adjustments Experiment: -a")
         ("n,normal","Test the normal direction: -n")
         ("t,tangential","Test the tangential/shear direction: -t")
         ("p,position","Test using position control: -p")
@@ -30,10 +31,12 @@ int main(int argc, char *argv[])
     }
 
     PsychTest::WhichExp whichExp;
-    if (result.count("c") && !result.count("w")){
+    if (result.count("c") && !result.count("w") && !result.count("a")){
         whichExp = PsychTest::MCS;
-    }else if (result.count("w") && !result.count("c"))
+    }else if (result.count("w") && !result.count("c") && !result.count("a"))
         whichExp = PsychTest::SM;
+    else if (result.count("a") && !result.count("c") && !result.count("w"))
+        whichExp = PsychTest::MA;
     else{
         LOG(Error) << "Missing Experiment Type or Too Many Inputs. Exiting code.";
         print("{}",options.help());

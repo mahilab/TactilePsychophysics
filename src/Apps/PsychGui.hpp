@@ -68,7 +68,16 @@ public:
     void writeSMOutputVariables(Csv& csv, Timestamp ts);
 
     void writeSMOutputData(Csv& csv, PsychTest::QuerySM trial);
+
+    // Method of Adjustments Functions
+
+    void responseWindowMA(PsychTest::WhichStim whichStim);
+
+    Enumerator runMAExperiment();
     
+    void writeMAOutputVariables(Csv& csv, Timestamp ts);
+
+    void writeMAOutputData(Csv& csv, PsychTest::QueryMA trial);
     
     // Hardware Specific Functions
 
@@ -100,6 +109,12 @@ public:
     PsychTest m_pt;
     PsychTest::Params m_userparams;
     bool m_debug            = 0;
+    bool m_flag_is_JND = 0; // use this for SM and MCS too?
+    bool m_flag_presentStims = 0;
+    bool m_flag_reachedMAValue = 0;
+    double m_whatChange = 0;
+    int m_adjust = -1;
+    double m_jnd_current_stimulus;
 
     // Create buffers for calculating the forces and positions during each cue
     mahi::util::RingBuffer<double> m_stim1_normF{50};
@@ -123,7 +138,7 @@ public:
     double m_stim2_avgShearP;
 
     // Plotting variables
-    ScrollingBuffer lockForce, lockPosition, testForce, testPosition, ref, comp;
+    ScrollingBuffer lockForce, lockPosition, testForce, testPosition, ref, comp, curr;
     float t = 0;
     float m_history = 30.0f;
 

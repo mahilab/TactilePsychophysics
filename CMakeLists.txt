@@ -42,6 +42,8 @@ add_library(cm
     src/Util/XboxController.hpp
     src/Util/ATI_windowCal.cpp
     src/Util/ATI_windowCal.hpp
+    src/Util/HertzianContact.cpp
+    src/Util/HertzianContact.hpp
 )
 target_include_directories(cm PUBLIC src)
 target_link_libraries(cm PUBLIC mahi::daq mahi::robo XInput)

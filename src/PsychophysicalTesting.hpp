@@ -15,7 +15,7 @@ class PsychTest;
 class PsychTest : public mahi::util::NonCopyable {
 public:
 
-    enum WhichExp   { MCS, SM };
+    enum WhichExp   { MCS, SM, MA };
     enum Mode       { Idle, Run };
     enum Gender     { NoGender, Male, Female };
     enum Handedness { Left, Right, Other };
@@ -54,7 +54,8 @@ public:
         int    n_sm_staircases      = 4;
         int    n_sm_crossovers      = 4;
         double sm_pos_inc           = 0.3;
-        double sm_force_inc         = 0.5;        
+        double sm_force_inc         = 0.5;
+        int    n_ma_trials          = 10;       
         double stimulus_time        = 0.33;
     };
 
@@ -97,6 +98,24 @@ public:
         int correct = 0;     // 0 = same, 1 = first, 2 = second
         int answer = 0;     // 1 or 2
         int greater = 2;    // 0 or 1 // did they say the comparison was greater?
+    };
+
+    /// PsychTest QueryMA
+    struct QueryMA {
+        int time                = 0;
+        Mode testmode           = PsychTest::Idle;
+        WhichExp whichExp       = PsychTest::SM;
+        WhichDof whichDof;
+        ControlType controller  = Position;
+        int trialnum            = 0;
+        double stimulus1        = 0;
+        double stimulus2        = 0;
+        int standard            = 1;   // always 1
+        int comparison          = 2; // always 2
+        int adjust              = 1;     // 0 = same, 1 = first, 2 = second
+        Direction direction     = PsychTest::None;
+        double change           = 0;     // amount the user changed the comparison for the next trial
+        double finalVal       = -1;
     };
 
 //----------------------------------------------------------------------------------
@@ -146,9 +165,20 @@ public:
     /// Print out query values with std::cout
     void printQueriesSM(QuerySM query);
     /// determine comparison value and structure to record trial results
-    void setNextTrial();
+    void setNextTrialSM();
     /// Reinitialize member variables for new staircase
     void setNewStaircase();
+
+    //////////// Method of Adjustments (MA) Functions ///////////////
+
+    /// QueriesSM PsychTest for full state information 
+    QueryMA getQueryMA(){return m_q_ma;}
+    /// Set subject response in corresponding query 
+    void setResponseMA(int adjust, double submittedVal);
+    /// Print out query values with std::cout
+    void printQueriesMA(QueryMA query);
+    /// determine comparison value and structure to record trial results
+    void setNextTrialMA();
 //----------------------------------------------------------------------------------
 // UNSAFE FUNCTIONS (ONLY CALL THESE FROM WITHIN A TASBI CONTROLLER UPDATE METHOD)
 //----------------------------------------------------------------------------------
@@ -160,8 +190,8 @@ public:
     ControlType m_controller;
     Mode        m_testmode = Idle;
 
-    std::string expchoice[2] = { "MCS", "SM" };
-    std::array<std::string,2> method = { "Method of Constant Stimuli", "Staircase Method"};
+    std::string expchoice[3] = { "MCS", "SM", "MA" };
+    std::array<std::string,3> method = { "Method of Constant Stimuli", "Staircase Method", "Method of Adjustments"};
     std::string controlChoice[2] = { "Position", "Force"};
     std::string dofChoice[2] = { "Shear", "Normal"};
     std::string currdirection[3] = {"Up", "Down", "None"};
@@ -169,11 +199,13 @@ public:
     // General Experiment Variables
     double      m_jnd_stimulus_reference;
     double      m_jnd_stimulus_comparison = 0;
+    double      m_jnd_stimulus_interval = 0;
     double      m_userStimulusMin;
     double      m_userStimulusMax;
-    double      m_userStimulusContact;  
+    double      m_userStimulusContact; 
     QueryMCS    m_q_mcs;     ///< most recent QueryMCS point
     QuerySM     m_q_sm;      ///< most recent QuerySM point
+    QueryMA     m_q_ma;      ///< most recent QueryMA point
 
     std::vector<std::vector<QueryMCS>> m_stim_trials_mcs;
 
@@ -184,7 +216,6 @@ protected:
     Handedness  m_hand;
 
     // General Experiment Variables
-    double      m_jnd_stimulus_interval;
     int         m_trialnum = 0;
     
     // Method of Constant Stimuli Variables
@@ -200,4 +231,11 @@ protected:
     int         m_num_reversal = 0;
     Direction   m_direction = None; 
     Direction   m_lastSlope = None;
+
+    //Method of Adjustments Variables
+    std::vector<QueryMA> m_stim_trials_ma;
+    int         m_adjust = 1;     // 0 = no, 1 = yes
+    // Direction   m_direction = None; (redundant for staircase)
+    double      m_change = 0;
+    double      m_finalVal = -1;
 };
