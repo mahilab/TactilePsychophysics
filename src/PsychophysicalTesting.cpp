@@ -20,7 +20,10 @@ PsychTest::PsychTest(int subnum, Params config, PsychTest::WhichExp whichExp, Wh
         m_stim_trials_sm.reserve(300); // arbitrary, more than we'll need
     }else if (m_whichExp == PsychTest::MA) {
         m_stim_trials_ma.reserve(300); // arbitrary, more than we'll need
-    }     
+    }
+    std::string user_calibration_file = "C:/Git/TactilePsychophysics/calibs/User/subject_" + std::to_string(m_subject) + ".json";
+    m_up.importParams(user_calibration_file);
+    m_userparams = m_up.getParams();    
     setParams(config);
     LOG(Info) << "Opened PsychTest for subject " << m_subject << ". Set to default settings";
 }
@@ -49,23 +52,23 @@ void PsychTest::setParams(Params config) {
     
     if (m_whichDof == Shear){
         if (m_controller == Position){
-            m_userStimulusContact  = m_params.positionCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
-            m_userStimulusMin = m_params.positionMin_t;
-            m_userStimulusMax = m_params.positionMax_t;
+            m_userStimulusContact  = m_userparams.positionCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusMin = m_userparams.positionMin_t;
+            m_userStimulusMax = m_userparams.positionMax_t;
         }else if (m_controller == Force){
-            m_userStimulusContact  = m_params.forceCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
-            m_userStimulusMin = m_params.forceMin_t;
-            m_userStimulusMax = m_params.forceMax_t;
+            m_userStimulusContact  = m_userparams.forceCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusMin = m_userparams.forceMin_t;
+            m_userStimulusMax = m_userparams.forceMax_t;
         }
     }else if (m_whichDof == Normal){
         if (m_controller == Position){
-            m_userStimulusContact  = m_params.positionCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
-            m_userStimulusMin = m_params.positionMin_n;
-            m_userStimulusMax = m_params.positionMax_n;
+            m_userStimulusContact  = m_userparams.positionCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusMin = m_userparams.positionMin_n;
+            m_userStimulusMax = m_userparams.positionMax_n;
         }else if (m_controller == Force){
-            m_userStimulusContact  = m_params.forceCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
-            m_userStimulusMin = m_params.forceMin_n;
-            m_userStimulusMax = m_params.forceMax_n;
+            m_userStimulusContact  = m_userparams.forceCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusMin = m_userparams.forceMin_n;
+            m_userStimulusMax = m_userparams.forceMax_n;
         }
     }
     
@@ -84,28 +87,6 @@ bool PsychTest::exportParams(const std::string& filepath) {
     PsychTest::Params params = getParams();
     Timestamp ts;
     json j;
-    j["subnum"]                 = params.subnum;
-    j["sex"]                    = params.sex;
-    j["handedness"]             = params.handedness;
-    j["age"]                    = params.age;
-    j["bmi"]                    = params.bmi;
-    j["skinfold"]               = params.skinfold;
-    j["armCircum"]              = params.armCircum;
-    j["hairLength"]             = params.hairLength;
-    j["hairThick"]              = params.hairThick;
-    j["hairSqInch"]             = params.hairSqInch;
-    j["positionMin_n"]          = params.positionMin_n;
-    j["positionMax_n"]          = params.positionMax_n;
-    j["positionCont_n"]         = params.positionCont_n;
-    j["positionMin_t"]          = params.positionMin_t;
-    j["positionMax_t"]          = params.positionMax_t;
-    j["positionCont_t"]         = params.positionCont_t;
-    j["forceMin_n"]             = params.forceMin_n;
-    j["forceMax_n"]             = params.forceMax_n;
-    j["forceCont_n"]            = params.forceCont_n;
-    j["forceMin_t"]             = params.forceMin_t;
-    j["forceMax_t"]             = params.forceMax_t;
-    j["forceCont_t"]            = params.forceCont_t;
     j["n_mcs_comparisons"]      = params.n_mcs_comparisons;
     j["n_mcs_reps"]             = params.n_mcs_reps;
     j["n_mcs_windows"]          = params.n_mcs_windows;
@@ -137,28 +118,6 @@ bool PsychTest::importParams(const std::string& filepath) {
             file >> j;
             Params params;
 
-            params.subnum               = j["subnum"].get<int>();
-            params.sex                  = j["sex"].get<std::string>();
-            params.handedness           = j["handedness"].get<std::string>();
-            params.age                  = j["age"].get<int>();
-            params.bmi                  = j["bmi"].get<double>();
-            params.skinfold             = j["skinfold"].get<double>();
-            params.armCircum            = j["armCircum"].get<double>();
-            params.hairLength           = j["hairLength"].get<double>();
-            params.hairThick            = j["hairThick"].get<double>();
-            params.hairSqInch           = j["hairSqInch"].get<double>();
-            params.positionMin_n        = j["positionMin_n"].get<double>();
-            params.positionMax_n        = j["positionMax_n"].get<double>();
-            params.positionCont_n       = j["positionCont_n"].get<double>();
-            params.positionMin_t        = j["positionMin_t"].get<double>();
-            params.positionMax_t        = j["positionMax_t"].get<double>();
-            params.positionCont_t       = j["positionCont_t"].get<double>();
-            params.forceMin_n           = j["forceMin_n"].get<double>();
-            params.forceMax_n           = j["forceMax_n"].get<double>();
-            params.forceCont_n          = j["forceCont_n"].get<double>();
-            params.forceMin_t           = j["forceMin_t"].get<double>();
-            params.forceMax_t           = j["forceMax_t"].get<double>();
-            params.forceCont_t          = j["forceCont_t"].get<double>();
             params.n_mcs_comparisons    = j["n_mcs_comparisons"].get<int>();
             params.n_mcs_reps           = j["n_mcs_reps"].get<int>();
             params.n_mcs_windows        = j["n_mcs_windows"].get<int>(); 
@@ -171,7 +130,7 @@ bool PsychTest::importParams(const std::string& filepath) {
                 
             setParams(params);
             LOG(Info) << "Imported PsychTest Subject " << m_subject << " parameters from " << path.generic_string();
-            if (m_subject != params.subnum)
+            if (m_subject != m_userparams.subnum)
                 LOG(Error) << "Subject number at construction, " << m_subject << "is not the same as in the imported parameters.";
 
         }
@@ -190,26 +149,26 @@ PsychTest::Params PsychTest::getParams() const {
 }
 
 void PsychTest::setNormalPositionRange(double min, double max) {
-    m_params.positionMin_n = min;
-    m_params.positionMax_n = max;
+    m_userparams.positionMin_n = min;
+    m_userparams.positionMax_n = max;
     LOG(Info) << "Set PsychTest Subject " << m_subject << " normal position range to [ " << min << " , " << max << " mm].";
 }
 
 void PsychTest::setShearPositionRange(double min, double max) {
-    m_params.positionMin_t = min;
-    m_params.positionMax_t = max;
+    m_userparams.positionMin_t = min;
+    m_userparams.positionMax_t = max;
     LOG(Info) << "Set PsychTest Subject" << m_subject << " shear position range to [ " << min << " , " << max << " mm].";
 }
 
 void PsychTest::setNormalForceRange(double min, double max) {
-    m_params.forceMin_n = min;
-    m_params.forceMax_n = max;
+    m_userparams.forceMin_n = min;
+    m_userparams.forceMax_n = max;
     LOG(Info) << "Set PsychTest Subject" << m_subject << " normal force range to [ " << min << " , " << max << " N].";
 }
 
 void PsychTest::setShearForceRange(double min, double max) {
-    m_params.forceMin_t = min;
-    m_params.forceMax_t = max;
+    m_userparams.forceMin_t = min;
+    m_userparams.forceMax_t = max;
     LOG(Info) << "Set PsychTest Subject" << m_subject << " shear force range to [ " << min << " , " << max << " N].";
 }
 

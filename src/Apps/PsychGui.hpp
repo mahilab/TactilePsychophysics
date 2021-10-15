@@ -101,13 +101,15 @@ public:
 
     void setStimulus(double N);
 
+    void userLimitsExceeded();
+
     void collectSensorData(PsychTest::WhichStim whichStim);
 
     void avgSensorData();
 
     // Experiment
     PsychTest m_pt;
-    PsychTest::Params m_userparams;
+    PsychTest::Params m_psychparams;
     bool m_debug            = 0;
     bool m_flag_is_JND = 0; // use this for SM and MCS too?
     bool m_flag_presentStims = 0;

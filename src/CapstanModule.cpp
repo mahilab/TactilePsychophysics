@@ -138,7 +138,6 @@ bool CM::exportParams(const std::string& filepath) {
 bool CM::importParams(const std::string& filepath) {
     fs::path path(filepath);
     if (fs::exists(path)) {
-
         try {
             std::ifstream file(path);
             json j;
@@ -179,16 +178,16 @@ bool CM::importParams(const std::string& filepath) {
             params.filterOutputValue  = j["filterOutputValue"].get<bool>();
             params.velFilterCutoff    = j["velFilterCutoff"].get<double>();
             params.useSoftwareVelocity = j["useSoftwareVelocity"].get<bool>();
-            
             setParams(params);
             LOG(Info) << "Imported CM " << name() << " parameters from " << path.generic_string();
         }
         catch(...) {
             LOG(Error) << "Failed to import CM " << name() << " parameters.";
         }
-
         return true;
     }
+    std::cout << path << std::endl;
+    std::cout << name() << std::endl;
     LOG(Error) << "Failed to import CM " << name() << " parameters because " << path << " does not exist.";
     return false;
 }

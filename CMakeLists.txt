@@ -15,21 +15,16 @@ FetchContent_MakeAvailable(mahi-daq)
 FetchContent_Declare(mahi-gui GIT_REPOSITORY https://github.com/mahilab/mahi-gui.git) 
 FetchContent_MakeAvailable(mahi-gui)
 
-FetchContent_Declare(etfe GIT_REPOSITORY https://github.com/epezent/etfe.git GIT_TAG origin/main) 
-FetchContent_MakeAvailable(etfe)
-
-set(SYNTACTS_BUILD_GUI OFF CACHE BOOL "" FORCE)
-set(SYNTACTS_BUILD_C_DLL OFF CACHE BOOL "" FORCE)
-set(SYNTACTS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SYNTACTS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(syntacts GIT_REPOSITORY https://github.com/mahilab/Syntacts.git)
-FetchContent_MakeAvailable(syntacts)
+# FetchContent_Declare(etfe GIT_REPOSITORY https://github.com/epezent/etfe.git GIT_TAG origin/main) 
+# FetchContent_MakeAvailable(etfe)
 
 add_library(cm 
     src/CapstanModule.hpp 
     src/CapstanModule.cpp 
     src/CMHub.hpp 
     src/CMHub.cpp
+    src/UserParams.hpp 
+    src/UserParams.cpp
     src/PsychophysicalTesting.hpp
     src/PsychophysicalTesting.cpp
     src/Util/RateMonitor.hpp
@@ -44,6 +39,8 @@ add_library(cm
     src/Util/ATI_windowCal.hpp
     src/Util/HertzianContact.cpp
     src/Util/HertzianContact.hpp
+    src/Util/ForceTorqueCentroid.cpp
+    src/Util/ForceTorqueCentroid.hpp
 )
 target_include_directories(cm PUBLIC src)
 target_link_libraries(cm PUBLIC mahi::daq mahi::robo XInput)
@@ -54,12 +51,8 @@ target_compile_features(cm PUBLIC cxx_std_17)
 #add_executable(calibrator src/Apps/calibrator.cpp misc/cm.rc)
 #target_link_libraries(calibrator cm mahi::gui etfe)
 
-add_executable(survey src/Apps/survey.cpp misc/cm.rc)
-target_link_libraries(survey mahi::gui)
-
-add_executable(vsb src/Apps/vsb.cpp)
-target_include_directories(vsb PUBLIC src)
-target_link_libraries(vsb mahi::gui mahi::daq mahi::robo)
+# add_executable(survey src/Apps/survey.cpp misc/cm.rc)
+# target_link_libraries(survey mahi::gui)
 
 add_executable(kalman src/Apps/kalman.cpp)
 target_link_libraries(kalman PUBLIC mahi::gui mahi::robo)
@@ -88,8 +81,11 @@ target_link_libraries(PosControl2DOF_CMtest mahi::daq mahi::robo mahi::util cm)
 add_executable(xboxContoller src/Apps/xbox_adaptive_controller_test.cpp)
 target_link_libraries(xboxContoller mahi::util cm)
 
-add_executable(psychMCSGui src/Apps/capstan2DofpsychMCSGuiExp.cpp src/Apps/PsychGui.hpp src/Apps/PsychGui.cpp)
-target_link_libraries(psychMCSGui mahi::util mahi::gui mahi::robo cm)
+add_executable(psychGui src/Apps/PsychGuiExp.cpp src/Apps/PsychGui.hpp src/Apps/PsychGui.cpp)
+target_link_libraries(psychGui mahi::util mahi::gui mahi::robo cm)
 
 add_executable(testWindowCal src/Apps/ex_testAtiWindowCal.cpp)
 target_link_libraries(testWindowCal mahi::util mahi::gui mahi::robo cm)
+
+add_executable(contactExp src/Apps/ContactMechExp.cpp src/Apps/ContactMechGui.hpp src/Apps/ContactMechGui.cpp)
+target_link_libraries(contactExp mahi::util mahi::gui mahi::robo cm)
