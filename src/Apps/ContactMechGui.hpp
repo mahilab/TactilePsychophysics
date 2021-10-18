@@ -82,8 +82,8 @@ public:
         int cyclenum = 0;
         double Fn = 0;
         double Ft = 0;
-        int deltaN = 0;   // 1 or 2
-        int deltaT = 0; // 1 or 2
+        double deltaN = 0;
+        double deltaT = 0;
     };
 
     // Indentation - Psychophysical Study
@@ -98,9 +98,11 @@ public:
 
     void moveConstVel(double elapsed, bool isTest, bool isIncreasing);
 
-    void writeOutputVariables(Csv& csv, Timestamp ts);
+    void updateQuery();
+    
+    void writeOutputVariables(Csv& csv);
 
-    void writeOutputData(Csv& csv, ContactMechGui::QueryContact trial);
+    void writeOutputData(Csv& csv);
 
     
     // Experiment Functions
@@ -127,9 +129,11 @@ public:
 
     void switchControllers(); // toggle between force and position control
 
-    void setStimulus(double N);
+    void setTest(double N);
 
     void setLock(double N);
+
+    void  getFNUpdate();
 
     void  userLimitsExceeded();
 
@@ -152,8 +156,6 @@ private:
     Params      m_params;    ///< parameters
     Gender      m_sex;
     Handedness  m_hand;
-    PointInterest m_poi;
-    ControlType m_controller = Position;
     
     UserParams::Params m_userparams;
     UserParams m_up;
@@ -165,15 +167,21 @@ private:
     std::string currpoi[6]  = { "Start", "Peak", "Min", "HoldInitial", "HoldFinal", "Other"};
     
     // General Experiment Variables
+    PointInterest m_poi;
+    ControlType m_controller = Position;
     int     m_cyclenum             = 0;
+    double  m_Fn                   = 0;
+    double  m_Ft                   = 0;
+    double  m_deltaN               = 0;
+    double  m_deltaT               = 0;
     bool    m_debug                = 0;
     bool    m_flag_presentStims    = 0;
     bool    m_flag_reachedMAValue  = 0;
-    double  m_userStimulusMin;
-    double  m_userStimulusMax;
-    double  m_userStimulusContact;
-    double  m_targetPosLock;
-    double  m_targetPosTest;
+    double  m_userStimulusMin      = 0;
+    double  m_userStimulusMax      = 0;
+    double  m_userStimulusContact  = 0;
+    double  m_targetPosLock        = 0;
+    double  m_targetPosTest        = 0;
     QueryContact    m_q;     ///< most recent QueryInd point
 
     // Plotting variables

@@ -89,7 +89,8 @@
         "compare": "cpp",
         "*.rh": "cpp",
         "resumable": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "core": "cpp"
     },
     "cSpell.ignoreWords": [
         "g",
