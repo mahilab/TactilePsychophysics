@@ -7,6 +7,8 @@
 #include <mutex>
 #include "CapstanModule.hpp"
 
+// Written by Janelle Clark, based off code by Evan Pezent
+
 class CMHub : public mahi::util::NonCopyable {
 public:
     /// Hub Status

@@ -124,9 +124,9 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     }
 
     int PsychGui::responseWindow(PsychTest::WhichStim whichStim) {
-        float windowHeight = m_debug ? 1500 : -1;
-        float windowWidth = m_debug ? 600 : -1;
-        float buttonHeight = m_debug ? 50 : -1;
+        float windowHeight = m_debug ? 1500.0 : -1;
+        float windowWidth = m_debug ? 600.0 : -1;
+        float buttonHeight = m_debug ? 50.0 : -1;
 
         ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{windowWidth,windowHeight}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         ImGui::BeginDisabled(true,1.0f);
@@ -501,9 +501,9 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     //////////////////////////////////////////////////////////////////////////////////////
      
      void PsychGui::responseWindowMA(PsychTest::WhichStim whichStim) {
-        float windowHeight = m_debug ? 1500 : -1;
-        float windowWidth = m_debug ? 600 : -1;
-        float buttonHeight = m_debug ? 50 : -1;
+        float windowHeight = m_debug ? 1500.0 : -1;
+        float windowWidth = m_debug ? 600.0 : -1;
+        float buttonHeight = m_debug ? 50.0 : -1;
 
         ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{windowWidth,windowHeight}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         ImGui::BeginDisabled(true,1.0f);

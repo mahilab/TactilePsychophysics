@@ -1,5 +1,7 @@
 #include "UserParams.hpp"
 
+// Written by Janelle Clark
+
 /// Constructor
 UserParams::UserParams(){};
 /// Destructor

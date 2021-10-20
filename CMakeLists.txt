@@ -28,8 +28,6 @@ add_library(cm
     src/PsychophysicalTesting.hpp
     src/PsychophysicalTesting.cpp
     src/Util/RateMonitor.hpp
-    src/Util/PolyFit.hpp
-    src/Util/PolyFit.cpp
     src/Util/MedianFilter.hpp
     src/Util/MiniPID.hpp
     src/Util/MiniPID.cpp
@@ -48,14 +46,11 @@ target_compile_features(cm PUBLIC cxx_std_17)
 
 # ANSI C DLL
 
-#add_executable(calibrator src/Apps/calibrator.cpp misc/cm.rc)
-#target_link_libraries(calibrator cm mahi::gui etfe)
-
 # add_executable(survey src/Apps/survey.cpp misc/cm.rc)
 # target_link_libraries(survey mahi::gui)
 
-add_executable(kalman src/Apps/kalman.cpp)
-target_link_libraries(kalman PUBLIC mahi::gui mahi::robo)
+add_executable(PosControl2DOF_NoGui src/Apps/runTwoMotorPositionControl_moduleNoGui.cpp)
+target_link_libraries(PosControl2DOF_NoGui mahi::daq mahi::robo mahi::util cm)
 
 add_executable(PosControl2DOF src/Apps/runTwoMotorPositionControl.cpp)
 target_link_libraries(PosControl2DOF mahi::gui mahi::daq mahi::robo)
@@ -74,9 +69,6 @@ target_link_libraries(ForceControl2DOF mahi::gui mahi::daq mahi::robo)
 
 add_executable(ForceModule src/Apps/runTwoMotorForceControl_module.cpp)
 target_link_libraries(ForceModule mahi::gui mahi::daq mahi::robo mahi::util cm)
-
-add_executable(PosControl2DOF_CMtest src/Apps/janelle_haptic_testbed.cpp)
-target_link_libraries(PosControl2DOF_CMtest mahi::daq mahi::robo mahi::util cm)
 
 add_executable(xboxContoller src/Apps/xbox_adaptive_controller_test.cpp)
 target_link_libraries(xboxContoller mahi::util cm)

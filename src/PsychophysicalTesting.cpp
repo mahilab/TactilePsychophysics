@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <fstream>
 
+// Written by Janelle Clark with Nathan Dunkelberger, based off code by Evan Pezent
+
 using namespace mahi::daq;
 using namespace mahi::util;
 namespace fs = std::filesystem;

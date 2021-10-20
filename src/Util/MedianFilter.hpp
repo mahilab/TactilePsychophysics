@@ -1,3 +1,5 @@
+// Written by Evan Pezent
+
 #pragma once
 
 #include <array>

@@ -1,11 +1,5 @@
 #include "Util/ForceTorqueCentroid.hpp"
 
-// Given the 3D force and moment vectors at the centerpoint of a sphere, the 
-// following code gives the location of the contact centroid.
-// From "Contact Sensing from Force Measurements" by  Bicchi, et al. 1993
-
-// 10.14.21 - By Janelle Clark
-
 using namespace mahi::robo;
 using Eigen::Vector3d;
 

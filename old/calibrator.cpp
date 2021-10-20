@@ -350,7 +350,7 @@ public:
         ImGui::EndDisabled();
         ImGui::Separator();
         ImGui::PushItemWidth(150);
-        CMGui::ShowHubQuerey(Q);
+        CMGui::ShowHubQuery(Q);
         ImGui::PopItemWidth();
     }
 

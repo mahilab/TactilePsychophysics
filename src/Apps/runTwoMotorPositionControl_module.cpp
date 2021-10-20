@@ -96,22 +96,25 @@ public:
         if (ImGui::Checkbox("Follow Sine", &followSine))
             toff = time();
 
+        if (ImGui::Button("Stay in Current Position"))
+            stayPut = true;
+        
+        
         if (followSine) {
             x_ref1 = 0.3 * std::sin(2 * PI * 0.25 * time().as_seconds() - toff.as_seconds());
             x_ref2 = 0.3 * std::cos(2 * PI * 0.25 * time().as_seconds() - toff.as_seconds());
-        }
-        else {
+        }else if (stayPut){
+            x_ref1 = cm_n->getSpoolPosition();
+            x_ref2 = cm_t->getSpoolPosition();
+            stayPut = false;
+        }else {
             ImGui::DragDouble("X Ref Normal", &x_ref1, 0.1f, posMin, posMax);
             ImGui::DragDouble("X Ref Shear", &x_ref2, 0.1f, posMin, posMax);
         }
 
-        //std::cout << "sono qui 1" << std::endl;
         cm_n->setPositionGains(kp/1e3,kd/1e3);
-        //std::cout << "sono qui 2" << std::endl;
         cm_n->setControlValue(cm_n->scaleRefToCtrlValue(x_ref1));
-        //std::cout << "sono qui 3" << std::endl;
         cm_n->limits_exceeded();
-        //std::cout << "sono qui 4" << std::endl;
 
         cm_t->setPositionGains(kp/1e3,kd/1e3);
         cm_t->setControlValue(cm_t->scaleRefToCtrlValue(x_ref2));
@@ -119,13 +122,13 @@ public:
 
         double pos1 = cm_n->getMotorPosition();
         double pos2 = cm_t->getMotorPosition();
-        //double torque1 = (kp/1e3) * (x_ref1 - hub.daq.encoder.positions[0]) + (kd/1e3) * (0 - hub.daq.velocity.velocities[0]);
-        //std::cout << std::endl;
-        //std::cout << "enc counts " << cm_n->getEncoderCounts() << " | " << hub.daq.encoder[0] << std::endl;
-        //std::cout << "position " << cm_n->getMotorPosition() << " | " << hub.daq.encoder.positions[0] << std::endl;
-        //std::cout << "velocity " << cm_n->getMotorVelocity() << " | " << hub.daq.velocity.velocities[0] << std::endl;
-        //std::cout << "torque " << cm_n->getMotorTorqueCommand() << " | " << torque1 << std::endl;
-        //std::cout << "cv " << x_ref1 << std::endl;
+        double torque1 = (kp/1e3) * (x_ref1 - hub.daq.encoder.positions[0]) + (kd/1e3) * (0 - hub.daq.velocity.velocities[0]);
+        // std::cout << std::endl;
+        // std::cout << "enc counts " << cm_n->getEncoderCounts() << " | " << hub.daq.encoder[0] << std::endl;
+        // std::cout << "position " << cm_n->getMotorPosition() << " | " << hub.daq.encoder.positions[0] << std::endl;
+        // std::cout << "velocity " << cm_n->getMotorVelocity() << " | " << hub.daq.velocity.velocities[0] << std::endl;
+        // std::cout << "torque " << cm_n->getMotorTorqueCommand() << " | " << torque1 << std::endl;
+        // std::cout << "cv " << cm_n->scaleRefToCtrlValue(x_ref1) << std::endl;
 
         ImGui::PushItemWidth(100);
         ImGui::LabelText("normal motor encoder counts", "%d", cm_n->getEncoderCounts());
@@ -179,6 +182,7 @@ public:
 
     // Gui and reference path variables
     bool followSine = false;
+    bool stayPut = false;
     Time toff = Time::Zero;
 
     RollingBuffer pdata1, pdata2;

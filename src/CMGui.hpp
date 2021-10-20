@@ -31,8 +31,6 @@ inline bool ShowParamsMenu(CM::Params &p)
         changed = true;
     if (ImGui::DragDouble("Command Gain", &p.commandGain, 0.000001f, 0, 1, "%.6f A/V"))
         changed = true;
-    if (ImGui::DragDouble("Sense Gain", &p.senseGain, 0.000001f, 0, 1, "%.6f A/V"))
-        changed = true;
     if (ImGui::DragDoubleRange2("Position Range", &p.positionMin, &p.positionMax, 1, -200, 200, "%.1f deg"))
         changed = true;
     if (ImGui::DragDouble2("Position PD", posGains, 0.1f, 0, 1000, "%.3f"))
@@ -73,7 +71,7 @@ inline bool ShowParamsMenu(CM::Params &p)
     return changed;
 }
 
-inline void ShowHubQuerey(const CMHub::Query &Q) {
+inline void ShowHubQuery(const CMHub::Query &Q) {
     ImGui::LabelText("Status", Q.status == CMHub::Idle ? "Idle" : Q.status == CMHub::Running ? "Running" : Q.status == CMHub::Error ? "Error" : "?");
     ImGui::LabelText("Devices", "%d", Q.devices);
     ImGui::LabelText("Time", "%.3f s", Q.time);
@@ -97,7 +95,7 @@ inline void ShowCMQuerey(CM::Query &q)
     ImGui::LabelText("Spool Velocity", "%.3f deg/s", q.spoolVelocity);
     ImGui::LabelText("Force (Raw)", "%.3f V", q.forceRaw);
     ImGui::LabelText("Force", "%.3f N", q.force);
-    ImGui::LabelText("Control Mode", q.ctrlMode == CM::Torque ? "Torque" : q.ctrlMode == CM::Position ? "Position" : q.ctrlMode == CM::Force ? "Force" : "?");
+    ImGui::LabelText("Control Mode", q.ctrlMode == CM::Torque ? "Torque" : q.ctrlMode == CM::Position ? "Position" : q.ctrlMode == CM::Force ? "Force" : q.ctrlMode == CM::ForceHybrid ? "ForceHybrid" : q.ctrlMode == CM::ForceErr ? "ForceErr" : "?");
     ImGui::LabelText("Control Value", "%.3f", q.ctrlValue);
     ImGui::LabelText("Control Value (Filtered)", "%.3f", q.ctrlValueFiltered);
     ImGui::LabelText("Control Value (Scaled)", "%.3f", q.ctrlValueScaled);

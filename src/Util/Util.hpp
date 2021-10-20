@@ -1,3 +1,5 @@
+// Author(s): Evan Pezent (epezent@rice.edu)
+
 #pragma once
 
 template <typename T>

@@ -1,4 +1,5 @@
 #pragma once
+// Written by Evan Pezent
 
 #include <Mahi/Util/Timing/Time.hpp>
 

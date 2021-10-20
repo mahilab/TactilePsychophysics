@@ -459,36 +459,36 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
     void ContactMechGui::switchControllers(){
         if (m_controller == Position){
             std::cout << "Switch from position to force control" << std::endl;
-            double currF = m_cm_test->getForce();
-            m_controller = Force;
-            
             m_userStimulusMin = m_CMparams.forceMin;
             m_userStimulusMax = m_CMparams.forceMax;
-            m_cm_test->setControlMode(CM::Force);
-
             if (m_whichDof == ContactMechGui::Shear){ // test shear
                 m_userStimulusContact = m_userparams.forceCont_t;
             }else if (m_whichDof == ContactMechGui::Normal){ // test normal
                 m_userStimulusContact = m_userparams.forceCont_n;
             }
-            m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(currF)); // 0 for centered shear, contact pressure/position for normal force
+            m_controller = Force;
+
+            double currF = m_cm_test->getForce();
+            m_cm_test->setControlMode(CM::Force);
+            m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(currF)); 
             m_cm_test->limits_exceeded();
 
         }else if (m_controller == Force){
             std::cout << "Switch from force to position control" << std::endl;
-            double currP = m_cm_test->getSpoolPosition();
-            m_controller = Position;
-
             m_userStimulusMin = m_CMparams.positionMin;
             m_userStimulusMax = m_CMparams.positionMax;
-            m_cm_test->setControlMode(CM::Position);
             if (m_whichDof == ContactMechGui::Shear){ // test shear
                 m_userStimulusContact = m_userparams.positionCont_t;
             }else if (m_whichDof == ContactMechGui::Normal){ // test normal
                 m_userStimulusContact = m_userparams.positionCont_n;
             }
-            m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(currP)); // 0 for centered shear, contact pressure/position for normal force
+            m_controller = Position;
+
+            double currP = m_cm_test->getSpoolPosition();
+            m_cm_test->setControlMode(CM::Position);
+            m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(currP)); 
             m_cm_test->limits_exceeded();
+            userLimitsExceeded();
         }
         
     }

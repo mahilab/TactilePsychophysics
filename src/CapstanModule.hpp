@@ -1,3 +1,20 @@
+// MIT License
+//
+// AtiWindowCal - Mechatronics Engine & Library
+// Copyright (c) 2021 Mechatronics and Haptic Interfaces Lab - Rice University
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// Author(s): Janelle Clark (janelle.clark@rice.edu) and Nathan Dunkelberger
+
 #pragma once
 
 #include <Mahi/Daq.hpp>
@@ -14,6 +31,8 @@
 #include "Util/RateMonitor.hpp"
 #include "Util/MedianFilter.hpp"
 #include "Util/MiniPID.hpp"
+
+// Written by Janelle Clark with Nathan Dunkelberger, based off code by Evan Pezent
 
 #define TASBI_THREAD_SAFE
 #ifdef TASBI_THREAD_SAFE
@@ -55,11 +74,12 @@ public:
 
     /// Control Mode
     enum ControlMode : int {
-        Torque   = 0,  ///< motor torque control
-        Position = 1,  ///< spool position control
-        Force    = 2,  ///< squeeze force control (hybrid)
-        Force2   = 3,  ///< squeeze force control (force only)
-        Custom   = 4   ///< custom controller
+        Torque      = 0,  ///< motor torque control
+        Position    = 1,  ///< spool position control
+        Force       = 2,  ///< force control
+        ForceHybrid = 3,  ///< force control (hybrid with velocity)
+        ForceErr    = 4,  ///< force control (with force error)
+        Custom      = 5   ///< custom controller
     };
 
     /// Force Filter Type
@@ -94,20 +114,21 @@ public:
         double gearRatio           = 0.332*25.4*mahi::util::PI/360.0;    // [mm/deg] from spool pitch diameter (.332") and capstan radius if applicable, converted to mm
         double degPerCount         = 2 * mahi::util::PI / (1024 * 35); //360.0 / (1024.0 * (4554.0 / 130.0));  // [deg/count] for motor shaft, including gearbox if applicable
         double commandGain         = 1.35 / 10.0;   // [A/V]
-        bool   commandSignFlip       = 0;
+        bool   posCmdSignFlip      = 0;
+        bool   forceCmdSignFlip    = 1;
         bool   has_velocity_limit_ = 1;
         bool   has_torque_limit_   = 1;
         double velocityMax         = 30; // [mm/s] ????
         double torqueMax           = 0.75; // [Nm]
         double positionMin         = -5.5; // [deg] ???? 
         double positionMax         = 5.5;  // [deg] ????
-        double positionKp          = 1.0/1e3; //?????
-        double positionKd          = 0.1/1e3; //????
+        double positionKp          = 1.0/(1e3); //?????
+        double positionKd          = 0.1/(1e3); //????
         double forceMin            = -20;            // [N] ?????
         double forceMax            = 20;             // [N] ?????
-        double forceKp             = 500.0/1e6;
+        double forceKp             = 500.0/(1e6);
         double forceKi             = 0;
-        double forceKd             = 15.0/1e6;
+        double forceKd             = 15.0/(1e6);
         double forceKff            = 0;
         double forceFilterCutoff   = 0.25;           // normalized [0,1]
         int    forceFilterN        = 31;  
@@ -165,7 +186,7 @@ public:
     /// Get most recent 10k Queries. WILL TEMPORAIRLY STALL CONTROLLER (thread safe)
     void dumpQueries(const std::string& filepath);
     /// Set boolean to flip command cuurent if necessary
-    void setCommandSign(bool commandSignFlip);
+    void setCommandSign(bool cmdSignFlip);
     /// Zero force sensor (thread safe)
     void zeroForce();
     /// Zero position to current value (thread safe)
@@ -208,17 +229,19 @@ public:
 //----------------------------------------------------------------------------------
 
     /// The control update (passed normalized control value) (DO NOT LOCK)
-    virtual void controlUpdate(double ctrlValue, mahi::util::Time t);
+    virtual void controlUpdate(double ctrlValue);
     /// Implements motor position controller (DO NOT LOCK)
-    virtual void controlMotorPosition(double degrees, mahi::util::Time t);
+    virtual void controlMotorPosition(double degrees);
     /// Implements spool position controller (DO NOT LOCK)
-    virtual void controlSpoolPosition(double degrees, mahi::util::Time t);
+    virtual void controlSpoolPosition(double degrees);
     /// Implements force controller (DO NOT LOCK)
-    virtual void controlForce(double newtons, mahi::util::Time t);
-    /// Implements hybrid force conbtrol (DO NOT LOCK)
-    virtual void controlForce2(double newtons, mahi::util::Time t);
+    virtual void controlForce(double newtons);
+    /// Implements hybrid force control with velocity instead of dF (DO NOT LOCK)
+    virtual void controlForceHybrid(double newtons);
+    /// Implements force conbtrol based on force errors (DO NOT LOCK)
+    virtual void controlForceErr(double newtons);
     /// Called inside of update after controlUpdate (does nothing by default) (DO NOT LOCK)
-    virtual void onUpdate(mahi::util::Time t);
+    virtual void onUpdate();
 
     /// Sets the current motor torque output [Nm]
     void setMotorTorque(double torque);
@@ -238,6 +261,8 @@ public:
     double getSpoolVelocity();
     /// Returns the force sensor reading in [N]
     virtual double getForce(bool filtered = true);
+    /// Returns the derivative of the force sensor reading in [N/s]
+    virtual double getdFdt(bool filtered = false);
     /// Ensures the velocity does not exceed the velocity limit
     bool velocity_limit_exceeded();
     /// Ensures the torque does not exceed the torque limit
@@ -258,6 +283,7 @@ public:
 protected:
     // Status and Congiguration
     Status      m_status;    ///< status
+    Time        m_t;
     Io          m_io;        ///< IO config
     Params      m_params;    ///< parameters
     ControlMode m_ctrlMode;  ///< mode of control

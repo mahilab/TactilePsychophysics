@@ -3,6 +3,8 @@
 #include <Mahi/Robo.hpp>
 #include "Util/ATI_windowCal.hpp"
 
+// Written by Janelle Clark, based off code by Evan Pezent
+
 using namespace mahi::daq;
 using namespace mahi::util;
 using namespace mahi::robo;

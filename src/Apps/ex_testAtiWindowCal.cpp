@@ -94,13 +94,6 @@ public:
             ImPlot::EndPlot();
         }
 
-        ImPlot::SetNextPlotLimitsX(t - history, t, ImGuiCond_Always);
-        if (ImPlot::BeginPlot("##Scrolling1", NULL, NULL, ImVec2(-1,450), 0, 0, 0)) {
-            ImPlot::PlotLine("Ati Data", &atiTData.Data[0].x, &atiTData.Data[0].y, atiTData.Data.size(), atiTData.Offset, 2 * sizeof(float));
-            ImPlot::PlotLine("Window Data", &winTData.Data[0].x, &winTData.Data[0].y, winTData.Data.size(), winTData.Offset, 2*sizeof(float));
-            ImPlot::EndPlot();
-        }
-
         ImGui::End();
         q8.write_all();
 

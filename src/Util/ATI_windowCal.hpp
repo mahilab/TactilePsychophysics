@@ -1,6 +1,7 @@
 // MIT License
 //
-// Copyright (c) 2020 Mechatronics and Haptic Interfaces Lab - Rice University
+// AtiWindowCal - Mechatronics Engine & Library
+// Copyright (c) 2021 Mechatronics and Haptic Interfaces Lab - Rice University
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -12,7 +13,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// Author(s): Evan Pezent (epezent@rice.edu)
+// Author(s): Janelle Clark (janelle.clark@rice.edu) with Nathan Dunkelberger
 
 #pragma once
 #include <Mahi/Robo/Mechatronics/ForceSensor.hpp>

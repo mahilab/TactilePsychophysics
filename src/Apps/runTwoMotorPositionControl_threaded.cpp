@@ -36,7 +36,6 @@ public:
         q8.encoder.units[0] = 2 * PI / (1024 * 35);
         q8.encoder.units[1] = 2 * PI / (1024 * 35);
         control_thread = std::thread(&MyGui::control_loop, this);
-
     }
 
     ~MyGui(){
