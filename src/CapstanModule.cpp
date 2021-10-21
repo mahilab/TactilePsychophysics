@@ -104,7 +104,9 @@ bool CM::exportParams(const std::string& filepath) {
     j["degPerCount"]         = params.degPerCount;
     j["commandGain"]         = params.commandGain;
     j["posCmdSignFlip"]      = params.posCmdSignFlip;
+    j["posSenseSignFlip"]    = params.posSenseSignFlip;
     j["forceCmdSignFlip"]    = params.forceCmdSignFlip;
+    j["forceSenseSignFlip"]  = params.forceSenseSignFlip;
     j["has_velocity_limit_"] = params.has_velocity_limit_;
     j["has_torque_limit_"]   = params.has_torque_limit_;
     j["velocityMax"]         = params.velocityMax;
@@ -159,7 +161,9 @@ bool CM::importParams(const std::string& filepath) {
             params.degPerCount        = j["degPerCount"].get<double>();
             params.commandGain        = j["commandGain"].get<double>();
             params.posCmdSignFlip     = j["posCmdSignFlip"].get<bool>();
+            params.posSenseSignFlip   = j["posSenseSignFlip"].get<bool>();
             params.forceCmdSignFlip   = j["forceCmdSignFlip"].get<bool>();
+            params.forceSenseSignFlip = j["forceSenseSignFlip"].get<bool>();
             params.has_velocity_limit_= j["has_velocity_limit_"].get<bool>();
             params.has_torque_limit_  = j["has_torque_limit_"].get<bool>();
             params.velocityMax        = j["velocityMax"].get<double>();
@@ -262,21 +266,39 @@ void CM::dumpQueries(const std::string& filepath) {
     }
 }
 
-void CM::setCommandSign(bool cmdSignFlip) {
-    
-    if(m_ctrlMode == ControlMode::Position){
-        m_params.posCmdSignFlip = cmdSignFlip;
-        if (m_params.posCmdSignFlip == 0)
-            std::cout << "device:  " << name() << " command current as wired (flip = 0) for Position Control" << std::endl;
-        else
-            std::cout << "device:  " << name() << " command current is flipped (flip = 1) For Position Control" << std::endl;
-    } else {
+void CM::setPosCtrlCmdSign(bool cmdSignFlip) {
+    m_params.posCmdSignFlip = cmdSignFlip;
+    if (m_params.posCmdSignFlip == 0)
+        std::cout << "device:  " << name() << " command current as wired (flip = 0) for Position Control" << std::endl;
+    else
+        std::cout << "device:  " << name() << " command current is flipped (flip = 1) For Position Control" << std::endl;
+
+}
+
+void CM::setForceCtrlCmdSign(bool cmdSignFlip) {
         m_params.forceCmdSignFlip = cmdSignFlip;
         if (m_params.forceCmdSignFlip == 0)
             std::cout << "device:  " << name() << " command current as wired (flip = 0) for Force/Torque Control" << std::endl;
         else
             std::cout << "device:  " << name() << " command current is flipped (flip = 1) For Force/Torque Control" << std::endl;
-    }
+}
+
+void CM::setPositionSenseSign(bool posSignFlip) {
+    
+    m_params.posSenseSignFlip = posSignFlip;
+    if (m_params.posSenseSignFlip == 0)
+        std::cout << "device:  " << name() << " position sensing as wired (flip = 0)" << std::endl;
+    else
+        std::cout << "device:  " << name() << " position sensing sign is flipped (flip = 1)" << std::endl;
+}
+
+void CM::setForceSenseSign(bool forceSignFlip) {
+    
+    m_params.forceSenseSignFlip = forceSignFlip;
+    if (m_params.forceSenseSignFlip == 0)
+        std::cout << "device:  " << name() << " force sensing as wired (flip = 0)" << std::endl;
+    else
+        std::cout << "device:  " << name() << " force sensing sign is flipped (flip = 1)" << std::endl;
 }
 
 void CM::zeroForce(){
@@ -457,9 +479,9 @@ void CM::setMotorTorque(double torque) {
         torque = m_outputFilter.update(torque);
     double commandSign;
     if (m_ctrlMode == ControlMode::Position){
-        commandSign = m_params.posCmdSignFlip ? 1.0 : -1.0;
+        commandSign = m_params.posCmdSignFlip ? -1.0 : 1.0;
     }else{
-        commandSign = m_params.forceCmdSignFlip ? 1.0 : -1.0;
+        commandSign = m_params.forceCmdSignFlip ? -1.0 : 1.0;
     }
     double amps = torque*commandSign / m_params.motorTorqueConstant;
     double volts = amps / m_params.commandGain;
@@ -519,26 +541,31 @@ void CM::onUpdate() {
 }
 
 int32 CM::getEncoderCounts() {
-    return m_io.encoderCh.get_counts();
+    double senseSign = m_params.posSenseSignFlip ? -1.0 : 1.0;
+    return senseSign*m_io.encoderCh.get_counts();
 }
 
 double CM::getEncoderCountsPerSecond() {
-    return *m_io.cps;
+    double senseSign = m_params.posSenseSignFlip ? -1.0 : 1.0;
+    return *m_io.cps*senseSign;
 }
 
 double CM::getMotorTorqueCommand() {
     double volts = m_io.commandCh.get_volts();
     double commandSign;
     if (m_ctrlMode == ControlMode::Position){
-        commandSign = m_params.posCmdSignFlip ? 1.0 : -1.0;
+        commandSign = m_params.posCmdSignFlip ? -1.0 : 1.0;
     }else{
-        commandSign = m_params.forceCmdSignFlip ? 1.0 : -1.0;
+        commandSign = m_params.forceCmdSignFlip ? -1.0 : 1.0;
     }
     double amps = volts * m_params.commandGain*commandSign;
     return amps * m_params.motorTorqueConstant;
 }
 
-double CM::getMotorPosition() { return m_io.encoderCh.get_pos(); }
+double CM::getMotorPosition() { 
+    double senseSign = m_params.posSenseSignFlip ? -1.0 : 1.0;
+    return senseSign*m_io.encoderCh.get_pos(); 
+}
 
 double CM::getMotorVelocity() { return m_params.useSoftwareVelocity ? m_velocityFilter.get_value() : *m_io.vel; }
 
@@ -547,7 +574,8 @@ double CM::getSpoolPosition() { return getMotorPosition() * m_params.gearRatio; 
 double CM::getSpoolVelocity() { return getMotorVelocity() * m_params.gearRatio; }
 
 double CM::getForce(bool filtered) {
-    double raw = m_io.forceCh.get_force(m_io.forceaxis);
+    double senseSign = m_params.forceSenseSignFlip ? -1.0 : 1.0;
+    double raw = senseSign*m_io.forceCh.get_force(m_io.forceaxis);
     if (!filtered)
         return raw;
     switch(m_forceFiltMode) {

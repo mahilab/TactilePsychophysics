@@ -828,6 +828,28 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         m_cm_lock->setControlMode(CM::Force);
         m_cm_lock->setControlValue(0);
         m_cm_lock->enable();
+
+        if (m_pt.m_whichDof == PsychTest::Shear) { // test shear direction
+            m_cm_test->setForceSenseSign(1);
+            m_cm_test->setPositionSenseSign(0);
+            m_cm_test->setForceCtrlCmdSign(0);
+            m_cm_test->setPosCtrlCmdSign(1);
+
+            m_cm_lock->setForceSenseSign(0);
+            m_cm_lock->setPositionSenseSign(0);
+            m_cm_lock->setForceCtrlCmdSign(1);
+            m_cm_lock->setPosCtrlCmdSign(1);
+        }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal direction
+            m_cm_test->setForceSenseSign(0);
+            m_cm_test->setPositionSenseSign(0);
+            m_cm_test->setForceCtrlCmdSign(1);
+            m_cm_test->setPosCtrlCmdSign(1);
+
+            m_cm_lock->setForceSenseSign(1);
+            m_cm_lock->setPositionSenseSign(0);
+            m_cm_lock->setForceCtrlCmdSign(0);
+            m_cm_lock->setPosCtrlCmdSign(1);
+        }
     }
 
     void PsychGui::stopExp(){

@@ -57,7 +57,9 @@ public:
         // initialize normal capstan module
         cm_n->zeroPosition(); //makes wherever it is when the program starts the zero position
         cm_n->setControlMode(CM::ControlMode::Force);
-        cm_n->setCommandSign(0);
+        cm_n->setForceCtrlCmdSign(1);
+        cm_n->setForceSenseSign(1);
+        cm_n->setPositionSenseSign(0);
         cm_n->setVelocityMax(50, 1);
         cm_n->setTorqueMax(0.75,1);
         cm_n->setForceRange(forceMin, forceMax); //(-2, 2); //[N]
@@ -67,9 +69,11 @@ public:
         // initialize tangential capstan module
         cm_t->zeroPosition(); //makes wherever it is when the program starts the zero position
         cm_t->setControlMode(CM::ControlMode::Force);
-        cm_n->setCommandSign(1);
+        cm_t->setForceCtrlCmdSign(0);
+        cm_t->setForceSenseSign(0);
+        cm_t->setPositionSenseSign(0);
         cm_t->setVelocityMax(50, 1);
-        cm_n->setTorqueMax(0.75,1);
+        cm_t->setTorqueMax(0.75,1);
         cm_t->setForceRange(forceMin, forceMax); //(-2, 2); //[N]
         cm_t->setForceGains(500.0/1e6,0.0,15.0/1e6);
         cm_t->setControlValue(0.0);
@@ -162,17 +166,17 @@ public:
         ImGui::LabelText("normal motor encoder velocity", "%f", cm_n->getMotorVelocity());
         ImGui::Spacing(); 
 
-        // ImGui::Text("Motor 2 - Shear Dir - Encoder Info");
-        // ImGui::LabelText("shear motor encoder counts", "%d", cm_t->getEncoderCounts());
-        // ImGui::LabelText("shear motor encoder position", "%f", cm_t->getMotorPosition());
-        // ImGui::LabelText("shear motor encoder velocity", "%f", cm_t->getMotorVelocity());
-        // ImGui::Spacing();
+        ImGui::Text("Motor 2 - Shear Dir - Encoder Info");
+        ImGui::LabelText("shear motor encoder counts", "%d", cm_t->getEncoderCounts());
+        ImGui::LabelText("shear motor encoder position", "%f", cm_t->getMotorPosition());
+        ImGui::LabelText("shear motor encoder velocity", "%f", cm_t->getMotorVelocity());
+        ImGui::Spacing();
 
-        ImGui::Text("Motor 1 - Normal Dir - Spool Info");
-        ImGui::LabelText("normal motor translational position", "%f", cm_n->getSpoolPosition());
-        ImGui::LabelText("normal motor translational velocity", "%f", cm_n->getSpoolVelocity());
-        ImGui::LabelText("normal motor translational commanded torque", "%f", cm_n->getMotorTorqueCommand());
-        ImGui::Spacing(); 
+        // ImGui::Text("Motor 1 - Normal Dir - Spool Info");
+        // ImGui::LabelText("normal motor translational position", "%f", cm_n->getSpoolPosition());
+        // ImGui::LabelText("normal motor translational velocity", "%f", cm_n->getSpoolVelocity());
+        // ImGui::LabelText("normal motor translational commanded torque", "%f", cm_n->getMotorTorqueCommand());
+        // ImGui::Spacing(); 
 
         // ImGui::Text("Motor 2 - Shear Dir - Spool Info");
         // ImGui::LabelText("shear motor translational position", "%f", cm_t->getSpoolPosition());

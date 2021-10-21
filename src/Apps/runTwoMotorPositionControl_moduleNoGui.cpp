@@ -26,6 +26,9 @@ int main(int argc, char const *argv[])
    
     cm_n->zeroPosition(); //makes wherever it is when the program starts the zero position
     cm_n->setControlMode(CM::ControlMode::Position);
+    cm_n->setPosCtrlCmdSign(1);
+    cm_n->setForceSenseSign(1);
+    cm_n->setPositionSenseSign(0);
     cm_n->setVelocityMax(100, 1);
     cm_n->setTorqueMax(1,1);
     cm_n->setPositionRange(-5.5,5.5); //(0, 65); //[mm]
@@ -35,6 +38,9 @@ int main(int argc, char const *argv[])
     // initialize tangential capstan module
     cm_t->zeroPosition(); //makes wherever it is when the program starts the zero position
     cm_t->setControlMode(CM::ControlMode::Position);
+    cm_t->setPosCtrlCmdSign(1);
+    cm_t->setForceSenseSign(0);
+    cm_t->setPositionSenseSign(0);
     cm_t->setVelocityMax(100, 1);
     cm_t->setTorqueMax(1,1); 
     cm_t->setPositionRange(-5.5,5.5); //(0, 65); //[mm]

@@ -114,8 +114,10 @@ public:
         double gearRatio           = 0.332*25.4*mahi::util::PI/360.0;    // [mm/deg] from spool pitch diameter (.332") and capstan radius if applicable, converted to mm
         double degPerCount         = 2 * mahi::util::PI / (1024 * 35); //360.0 / (1024.0 * (4554.0 / 130.0));  // [deg/count] for motor shaft, including gearbox if applicable
         double commandGain         = 1.35 / 10.0;   // [A/V]
-        bool   posCmdSignFlip      = 0;
+        bool   posCmdSignFlip      = 1;
+        bool   posSenseSignFlip    = 0;
         bool   forceCmdSignFlip    = 1;
+        bool   forceSenseSignFlip  = 1;
         bool   has_velocity_limit_ = 1;
         bool   has_torque_limit_   = 1;
         double velocityMax         = 30; // [mm/s] ????
@@ -185,8 +187,14 @@ public:
     Query getQuery(bool immediate = false);
     /// Get most recent 10k Queries. WILL TEMPORAIRLY STALL CONTROLLER (thread safe)
     void dumpQueries(const std::string& filepath);
-    /// Set boolean to flip command cuurent if necessary
-    void setCommandSign(bool cmdSignFlip);
+    /// Set boolean to flip command current for position control if necessary
+    void setPosCtrlCmdSign(bool cmdSignFlip);
+    /// Set boolean to flip command current for force/torque control if necessary
+    void setForceCtrlCmdSign(bool cmdSignFlip);
+    /// Set boolean to flip position sensing if necessary
+    void setPositionSenseSign(bool posSignFlip);
+    /// Set boolean to flip force sensing if necessary
+    void setForceSenseSign(bool forceSignFlip);
     /// Zero force sensor (thread safe)
     void zeroForce();
     /// Zero position to current value (thread safe)

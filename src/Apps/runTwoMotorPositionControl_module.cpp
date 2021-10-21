@@ -47,6 +47,9 @@ public:
         // initialize normal capstan module
         cm_n->zeroPosition(); //makes wherever it is when the program starts the zero position
         cm_n->setControlMode(CM::ControlMode::Position);
+        cm_n->setPosCtrlCmdSign(1);
+        cm_n->setForceSenseSign(1);
+        cm_n->setPositionSenseSign(0);
         cm_n->setVelocityMax(50, 1);
         cm_n->setTorqueMax(0.75,1);
         cm_n->setPositionRange(posMin, posMax); //(0, 65); //[mm]
@@ -56,8 +59,11 @@ public:
         // initialize tangential capstan module
         cm_t->zeroPosition(); //makes wherever it is when the program starts the zero position
         cm_t->setControlMode(CM::ControlMode::Position);
+        cm_t->setPosCtrlCmdSign(1);
+        cm_t->setForceSenseSign(0);
+        cm_t->setPositionSenseSign(0);
         cm_t->setVelocityMax(50, 1);
-        cm_n->setTorqueMax(0.75,1);
+        cm_t->setTorqueMax(0.75,1);
         cm_t->setPositionRange(posMin, posMax); //(0, 65); //[mm]
         cm_t->setPositionGains(1.0/1e3,0.1/1e3);
         cm_t->setControlValue(0.0);

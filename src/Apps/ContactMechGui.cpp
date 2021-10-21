@@ -366,9 +366,25 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         if (m_whichDof == ContactMechGui::Shear) { // test shear direction
             m_cm_test = m_hub.getDevice(1);            
             m_cm_lock = m_hub.getDevice(2);
+
+            m_cm_test->setPosCtrlCmdSign(1);
+            m_cm_test->setForceSenseSign(1);
+            m_cm_test->setPositionSenseSign(0);
+
+            m_cm_lock->setPosCtrlCmdSign(0);
+            m_cm_lock->setForceSenseSign(0);
+            m_cm_lock->setPositionSenseSign(0);
         }else if (m_whichDof == ContactMechGui::Normal){ // test normal direction
             m_cm_test = m_hub.getDevice(2);
             m_cm_lock = m_hub.getDevice(1);
+
+            m_cm_test->setPosCtrlCmdSign(0);
+            m_cm_test->setForceSenseSign(0);
+            m_cm_test->setPositionSenseSign(0);
+
+            m_cm_lock->setPosCtrlCmdSign(1);
+            m_cm_lock->setForceSenseSign(1);
+            m_cm_lock->setPositionSenseSign(0);
         }
      }
 
@@ -410,6 +426,28 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         m_cm_lock->setControlMode(CM::Position);
         m_cm_lock->setControlValue(0);
         //m_cm_lock->enable();
+
+    if (m_whichDof == ContactMechGui::Shear) { // test shear direction
+        m_cm_test->setForceSenseSign(1);
+        m_cm_test->setPositionSenseSign(0);
+        m_cm_test->setForceCtrlCmdSign(0);
+        m_cm_test->setPosCtrlCmdSign(1);
+
+        m_cm_lock->setForceSenseSign(0);
+        m_cm_lock->setPositionSenseSign(0);
+        m_cm_lock->setForceCtrlCmdSign(1);
+        m_cm_lock->setPosCtrlCmdSign(1);
+    }else if (m_whichDof == ContactMechGui::Normal){ // test normal direction
+        m_cm_test->setForceSenseSign(0);
+        m_cm_test->setPositionSenseSign(0);
+        m_cm_test->setForceCtrlCmdSign(1);
+        m_cm_test->setPosCtrlCmdSign(1);
+
+        m_cm_lock->setForceSenseSign(1);
+        m_cm_lock->setPositionSenseSign(0);
+        m_cm_lock->setForceCtrlCmdSign(0);
+        m_cm_lock->setPosCtrlCmdSign(1);
+    }
     }
 
     void ContactMechGui::stopExp(){
@@ -470,6 +508,8 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
             double currF = m_cm_test->getForce();
             m_cm_test->setControlMode(CM::Force);
+            bool cmdSign = m_whichDof == ContactMechGui::Normal ? 1 : 0;
+            m_cm_test->setForceCtrlCmdSign(cmdSign);
             m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(currF)); 
             m_cm_test->limits_exceeded();
 
@@ -486,6 +526,8 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
             double currP = m_cm_test->getSpoolPosition();
             m_cm_test->setControlMode(CM::Position);
+            bool cmdSign = m_whichDof == ContactMechGui::Normal ? 1 : 1;
+            m_cm_test->setPosCtrlCmdSign(cmdSign);
             m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(currP)); 
             m_cm_test->limits_exceeded();
             userLimitsExceeded();
