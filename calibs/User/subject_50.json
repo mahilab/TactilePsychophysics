@@ -10,16 +10,16 @@
           "hairThick": 0.0,
           "hairSqInch": 0.0,
           "positionMin_n": 0.0,
-          "positionMax_n": 8.0,
+          "positionMax_n": 3.32,
           "positionCont_n": 1.0,
           "positionMin_t": 0.0,
-          "positionMax_t": 8.0,
+          "positionMax_t": 3.65,
           "positionCont_t": 0.0,
           "forceMin_n": 1.0,
-          "forceMax_n": 12.0,
+          "forceMax_n": 10.0,
           "forceCont_n": 1.0,
           "forceMin_t": 1.0,
-          "forceMax_t": 12.0,
+          "forceMax_t": 23.0,
           "forceCont_t": 0.0
   
 }

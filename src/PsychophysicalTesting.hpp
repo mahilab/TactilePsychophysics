@@ -47,13 +47,13 @@ public:
     /// PsychTest Parameter Configuration
     struct Params {
         int    n_mcs_comparisons    = 7;  // this must be an odd number, for a proper experiment design and for the code to make the comparison vector
-        int    n_mcs_reps           = 10; // total = 90 -> 45 reference first, 45 reference second
-        int    n_mcs_windows        = 1;
-        int    n_sm_staircases      = 4;
+        int    n_mcs_reps           = 1; // total = 90 -> 45 reference first, 45 reference second
+        int    n_mcs_windows        = 2;
+        int    n_sm_staircases      = 2;
         int    n_sm_crossovers      = 4;
         double sm_pos_inc           = 0.3;
-        double sm_force_inc         = 0.5;
-        int    n_ma_trials          = 10;       
+        double sm_force_inc         = 1.0;
+        int    n_ma_trials          = 3;       
         double stimulus_time        = 0.33;
     };
 

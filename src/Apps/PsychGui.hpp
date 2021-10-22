@@ -84,8 +84,6 @@ public:
     void connectToIO();
 
     void importUserHardwareParams();
-
-    void initializeHardware();
     
     void stopExp();
 
@@ -148,7 +146,8 @@ public:
     CMHub m_hub;
     std::shared_ptr<CM> m_cm_test;
     std::shared_ptr<CM> m_cm_lock;
-    CM::Params m_params;
+    CM::Params m_paramsTest;
+    CM::Params m_paramsLock;
 
     // User Input
     XboxController m_xbox;

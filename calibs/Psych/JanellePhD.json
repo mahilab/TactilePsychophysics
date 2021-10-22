@@ -1,0 +1,12 @@
+{
+          "n_mcs_comparisons": 7,
+          "n_mcs_reps": 1,
+          "n_mcs_windows": 2,
+          "n_sm_staircases": 2,
+          "n_sm_crossovers": 4,
+          "sm_pos_inc": 0.3,
+          "sm_force_inc": 0.1,
+          "n_ma_trials": 3,
+          "stimulus_time": 0.33
+  
+}

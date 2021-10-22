@@ -116,8 +116,6 @@ public:
     void connectToIO();
 
     void importUserHardwareParams();
-
-    void initializeHardware();
     
     void stopExp();
 
@@ -193,5 +191,6 @@ private:
     CMHub m_hub;
     std::shared_ptr<CM> m_cm_test;
     std::shared_ptr<CM> m_cm_lock;
-    CM::Params m_CMparams;
+    CM::Params m_paramsCMTest;
+    CM::Params m_paramsCMLock;
 };

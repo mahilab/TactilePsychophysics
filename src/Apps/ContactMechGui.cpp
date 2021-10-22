@@ -13,7 +13,6 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         
         connectToIO();
         importUserHardwareParams();
-        initializeHardware();
         set_frame_limit(90_Hz);
     }
 
@@ -50,24 +49,18 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             }
         }
 
-        // after settings are confirmed, calibrate device (zero sensors)
+        // after settings are confirmed, calibrate device
         if (flag_confirm_exp_settings && !flag_start_calibration){
+            ImGui::Text("Move the end-effector all the way toward the shoulder and");
+            ImGui::Text(" about an inch above the skin for calibration.");
             if (ImGui::Button("Calibrate",ImVec2(-1,0))){
                 calibrate(); 
                 flag_start_calibration = 1;
             }
         }
-
-        // after the device is calibrated, bring to start position
-        if (flag_start_calibration && !flag_bring_to_start){
-            if (ImGui::Button("Bring to Start Position",ImVec2(-1,0))){
-                bringToStartPosition(); // Question - start from zero or current position and go to contact, Fn > ???, and then pull back ???? mm
-                flag_bring_to_start = 1;
-            }
-        }
         
         // start experiment or cancel for some reason
-        if (flag_bring_to_start && !flag_study_started){
+        if (flag_start_calibration && !flag_study_started){
             
             if (ImGui::Button("Start Study",ImVec2(-1,0))){
                 if (m_whichExp == !ContactMechGui::Cycle){
@@ -94,7 +87,8 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         // idle mode
         if (m_testmode == ContactMechGui::Idle) {
             //When not coducting trials, go to neutral contact position
-            bringToStartPosition();
+            if(flag_start_calibration)
+                bringToStartPosition();
         }
         ImGui::End();     
     }
@@ -361,43 +355,26 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
      void ContactMechGui::connectToIO(){
         m_hub.createDevice(2, 0, 0, 0, 0, Axis::AxisZ, "FT06833.cal", {0,1,2,3,4,5},1);
         m_hub.createDevice(1, 2, 2, 1, 1, Axis::AxisX, "FT06833.cal", {0,1,2,3,4,5},1); 
-        
-
-        if (m_whichDof == ContactMechGui::Shear) { // test shear direction
-            m_cm_test = m_hub.getDevice(1);            
-            m_cm_lock = m_hub.getDevice(2);
-
-            m_cm_test->setPosCtrlCmdSign(1);
-            m_cm_test->setForceSenseSign(1);
-            m_cm_test->setPositionSenseSign(0);
-
-            m_cm_lock->setPosCtrlCmdSign(0);
-            m_cm_lock->setForceSenseSign(0);
-            m_cm_lock->setPositionSenseSign(0);
-        }else if (m_whichDof == ContactMechGui::Normal){ // test normal direction
-            m_cm_test = m_hub.getDevice(2);
-            m_cm_lock = m_hub.getDevice(1);
-
-            m_cm_test->setPosCtrlCmdSign(0);
-            m_cm_test->setForceSenseSign(0);
-            m_cm_test->setPositionSenseSign(0);
-
-            m_cm_lock->setPosCtrlCmdSign(1);
-            m_cm_lock->setForceSenseSign(1);
-            m_cm_lock->setPositionSenseSign(0);
-        }
      }
 
      void ContactMechGui::importUserHardwareParams(){
          std::cout << m_subject << std::endl;
-        std::string cm_calibration_file = "C:/Git/TactilePsychophysics/calibs/CM/subject_" + std::to_string(m_subject) + ".json";
-        m_cm_test->importParams(cm_calibration_file);
-        m_cm_lock->importParams(cm_calibration_file);
-        m_CMparams = m_cm_test->getParams(); // don't need separate ones for m_cm_lock, same for each subject
-
         std::string user_calibration_file = "C:/Git/TactilePsychophysics/calibs/User/subject_" + std::to_string(m_subject) + ".json";
         m_up.importParams(user_calibration_file);
         m_userparams = m_up.getParams();
+
+        std::string cm_norm_cal_file = "C:/Git/TactilePsychophysics/calibs/CM/dof_normal.json";
+        std::string cm_tan_cal_file = "C:/Git/TactilePsychophysics/calibs/CM/dof_tangential.json";
+        if (m_whichDof == ContactMechGui::Shear) {
+            m_cm_test->importParams(cm_tan_cal_file);
+            m_cm_lock->importParams(cm_norm_cal_file);
+        }else if (m_whichDof == ContactMechGui::Normal){
+            m_cm_test->importParams(cm_norm_cal_file);
+            m_cm_lock->importParams(cm_tan_cal_file);
+        }
+
+        m_paramsCMTest = m_cm_test->getParams(); // don't need separate ones for m_cm_lock, same for each subject
+        m_paramsCMLock = m_cm_lock->getParams(); // don't need separate ones for m_cm_lock, same for each subject
 
         m_hub.start();
 
@@ -417,39 +394,6 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         }
     }
 
-    void ContactMechGui::initializeHardware(){
-        m_controller = Position;
-        m_cm_test->setControlMode(CM::Position);
-        m_cm_test->setControlValue(0);
-        //m_cm_test->enable();
-
-        m_cm_lock->setControlMode(CM::Position);
-        m_cm_lock->setControlValue(0);
-        //m_cm_lock->enable();
-
-    if (m_whichDof == ContactMechGui::Shear) { // test shear direction
-        m_cm_test->setForceSenseSign(1);
-        m_cm_test->setPositionSenseSign(0);
-        m_cm_test->setForceCtrlCmdSign(0);
-        m_cm_test->setPosCtrlCmdSign(1);
-
-        m_cm_lock->setForceSenseSign(0);
-        m_cm_lock->setPositionSenseSign(0);
-        m_cm_lock->setForceCtrlCmdSign(1);
-        m_cm_lock->setPosCtrlCmdSign(1);
-    }else if (m_whichDof == ContactMechGui::Normal){ // test normal direction
-        m_cm_test->setForceSenseSign(0);
-        m_cm_test->setPositionSenseSign(0);
-        m_cm_test->setForceCtrlCmdSign(1);
-        m_cm_test->setPosCtrlCmdSign(1);
-
-        m_cm_lock->setForceSenseSign(1);
-        m_cm_lock->setPositionSenseSign(0);
-        m_cm_lock->setForceCtrlCmdSign(0);
-        m_cm_lock->setPosCtrlCmdSign(1);
-    }
-    }
-
     void ContactMechGui::stopExp(){
         m_cm_test->disable();
         m_cm_lock->disable();
@@ -461,7 +405,11 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         m_cm_lock->zeroPosition();
 
         m_cm_test->zeroForce();
-        m_cm_lock->zeroForce();
+        m_cm_lock->zeroForce();        
+
+        bringToStartPosition();
+        m_cm_test->enable();
+        m_cm_lock->enable();
     }
 
     void ContactMechGui::bringToStartPosition(){
@@ -469,14 +417,9 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         m_cm_lock->setControlMode(CM::Position); // won't change throughout the trial (should be position control)
         m_cm_test->setControlMode(CM::Position); // start out at contact position
 
-        if (m_whichDof == ContactMechGui::Shear){ // test shear, normal is locked
-            m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_userparams.positionCont_n)); // ?????? value may need to change to calibration position, 0 for test normal, 0.75 for test shear?
-            m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_userparams.positionCont_t));
-        }
-        else if (m_whichDof ==ContactMechGui::Normal){ // test normal, shear is locked
-            m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_userparams.positionCont_t)); // shear dof should be centered
-            m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_userparams.positionCont_n));
-        }
+        m_cm_lock->setControlValue(0.0); 
+        m_cm_test->setControlValue(0.0);
+        std::cout << " BRING to start " << std::endl;
 
         m_cm_lock->limits_exceeded();                
         m_cm_test->limits_exceeded();
@@ -497,8 +440,8 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
     void ContactMechGui::switchControllers(){
         if (m_controller == Position){
             std::cout << "Switch from position to force control" << std::endl;
-            m_userStimulusMin = m_CMparams.forceMin;
-            m_userStimulusMax = m_CMparams.forceMax;
+            m_userStimulusMin = m_paramsCMTest.forceMin;
+            m_userStimulusMax = m_paramsCMTest.forceMax;
             if (m_whichDof == ContactMechGui::Shear){ // test shear
                 m_userStimulusContact = m_userparams.forceCont_t;
             }else if (m_whichDof == ContactMechGui::Normal){ // test normal
@@ -515,8 +458,8 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
         }else if (m_controller == Force){
             std::cout << "Switch from force to position control" << std::endl;
-            m_userStimulusMin = m_CMparams.positionMin;
-            m_userStimulusMax = m_CMparams.positionMax;
+            m_userStimulusMin = m_paramsCMTest.positionMin;
+            m_userStimulusMax = m_paramsCMTest.positionMax;
             if (m_whichDof == ContactMechGui::Shear){ // test shear
                 m_userStimulusContact = m_userparams.positionCont_t;
             }else if (m_whichDof == ContactMechGui::Normal){ // test normal
