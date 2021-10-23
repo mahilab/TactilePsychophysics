@@ -89,7 +89,9 @@ public:
 
     void calibrate();
 
-    void bringToStartPosition();
+    Enumerator bringToStartPosition();
+
+    Enumerator bringToContact();
 
     void plotDebugExpInfo();
 

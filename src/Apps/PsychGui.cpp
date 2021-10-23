@@ -99,7 +99,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         if (m_pt.m_testmode == PsychTest::Idle) {
             //When not coducting trials, go to neutral contact position
             if(flag_start_calibration){
-                //bringToStartPosition();
+                start_coroutine(bringToStartPosition());
             }
         }
         ImGui::End();     
@@ -822,21 +822,66 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         m_cm_test->zeroForce();
         m_cm_lock->zeroForce();
 
-        bringToStartPosition();
+        start_coroutine(bringToContact());
+
+        start_coroutine(bringToStartPosition());
         m_cm_test->enable();
         m_cm_lock->enable();
     }
 
-    void PsychGui::bringToStartPosition(){
+    Enumerator PsychGui::bringToStartPosition(){
        
         m_cm_lock->setControlMode(CM::Position); // won't change throughout the trial (should be position control)
         m_cm_test->setControlMode(CM::Position); // start out at contact position
-
+        m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_cm_lock->getSpoolPosition())); // start from where you are
+        m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition())); // start from where you are
+        
+        // move lock dof directly, will lift up if normal, will stay put if tangential
         m_cm_lock->setControlValue(0.0); 
-        m_cm_test->setControlValue(0.0);
+        m_cm_lock->limits_exceeded();
 
-        m_cm_lock->limits_exceeded();                
-        m_cm_test->limits_exceeded();
+        // move out of stimulus to starting position above the arm
+        double elapsed = 0;
+        while (elapsed < m_psychparams.stimulus_time) {
+            rampStimulus(m_cm_test->getSpoolPosition(), 0.0, m_psychparams.stimulus_time, elapsed);
+            responseWindowMA(PsychTest::NA);
+            elapsed += delta_time().as_seconds();
+            co_yield nullptr;
+        }
+    }
+
+
+    Enumerator PsychGui::bringToContact(){
+    
+        if (m_pt.m_whichDof == PsychTest::Shear){
+            // free up the normal direction to move
+            m_cm_lock->setControlMode(CM::Force);
+            m_cm_lock->setControlValue(m_pt.m_userparams.forceCont_n);
+            m_cm_lock->limits_exceeded();
+            
+            // keep the shear direction locked in the current position
+            m_cm_test->setControlMode(CM::Position); // start out at contact position
+            m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition()));
+        }else {
+            // free up the normal direction to move
+            m_cm_test->setControlMode(CM::Force);
+            m_cm_test->setControlValue(m_pt.m_userparams.forceCont_n); 
+            
+            // keep the shear direction locked in the current position
+            m_cm_lock->setControlMode(CM::Position); // start out at contact position
+            m_cm_lock->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition()));
+            m_cm_lock->limits_exceeded();
+        }        
+
+        // delay while getting to the the desired location
+        double elapsed = 0;
+        while (elapsed < 0.5) {
+            elapsed += delta_time().as_seconds();
+            co_yield nullptr;
+        }
+
+        // Record the positions at the contact force
+        m_pt.m_userparams.positionCont_n = (m_pt.m_whichDof == PsychTest::Normal) ? m_cm_test->getSpoolPosition() : m_cm_lock->getSpoolPosition();
     }
 
     void PsychGui::plotDebugExpInfo(){

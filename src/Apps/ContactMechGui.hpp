@@ -96,7 +96,7 @@ public:
 
     void update() override;
 
-    void moveConstVel(double elapsed, bool isTest, bool isIncreasing);
+    void moveConstVel(double elapsed, bool isTest, double start, double stop);
 
     void updateQuery();
     
@@ -121,7 +121,9 @@ public:
 
     void calibrate();
 
-    void bringToStartPosition();
+    Enumerator bringToStartPosition();
+
+    Enumerator bringToContact();
 
     void lockExtraDofs();
 

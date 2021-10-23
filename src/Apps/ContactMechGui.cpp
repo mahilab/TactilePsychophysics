@@ -88,12 +88,13 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         if (m_testmode == ContactMechGui::Idle) {
             //When not coducting trials, go to neutral contact position
             if(flag_start_calibration)
-                bringToStartPosition();
+                start_coroutine(bringToStartPosition());
         }
         ImGui::End();     
     }
 
-    void ContactMechGui::moveConstVel(double elapsed, bool isTest, bool isIncreasing){ // elapsed in s
+    void ContactMechGui::moveConstVel(double elapsed, bool isTest, double start, double stop){ // elapsed in s
+        bool isIncreasing = start < stop;
         double sign = isIncreasing ? 1 : -1;
 
         if (isTest){
@@ -180,7 +181,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             ////////////////////////////////////// run trial
             // go to intiial cycle stimulus, at contact
             while (getTestForce() < m_params.initial_force) { // normal force less than 1G
-                moveConstVel(delta_time().as_seconds(), 1, 1); 
+                moveConstVel(delta_time().as_seconds(), 1, m_cm_test->getForce(), m_params.initial_force); 
                 co_yield nullptr;
             } 
             m_poi = Min;
@@ -190,7 +191,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
             // increase stimulus to peak
             while (getTestForce() < finalForce) { // normal force less than 1G
-                moveConstVel(delta_time().as_seconds(), 1, 1); 
+                moveConstVel(delta_time().as_seconds(), 1, m_cm_test->getForce(), finalForce);
                 co_yield nullptr;
             }
             m_poi = (m_whichExp == Ind) ? Peak : HoldInitial;
@@ -219,15 +220,15 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             std::cout << " from final to min, stop at " <<  m_params.initial_force << " N" << std::endl;
             // decrease to intial cycle stimulus, at contact
             while (getTestForce() > m_params.initial_force) { // normal force less than 1G
-                moveConstVel(delta_time().as_seconds(), 1, 0);
+                moveConstVel(delta_time().as_seconds(), 1, m_cm_test->getForce(), m_params.initial_force);
                 co_yield nullptr;
             }
             m_poi = Min;
 
             std::cout << " from min to start, stop at " <<  m_params.start_height << " mm" << std::endl;
             // decrease to starting point, at contact
-            while (getTestPos() > m_params.start_height) { // normal force less than 1G
-                moveConstVel(delta_time().as_seconds(), 1, 0);
+            while (getTestPos() > m_params.start_height) {
+                moveConstVel(delta_time().as_seconds(), 1, m_cm_test->getSpoolPosition(), m_params.start_height);
                 co_yield nullptr;
             }
             m_poi = Start;
@@ -289,7 +290,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             if(m_cyclenum == 1){
                 // go to intiial cycle stimulus, at contact
                 while (getTestPos() < m_userStimulusMin) { // user absolute threshold
-                    moveConstVel(delta_time().as_seconds(), 1, 1); 
+                    moveConstVel(delta_time().as_seconds(), 1, m_cm_test->getSpoolPosition(), m_userStimulusMin);
                     co_yield nullptr;
                 } 
                 m_poi = Min;
@@ -300,7 +301,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
             // increase stimulus to peak
             while (getTestPos() < m_userStimulusMax) { // user maximum comfort threshold
-                moveConstVel(delta_time().as_seconds(), 1, 1); 
+                moveConstVel(delta_time().as_seconds(), 1, m_cm_test->getSpoolPosition(), m_userStimulusMax);
                 co_yield nullptr;
             }
             m_poi = Peak;
@@ -317,7 +318,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             std::cout << " from final to min, stop at " <<  m_userStimulusMin << " mm" << std::endl;
             // decrease to intial cycle stimulus, at contact
             while (getTestPos() > m_userStimulusMin) {
-                moveConstVel(delta_time().as_seconds(), 1, 0);
+                moveConstVel(delta_time().as_seconds(), 1, m_cm_test->getSpoolPosition(), m_userStimulusMin);
                 co_yield nullptr;
             }
             m_poi = Min;
@@ -407,23 +408,62 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         m_cm_test->zeroForce();
         m_cm_lock->zeroForce();        
 
-        bringToStartPosition();
+        start_coroutine(bringToContact());
+
+        start_coroutine(bringToStartPosition());
         m_cm_test->enable();
         m_cm_lock->enable();
     }
 
-    void ContactMechGui::bringToStartPosition(){
+    Enumerator ContactMechGui::bringToStartPosition(){
        
         m_cm_lock->setControlMode(CM::Position); // won't change throughout the trial (should be position control)
         m_cm_test->setControlMode(CM::Position); // start out at contact position
-
+        m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_cm_lock->getSpoolPosition())); // start from where you are
+        m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition())); // start from where you are
+        
+        // move lock dof directly, will lift up if normal, will stay put if tangential
         m_cm_lock->setControlValue(0.0); 
-        m_cm_test->setControlValue(0.0);
-        std::cout << " BRING to start " << std::endl;
+        m_cm_lock->limits_exceeded();
 
-        m_cm_lock->limits_exceeded();                
-        m_cm_test->limits_exceeded();
+        // move out of stimulus to starting position above the arm
+        while (m_cm_test->getSpoolPosition() > 0.0) {
+            moveConstVel(delta_time().as_seconds(), 1, m_cm_test->getSpoolPosition(), 0);
+            co_yield nullptr;
+        }
         m_poi = Start;
+    }
+
+    Enumerator ContactMechGui::bringToContact(){
+        if (m_whichDof == ContactMechGui::Shear){
+            // free up the normal direction to move
+            m_cm_lock->setControlMode(CM::Force);
+            m_cm_lock->setControlValue(m_userparams.forceCont_n);
+            m_cm_lock->limits_exceeded();
+            
+            // keep the shear direction locked in the current position
+            m_cm_test->setControlMode(CM::Position); // start out at contact position
+            m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition()));
+        }else {
+            // free up the normal direction to move
+            m_cm_test->setControlMode(CM::Force);
+            m_cm_test->setControlValue(m_userparams.forceCont_n); 
+            
+            // keep the shear direction locked in the current position
+            m_cm_lock->setControlMode(CM::Position); // start out at contact position
+            m_cm_lock->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition()));
+            m_cm_lock->limits_exceeded();
+        }        
+
+        // delay while getting to the the desired location
+        double elapsed = 0;
+        while (elapsed < 0.5) {
+            elapsed += delta_time().as_seconds();
+            co_yield nullptr;
+        }
+
+        // Record the positions at the contact force
+        m_userparams.positionCont_n = (m_whichDof == ContactMechGui::Normal) ? m_cm_test->getSpoolPosition() : m_cm_lock->getSpoolPosition();
     }
 
     void ContactMechGui::lockExtraDofs(){
