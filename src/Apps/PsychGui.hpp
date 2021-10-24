@@ -53,6 +53,8 @@ public:
 
     void rampStimulus(double start, double end, double ramptime, double elapsed);
     
+    void rampLock(double start, double end, double ramptime, double elapsed);
+    
     // Method of Constant Stimuli Functions
 
     Enumerator runMCSExperiment();
@@ -93,19 +95,21 @@ public:
 
     Enumerator bringToContact();
 
-    void plotDebugExpInfo();
+    Enumerator lockExtraDofs();
 
-    void lockExtraDofs();
-
-    void setControlDof();
+    Enumerator setControlDof();
 
     void setStimulus(double N);
+
+    void setLock(double N);
 
     void userLimitsExceeded();
 
     void collectSensorData(PsychTest::WhichStim whichStim);
 
     void avgSensorData();
+
+    void plotDebugExpInfo();
 
     // Experiment
     PsychTest m_pt;

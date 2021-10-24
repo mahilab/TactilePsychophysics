@@ -7,6 +7,6 @@
           "sm_pos_inc": 0.3,
           "sm_force_inc": 0.1,
           "n_ma_trials": 3,
-          "stimulus_time": 0.33
+          "stimulus_time": 1.0
   
 }

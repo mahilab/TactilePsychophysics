@@ -125,7 +125,7 @@ public:
 
     Enumerator bringToContact();
 
-    void lockExtraDofs();
+    Enumerator lockExtraDofs();
 
     void switchControllers(); // toggle between force and position control
 
@@ -180,6 +180,7 @@ private:
     double  m_userStimulusMin      = 0;
     double  m_userStimulusMax      = 0;
     double  m_userStimulusContact  = 0;
+    double  m_userShearTestNormPos = 0;
     double  m_targetPosLock        = 0;
     double  m_targetPosTest        = 0;
     QueryContact    m_q;     ///< most recent QueryInd point

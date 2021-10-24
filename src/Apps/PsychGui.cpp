@@ -72,6 +72,10 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         // start experiment or cancel for some reason
         if (flag_start_calibration && !flag_study_started){
             if (ImGui::Button("Start Study",ImVec2(-1,0))){
+                // Set controllers for testing DOF
+                start_coroutine(lockExtraDofs());
+                start_coroutine(setControlDof());
+
                 if (m_pt.m_whichExp == PsychTest::MCS){
                     m_pt.buildStimTrials();
                     start_coroutine(runMCSExperiment());
@@ -166,6 +170,11 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         PsychGui::setStimulus(stimVal);
     }
 
+    void PsychGui::rampLock(double start, double end, double ramptime, double elapsed){
+        double stimVal = Tween::Linear(start, end, (float)(elapsed / ramptime));
+        PsychGui::setLock(stimVal);
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////
     //           Method of Constant Stimuli Specific Functions
     //////////////////////////////////////////////////////////////////////////////////////
@@ -173,10 +182,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     Enumerator PsychGui::runMCSExperiment() {
         m_pt.m_testmode = PsychTest::Run;
         Timestamp ts;
-
-        // Set controllers for testing DOF
-        lockExtraDofs();
-        setControlDof();
         
         std::string filename;
         filename = "C:/Git/TactilePsychophysics/data/_jnd_subject_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv";
@@ -322,11 +327,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     Enumerator PsychGui::runSMExperiment() {
         Timestamp ts;
 
-
-        // Set controllers for testing DOF
-        lockExtraDofs();
-        setControlDof();
-
         while (m_pt.m_q_sm.num_staircase < m_psychparams.n_sm_staircases){ 
             m_pt.m_testmode = PsychTest::Run;
         
@@ -458,7 +458,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             set_window_title("CM " + m_pt.method[m_pt.m_whichExp] + " Num " + std::to_string(m_pt.m_q_sm.num_staircase) + " (Subject " + std::to_string(m_pt.m_subject) + ") (Test " + m_pt.dofChoice[m_pt.m_whichDof] + " dof, " + m_pt.controlChoice[m_pt.m_controller] + " Control)"); // Hardware specific
             m_pt.setNewStaircase(); // staircase num is incremented inside here while preparing settings for next trial
             m_pt.setNextTrialSM();
-       } // while under the number of reversals
+       } // while under the number of staircases
 
         double remaining = 10;
         while (remaining > 0) {
@@ -468,7 +468,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             remaining -= delta_time().as_seconds();
             co_yield nullptr;
         } 
-    } // while under the number of staircases to complete
+    } // run experiment
     
     void PsychGui::writeSMOutputVariables(Csv& csv, Timestamp ts){
         csv.write_row("StairNum","Mode","Dof","ControlType","Trial","Dir","lastSlope","CrossNum","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
@@ -568,10 +568,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     
     Enumerator PsychGui::runMAExperiment(){
         Timestamp ts;
-
-        // Set controllers for testing DOF
-        lockExtraDofs();
-        setControlDof();
  
         m_pt.m_testmode = PsychTest::Run;
     
@@ -829,13 +825,20 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         m_cm_lock->enable();
     }
 
-    Enumerator PsychGui::bringToStartPosition(){
+    Enumerator PsychGui::bringToStartPosition(){ // above arm, Idle/pre-experiment position
+        // disable while switching controllers
+        m_cm_test->disable();
+        m_cm_lock->disable();
        
-        m_cm_lock->setControlMode(CM::Position); // won't change throughout the trial (should be position control)
-        m_cm_test->setControlMode(CM::Position); // start out at contact position
+        m_cm_lock->setControlMode(CM::Position);
+        m_cm_test->setControlMode(CM::Position);
         m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_cm_lock->getSpoolPosition())); // start from where you are
         m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition())); // start from where you are
         
+        // re-enable controllers
+        m_cm_test->enable();
+        m_cm_lock->enable();
+
         // move lock dof directly, will lift up if normal, will stay put if tangential
         m_cm_lock->setControlValue(0.0); 
         m_cm_lock->limits_exceeded();
@@ -844,7 +847,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         double elapsed = 0;
         while (elapsed < m_psychparams.stimulus_time) {
             rampStimulus(m_cm_test->getSpoolPosition(), 0.0, m_psychparams.stimulus_time, elapsed);
-            responseWindowMA(PsychTest::NA);
             elapsed += delta_time().as_seconds();
             co_yield nullptr;
         }
@@ -852,151 +854,147 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
 
     Enumerator PsychGui::bringToContact(){
-    
-        if (m_pt.m_whichDof == PsychTest::Shear){
-            // free up the normal direction to move
-            m_cm_lock->setControlMode(CM::Force);
-            m_cm_lock->setControlValue(m_pt.m_userparams.forceCont_n);
-            m_cm_lock->limits_exceeded();
-            
-            // keep the shear direction locked in the current position
-            m_cm_test->setControlMode(CM::Position); // start out at contact position
-            m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition()));
-        }else {
-            // free up the normal direction to move
-            m_cm_test->setControlMode(CM::Force);
-            m_cm_test->setControlValue(m_pt.m_userparams.forceCont_n); 
-            
-            // keep the shear direction locked in the current position
-            m_cm_lock->setControlMode(CM::Position); // start out at contact position
-            m_cm_lock->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition()));
-            m_cm_lock->limits_exceeded();
-        }        
+        // disable while switching controllers
+        m_cm_test->disable();
+        m_cm_lock->disable();
+       
+        m_cm_lock->setControlMode(CM::Position);
+        m_cm_test->setControlMode(CM::Position);
+        m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_cm_lock->getSpoolPosition())); // start from where you are
+        m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition())); // start from where you are
+        
+        // re-enable controllers
+        m_cm_test->enable();
+        m_cm_lock->enable();
+        m_cm_test->limits_exceeded();
+        m_cm_lock->limits_exceeded();
 
-        // delay while getting to the the desired location
-        double elapsed = 0;
-        while (elapsed < 0.5) {
-            elapsed += delta_time().as_seconds();
-            co_yield nullptr;
+        if (m_pt.m_whichDof == PsychTest::Shear){
+            // keep the shear direction locked in the zero position
+            m_cm_test->setControlValue(0);
+            m_cm_test->limits_exceeded();
+
+            // move ee to contact point
+            double elapsed = 0;
+            while (m_cm_lock->getForce() > m_pt.m_userparams.forceCont_n) {
+                rampLock(m_cm_lock->getSpoolPosition(), 20.0, m_psychparams.stimulus_time, elapsed); /// !!!!! 20.0 final position is arbitrary, and farther than we'd ever want to go, stopping at desired force
+                elapsed += delta_time().as_seconds();
+                co_yield nullptr;
+            }
+        }else {            
+            // move ee to contact point
+            double elapsed = 0;
+            while (m_cm_test->getForce() > m_pt.m_userparams.forceCont_n) {
+                rampStimulus(m_cm_test->getSpoolPosition(), 20.0, m_psychparams.stimulus_time, elapsed); /// !!!!! 20.0 final position is arbitrary, and farther than we'd ever want to go, stopping at desired force
+                elapsed += delta_time().as_seconds();
+                co_yield nullptr;
+            }
+            
+            // keep the shear direction locked in the zero position
+            m_cm_lock->setControlValue(0);
+            m_cm_lock->limits_exceeded();
         }
 
         // Record the positions at the contact force
         m_pt.m_userparams.positionCont_n = (m_pt.m_whichDof == PsychTest::Normal) ? m_cm_test->getSpoolPosition() : m_cm_lock->getSpoolPosition();
     }
 
-    void PsychGui::plotDebugExpInfo(){
-        
-        static bool paused = false;
-        if(ImGui::Button(paused ? "unpause" : "pause")) paused = !paused;
-        ImGui::Separator();
-        
-        t += ImGui::GetIO().DeltaTime;
-        ImGui::SliderFloat("History",&m_history,1,30,"%.1f s");
+    Enumerator PsychGui::lockExtraDofs(){ // starting from centered an inch above arm
+        m_pt.m_userShearTestNormPos = 0.75*(m_pt.m_userparams.positionMax_n - m_pt.m_userparams.positionMin_n) + m_pt.m_userparams.positionMin_n;
 
-        if(!paused){
-            ref.AddPoint(t, m_pt.m_jnd_stimulus_reference* 1.0f);
-            comp.AddPoint(t, m_pt.m_jnd_stimulus_comparison* 1.0f);
-            curr.AddPoint(t, m_jnd_current_stimulus* 1.0f);
-        }
-
-        ImPlot::SetNextPlotLimitsX(t - m_history, t, !paused ? ImGuiCond_Always : ImGuiCond_Once);
-        if (ImPlot::BeginPlot("##StimValues", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
-            ImPlot::PlotLine("Ref Value", &ref.Data[0].x, &ref.Data[0].y, ref.Data.size(), ref.Offset, 2*sizeof(float));
-            ImPlot::PlotLine("Comparison", &comp.Data[0].x, &comp.Data[0].y, comp.Data.size(), comp.Offset, 2*sizeof(float));
-            ImPlot::PlotLine("Current Value", &curr.Data[0].x, &curr.Data[0].y, curr.Data.size(), curr.Offset, 2*sizeof(float));
-            ImPlot::EndPlot();
-        }
-
-        ImGui::Separator();
-
-        ImGui::PushItemWidth(100);
-        ImGui::LabelText("Reference Value", "%f", m_pt.m_jnd_stimulus_reference);
-        ImGui::LabelText("Comparison Value", "%f", m_pt.m_jnd_stimulus_comparison);
-        if(m_pt.m_whichExp == PsychTest::MCS){
-            ImGui::LabelText("Reference Place", "%i", m_pt.m_q_mcs.standard);
-            ImGui::LabelText("Comparison Place", "%i", m_pt.m_q_mcs.comparison);
-            ImGui::LabelText("Trial Number", "%i", m_pt.m_q_mcs.trialnum);
-        }else if(m_pt.m_whichExp == PsychTest::SM){
-            ImGui::LabelText("Reference Place", "%i", m_pt.m_q_sm.standard);
-            ImGui::LabelText("Comparison Place", "%i", m_pt.m_q_sm.comparison);
-            ImGui::LabelText("Last Slope", "%s", m_pt.currdirection[m_pt.m_q_sm.lastSlope]);
-            ImGui::LabelText("Number of Reversals", "%i", m_pt.m_q_sm.num_reversal);
-            ImGui::LabelText("Trial Number", "%i", m_pt.m_q_sm.trialnum);
-        }else if (m_pt.m_whichExp == PsychTest::MA){
-            ImGui::LabelText("Current Value", "%f", m_jnd_current_stimulus);
-            ImGui::LabelText("Trial Number", "%i", m_pt.m_q_ma.trialnum);
-        }
-        
-        ImGui::PopItemWidth();
-
-        ImGui::Separator();
-
-        if(!paused){
-        lockForce.AddPoint(t, m_cm_lock->getForce()* 1.0f);
-        lockPosition.AddPoint(t, m_cm_lock->getSpoolPosition()* 1.0f);
-        testForce.AddPoint(t, m_cm_test->getForce()* 1.0f);
-        testPosition.AddPoint(t, m_cm_test->getSpoolPosition()* 1.0f);
-        }
-
-        ImPlot::SetNextPlotLimitsX(t - m_history, t,  !paused ? ImGuiCond_Always : ImGuiCond_Once);
-        if (ImPlot::BeginPlot("##Forces", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
-            ImPlot::PlotLine("Locked CM - Force", &lockForce.Data[0].x, &lockForce.Data[0].y, lockForce.Data.size(), lockForce.Offset, 2 * sizeof(float));
-            ImPlot::PlotLine("Test CM - Force", &testForce.Data[0].x, &testForce.Data[0].y, testForce.Data.size(), testForce.Offset, 2*sizeof(float));
-            ImPlot::EndPlot();
-        }
-
-        ImPlot::SetNextPlotLimitsX(t - m_history, t,  !paused ? ImGuiCond_Always : ImGuiCond_Once);
-        if (ImPlot::BeginPlot("##Torques", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
-            ImPlot::PlotLine("Locked CM - Position", &lockPosition.Data[0].x, &lockPosition.Data[0].y, lockPosition.Data.size(), lockPosition.Offset, 2 * sizeof(float));
-            ImPlot::PlotLine("Test CM - Position", &testPosition.Data[0].x, &testPosition.Data[0].y, testPosition.Data.size(), testPosition.Offset, 2*sizeof(float));
-            ImPlot::EndPlot();
-        }
-    }
-
-    void PsychGui::lockExtraDofs(){
-        //  ??????????????? Add gradual movement to intial position?
-        // ?????? Move shear first, then normal if no contact, normal then shear if there is contact?
-        m_cm_lock->setControlMode(CM::Position); // won't change throughout the trial (should be position control)
-        if (m_pt.m_whichDof == PsychTest::Shear){ // test shear, normal is locked
-            m_cm_lock->setControlValue(0.75); // ?????? value may need to change to calibration position, 0 for test normal, 0.75 for test shear?
-        }else if (m_pt.m_whichDof ==PsychTest::Normal){ // test normal, shear is locked
-            m_cm_lock->setControlValue(0.0); // shear dof should be centered
-        }
+        // disable while switching controller
+        m_cm_lock->disable();
+        m_cm_lock->setControlMode(CM::Position);
+        m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_cm_lock->getSpoolPosition())); // start from where you are
+        m_cm_lock->enable();
         m_cm_lock->limits_exceeded();
+
+        if (m_pt.m_whichDof == PsychTest::Shear){
+            // move normal dof to testing location
+            double elapsed = 0;
+            while (m_psychparams.stimulus_time > elapsed) {
+                rampLock(m_cm_lock->getSpoolPosition(), m_pt.m_userShearTestNormPos, m_psychparams.stimulus_time, elapsed); 
+                elapsed += delta_time().as_seconds();
+                co_yield nullptr;
+            }
+            setLock(m_pt.m_userShearTestNormPos);
+        }else {            
+            // move shear dof to testing location
+            double elapsed = 0;
+            while (m_psychparams.stimulus_time > elapsed) {
+                rampStimulus(m_cm_lock->getSpoolPosition(), 0, m_psychparams.stimulus_time, elapsed);
+                elapsed += delta_time().as_seconds();
+                co_yield nullptr;
+            }
+        }
     }
 
-    void PsychGui::setControlDof(){
+    Enumerator PsychGui::setControlDof(){
         // Set controller for testing DOF
-        if (m_pt.m_controller == PsychTest::Position){
-            m_cm_test->setControlMode(CM::Position);
-            if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
+        m_cm_test->disable();
+        if (m_pt.m_whichDof == PsychTest::Shear){ // already at 0, directly commanded
+            if (m_pt.m_controller == PsychTest::Position){
+                m_cm_test->setControlMode(CM::Position);
                 m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_t;
                 m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_t;
                 m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_t;
-            }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
-                m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_n;
-                m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_n;
-                m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_n;
-            }
-        }else if (m_pt.m_controller == PsychTest::Force){
-            m_cm_test->setControlMode(CM::Force);
-            if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
+            }else if (m_pt.m_controller == PsychTest::Force){
+                m_cm_test->setControlMode(CM::Force);
                 m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_t;
                 m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_t;
                 m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_t;
-            }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
+            }
+            setStimulus(0);
+            m_cm_test->enable();
+            m_cm_test->limits_exceeded();
+        }else if (m_pt.m_whichDof == PsychTest::Normal){ // currently above the skin by an inch, need to move down
+            m_cm_test->setControlMode(CM::Position);
+            setStimulus(m_cm_test->getSpoolPosition());
+            m_cm_test->enable();
+            m_cm_test->limits_exceeded();
+
+            // move normal dof to testing location
+            double elapsed = 0;
+            while (m_psychparams.stimulus_time > elapsed) {
+                rampStimulus(m_cm_test->getSpoolPosition(), m_pt.m_userparams.positionCont_n, m_psychparams.stimulus_time, elapsed); 
+                elapsed += delta_time().as_seconds();
+                co_yield nullptr;
+            }
+
+            if (m_pt.m_controller == PsychTest::Position){
+                setStimulus(m_pt.m_userparams.positionCont_n);
+                m_cm_test->limits_exceeded();
+                userLimitsExceeded();
+
+                m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_n;
+                m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_n;
+                m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_n;
+            }else if (m_pt.m_controller == PsychTest::Force){
+                m_cm_test->disable();
+                m_cm_test->setControlMode(CM::Force);
+                setStimulus(0);
+                m_cm_test->enable();
+                m_cm_test->limits_exceeded();
+                userLimitsExceeded();
+
                 m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_n;
                 m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_n;
                 m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_n;
+                
             }
-        } 
-        m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_pt.m_userStimulusContact)); // 0 for centered shear, contact pressure/position for normal force
-        m_cm_test->limits_exceeded();
+
+        }
     }
 
     void PsychGui::setStimulus(double N) {
         m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(N));
         m_cm_test->limits_exceeded();
+        userLimitsExceeded();
+    }
+
+    void PsychGui::setLock(double N) {
+        m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(N));
+        m_cm_lock->limits_exceeded();
         userLimitsExceeded();
     }
 
@@ -1078,5 +1076,74 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         m_stim2_avgShearF = mean(m_stim2_shearF.get_vector());
         m_stim2_avgNormP = mean(m_stim2_normP.get_vector());
         m_stim2_avgShearP = mean(m_stim2_shearP.get_vector());
+    }
+
+        void PsychGui::plotDebugExpInfo(){
+        
+        static bool paused = false;
+        if(ImGui::Button(paused ? "unpause" : "pause")) paused = !paused;
+        ImGui::Separator();
+        
+        t += ImGui::GetIO().DeltaTime;
+        ImGui::SliderFloat("History",&m_history,1,30,"%.1f s");
+
+        if(!paused){
+            ref.AddPoint(t, m_pt.m_jnd_stimulus_reference* 1.0f);
+            comp.AddPoint(t, m_pt.m_jnd_stimulus_comparison* 1.0f);
+            curr.AddPoint(t, m_jnd_current_stimulus* 1.0f);
+        }
+
+        ImPlot::SetNextPlotLimitsX(t - m_history, t, !paused ? ImGuiCond_Always : ImGuiCond_Once);
+        if (ImPlot::BeginPlot("##StimValues", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
+            ImPlot::PlotLine("Ref Value", &ref.Data[0].x, &ref.Data[0].y, ref.Data.size(), ref.Offset, 2*sizeof(float));
+            ImPlot::PlotLine("Comparison", &comp.Data[0].x, &comp.Data[0].y, comp.Data.size(), comp.Offset, 2*sizeof(float));
+            ImPlot::PlotLine("Current Value", &curr.Data[0].x, &curr.Data[0].y, curr.Data.size(), curr.Offset, 2*sizeof(float));
+            ImPlot::EndPlot();
+        }
+
+        ImGui::Separator();
+
+        ImGui::PushItemWidth(100);
+        ImGui::LabelText("Reference Value", "%f", m_pt.m_jnd_stimulus_reference);
+        ImGui::LabelText("Comparison Value", "%f", m_pt.m_jnd_stimulus_comparison);
+        if(m_pt.m_whichExp == PsychTest::MCS){
+            ImGui::LabelText("Reference Place", "%i", m_pt.m_q_mcs.standard);
+            ImGui::LabelText("Comparison Place", "%i", m_pt.m_q_mcs.comparison);
+            ImGui::LabelText("Trial Number", "%i", m_pt.m_q_mcs.trialnum);
+        }else if(m_pt.m_whichExp == PsychTest::SM){
+            ImGui::LabelText("Reference Place", "%i", m_pt.m_q_sm.standard);
+            ImGui::LabelText("Comparison Place", "%i", m_pt.m_q_sm.comparison);
+            ImGui::LabelText("Last Slope", "%s", m_pt.currdirection[m_pt.m_q_sm.lastSlope]);
+            ImGui::LabelText("Number of Reversals", "%i", m_pt.m_q_sm.num_reversal);
+            ImGui::LabelText("Trial Number", "%i", m_pt.m_q_sm.trialnum);
+        }else if (m_pt.m_whichExp == PsychTest::MA){
+            ImGui::LabelText("Current Value", "%f", m_jnd_current_stimulus);
+            ImGui::LabelText("Trial Number", "%i", m_pt.m_q_ma.trialnum);
+        }
+        
+        ImGui::PopItemWidth();
+
+        ImGui::Separator();
+
+        if(!paused){
+        lockForce.AddPoint(t, m_cm_lock->getForce()* 1.0f);
+        lockPosition.AddPoint(t, m_cm_lock->getSpoolPosition()* 1.0f);
+        testForce.AddPoint(t, m_cm_test->getForce()* 1.0f);
+        testPosition.AddPoint(t, m_cm_test->getSpoolPosition()* 1.0f);
+        }
+
+        ImPlot::SetNextPlotLimitsX(t - m_history, t,  !paused ? ImGuiCond_Always : ImGuiCond_Once);
+        if (ImPlot::BeginPlot("##Forces", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
+            ImPlot::PlotLine("Locked CM - Force", &lockForce.Data[0].x, &lockForce.Data[0].y, lockForce.Data.size(), lockForce.Offset, 2 * sizeof(float));
+            ImPlot::PlotLine("Test CM - Force", &testForce.Data[0].x, &testForce.Data[0].y, testForce.Data.size(), testForce.Offset, 2*sizeof(float));
+            ImPlot::EndPlot();
+        }
+
+        ImPlot::SetNextPlotLimitsX(t - m_history, t,  !paused ? ImGuiCond_Always : ImGuiCond_Once);
+        if (ImPlot::BeginPlot("##Torques", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
+            ImPlot::PlotLine("Locked CM - Position", &lockPosition.Data[0].x, &lockPosition.Data[0].y, lockPosition.Data.size(), lockPosition.Offset, 2 * sizeof(float));
+            ImPlot::PlotLine("Test CM - Position", &testPosition.Data[0].x, &testPosition.Data[0].y, testPosition.Data.size(), testPosition.Offset, 2*sizeof(float));
+            ImPlot::EndPlot();
+        }
     }
 

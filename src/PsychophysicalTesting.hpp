@@ -201,6 +201,7 @@ public:
     double      m_userStimulusMin;
     double      m_userStimulusMax;
     double      m_userStimulusContact; 
+    double      m_userShearTestNormPos;
     QueryMCS    m_q_mcs;     ///< most recent QueryMCS point
     QuerySM     m_q_sm;      ///< most recent QuerySM point
     QueryMA     m_q_ma;      ///< most recent QueryMA point
