@@ -21,13 +21,18 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     void PsychGui::update() {
 
         ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{600,1000}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        ImGui::BeginDisabled(m_pt.m_testmode != PsychTest::Idle);
+        ImGui::BeginDisabled(m_pt.m_testmode == PsychTest::Run);
+        m_flag_first_to_start = 0;
 
         // Flags to walk through menus
         static bool flag_confirm_exp_settings = 0;
         static bool flag_start_calibration = 0;
         static bool flag_bring_to_start = 0;
         static bool flag_study_started = 0;
+        static bool flag_bring_contact = 0;
+        static bool flag_bring_start = 0;
+        static bool flag_lock_extra_dofs = 0;
+        static bool flag_set_control_dofs = 0;
 
         // Confirm experiment settings and subject number
         if (!flag_confirm_exp_settings){
@@ -37,6 +42,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             ImGui::BulletText("Using %s Control", m_pt.controlChoice[m_pt.m_controller]);   // Hardware specific
             ImGui::Separator();
             ImGui::SetNextItemWidth(100);
+            m_pt.m_testmode = PsychTest::SetUp;
 
             if(m_pt.m_whichExp == PsychTest::MA){
                 if (ImGui::Button("Confirm Settings, Start JND",ImVec2(-1,0))) {
@@ -68,14 +74,43 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 flag_start_calibration = 1;
             }
         }
+
+        // after device calibrated, bring to contact
+        if (flag_start_calibration && !flag_bring_contact){
+            if (ImGui::Button("Bring to Contact",ImVec2(-1,0))){
+                start_coroutine(bringToContact());
+                flag_bring_contact = 1;
+            }
+        }
+
+        // after bring to contact, back to start position
+        if (flag_bring_contact && !flag_bring_start){
+            if (ImGui::Button("Bring to Start Position",ImVec2(-1,0))){
+                start_coroutine(bringToStartPosition()); 
+                flag_bring_start = 1;
+            }
+        }
+
+        // after bring to contact, back to start position
+        if (flag_bring_start && !flag_lock_extra_dofs){
+            if (ImGui::Button("Lock Extra Dofs",ImVec2(-1,0))){
+                start_coroutine(lockExtraDofs());
+                flag_lock_extra_dofs = 1;
+            }
+        }
+
+        // after bring to contact, back to start position
+        if (flag_lock_extra_dofs && !flag_set_control_dofs){
+            if (ImGui::Button("Set Control Dofs",ImVec2(-1,0))){
+                start_coroutine(setControlDof());
+                flag_set_control_dofs = 1;
+            }
+        }
         
         // start experiment or cancel for some reason
-        if (flag_start_calibration && !flag_study_started){
+        if (flag_set_control_dofs && !flag_study_started){
             if (ImGui::Button("Start Study",ImVec2(-1,0))){
                 // Set controllers for testing DOF
-                start_coroutine(lockExtraDofs());
-                start_coroutine(setControlDof());
-
                 if (m_pt.m_whichExp == PsychTest::MCS){
                     m_pt.buildStimTrials();
                     start_coroutine(runMCSExperiment());
@@ -102,10 +137,14 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         // idle mode
         if (m_pt.m_testmode == PsychTest::Idle) {
             //When not coducting trials, go to neutral contact position
-            if(flag_start_calibration){
+            if(!m_flag_first_to_start && flag_start_calibration){
+                std::cout << "m_flag_first_to_start" << m_flag_first_to_start << std::endl;
                 start_coroutine(bringToStartPosition());
+                m_flag_first_to_start = 1;
             }
         }
+
+        plotDebugExpInfo();
         ImGui::End();     
     }
 
@@ -181,6 +220,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
     Enumerator PsychGui::runMCSExperiment() {
         m_pt.m_testmode = PsychTest::Run;
+        m_flag_first_to_start = 0;
         Timestamp ts;
         
         std::string filename;
@@ -329,6 +369,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
         while (m_pt.m_q_sm.num_staircase < m_psychparams.n_sm_staircases){ 
             m_pt.m_testmode = PsychTest::Run;
+            m_flag_first_to_start = 0;
         
             std::string filename;
             filename = "C:/Git/TactilePsychophysics/data/_jnd_subject_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_num" + std::to_string(m_pt.m_q_sm.num_staircase) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv";
@@ -570,6 +611,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         Timestamp ts;
  
         m_pt.m_testmode = PsychTest::Run;
+        m_flag_first_to_start = 0;
     
         std::string filename;
         filename = "C:/Git/TactilePsychophysics/data/_jnd_subject_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv";
@@ -812,177 +854,180 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     }
 
     void PsychGui::calibrate(){
+        std::cout << "Calibrate" << std::endl;
         m_cm_test->zeroPosition();
         m_cm_lock->zeroPosition();
 
         m_cm_test->zeroForce();
         m_cm_lock->zeroForce();
-
-        start_coroutine(bringToContact());
-
-        start_coroutine(bringToStartPosition());
-        m_cm_test->enable();
-        m_cm_lock->enable();
     }
 
-    Enumerator PsychGui::bringToStartPosition(){ // above arm, Idle/pre-experiment position
+    Enumerator PsychGui::bringToContact(){ // Put both in position control for now
+        std::cout << "Bring to contact" << std::endl;
         // disable while switching controllers
-        m_cm_test->disable();
-        m_cm_lock->disable();
-       
-        m_cm_lock->setControlMode(CM::Position);
-        m_cm_test->setControlMode(CM::Position);
-        m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_cm_lock->getSpoolPosition())); // start from where you are
-        m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition())); // start from where you are
-        
-        // re-enable controllers
-        m_cm_test->enable();
-        m_cm_lock->enable();
+        setPositionControl(1);
+        setPositionControl(0);
+        std::cout << "     set to position control in current location" << std::endl;
+
+        if (m_pt.m_whichDof == PsychTest::Shear){
+            // keep the shear direction locked in the zero position
+            std::cout << "     keep shear direction locked (t)" << std::endl;
+            setStimulus(0);
+
+            // move ee to contact point
+            std::cout << "     ramp normal force until contact force is reached (t)" << std::endl;
+            double elapsed = 0;
+            double step = 0.0008;
+            double setPoint = m_cm_lock->getSpoolPosition();
+            while (m_cm_lock->getForce() < m_pt.m_userparams.forceCont_n) {
+                setLock(setPoint);
+                setPoint += step;
+                co_yield nullptr;
+            }
+        }else {   
+            // keep the shear direction locked in the zero position
+            std::cout << "     keep shear direction locked (n)" << std::endl;
+            setLock(0);
+
+            // move ee to contact point
+            std::cout << "     ramp normal force until contact force is reached (n)" << std::endl;
+            double step = 0.0008;
+            double setPoint = m_cm_test->getSpoolPosition();
+            while (m_cm_test->getForce() < m_pt.m_userparams.forceCont_n) {
+                setStimulus(setPoint);
+                setPoint += step;
+                co_yield nullptr;
+            }
+        }
+
+        // Record the positions at the contact force
+        std::cout << "pre m_pt.m_userparams.positionCont_n" << m_pt.m_userparams.positionCont_n << std::endl;
+        m_pt.m_userparams.positionCont_n = (m_pt.m_whichDof == PsychTest::Normal) ? m_cm_test->getSpoolPosition() : m_cm_lock->getSpoolPosition();
+        std::cout << "post m_pt.m_userparams.positionCont_n" << m_pt.m_userparams.positionCont_n << std::endl;
+    }
+
+    Enumerator PsychGui::bringToStartPosition(){ // above arm, Idle/pre-experiment position, assume already in position control
+        // disable while switching controllers
+        std::cout << "Bring to start" << std::endl;
 
         // move lock dof directly, will lift up if normal, will stay put if tangential
         m_cm_lock->setControlValue(0.0); 
         m_cm_lock->limits_exceeded();
+        std::cout << "     set lock to zero position" << std::endl;
 
         // move out of stimulus to starting position above the arm
         double elapsed = 0;
-        while (elapsed < m_psychparams.stimulus_time) {
-            rampStimulus(m_cm_test->getSpoolPosition(), 0.0, m_psychparams.stimulus_time, elapsed);
+        while (elapsed < m_psychparams.travel_time) {
+            rampStimulus(m_cm_test->getSpoolPosition(), 0.0, m_psychparams.travel_time, elapsed);
             elapsed += delta_time().as_seconds();
             co_yield nullptr;
         }
+        std::cout << "     ramp test to zero position" << std::endl;
+        setStimulus(0);
     }
 
-
-    Enumerator PsychGui::bringToContact(){
-        // disable while switching controllers
-        m_cm_test->disable();
-        m_cm_lock->disable();
-       
-        m_cm_lock->setControlMode(CM::Position);
-        m_cm_test->setControlMode(CM::Position);
-        m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_cm_lock->getSpoolPosition())); // start from where you are
-        m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(m_cm_test->getSpoolPosition())); // start from where you are
-        
-        // re-enable controllers
-        m_cm_test->enable();
-        m_cm_lock->enable();
-        m_cm_test->limits_exceeded();
-        m_cm_lock->limits_exceeded();
-
-        if (m_pt.m_whichDof == PsychTest::Shear){
-            // keep the shear direction locked in the zero position
-            m_cm_test->setControlValue(0);
-            m_cm_test->limits_exceeded();
-
-            // move ee to contact point
-            double elapsed = 0;
-            while (m_cm_lock->getForce() > m_pt.m_userparams.forceCont_n) {
-                rampLock(m_cm_lock->getSpoolPosition(), 20.0, m_psychparams.stimulus_time, elapsed); /// !!!!! 20.0 final position is arbitrary, and farther than we'd ever want to go, stopping at desired force
-                elapsed += delta_time().as_seconds();
-                co_yield nullptr;
-            }
-        }else {            
-            // move ee to contact point
-            double elapsed = 0;
-            while (m_cm_test->getForce() > m_pt.m_userparams.forceCont_n) {
-                rampStimulus(m_cm_test->getSpoolPosition(), 20.0, m_psychparams.stimulus_time, elapsed); /// !!!!! 20.0 final position is arbitrary, and farther than we'd ever want to go, stopping at desired force
-                elapsed += delta_time().as_seconds();
-                co_yield nullptr;
-            }
-            
-            // keep the shear direction locked in the zero position
-            m_cm_lock->setControlValue(0);
-            m_cm_lock->limits_exceeded();
-        }
-
-        // Record the positions at the contact force
-        m_pt.m_userparams.positionCont_n = (m_pt.m_whichDof == PsychTest::Normal) ? m_cm_test->getSpoolPosition() : m_cm_lock->getSpoolPosition();
-    }
-
-    Enumerator PsychGui::lockExtraDofs(){ // starting from centered an inch above arm
+    Enumerator PsychGui::lockExtraDofs(){ // starting from centered an inch above arm, assume already in position control
+        std::cout << "Lock extra dofs" << std::endl;
         m_pt.m_userShearTestNormPos = 0.75*(m_pt.m_userparams.positionMax_n - m_pt.m_userparams.positionMin_n) + m_pt.m_userparams.positionMin_n;
 
         // disable while switching controller
-        m_cm_lock->disable();
-        m_cm_lock->setControlMode(CM::Position);
-        m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(m_cm_lock->getSpoolPosition())); // start from where you are
-        m_cm_lock->enable();
-        m_cm_lock->limits_exceeded();
+        std::cout << "     set lock in position control in the current location" << std::endl;
 
         if (m_pt.m_whichDof == PsychTest::Shear){
             // move normal dof to testing location
+            std::cout << "     move normal direction to 75% of the range for testing  (t)" << std::endl;
             double elapsed = 0;
-            while (m_psychparams.stimulus_time > elapsed) {
-                rampLock(m_cm_lock->getSpoolPosition(), m_pt.m_userShearTestNormPos, m_psychparams.stimulus_time, elapsed); 
+            while (m_psychparams.travel_time > elapsed) {
+                rampLock(m_cm_lock->getSpoolPosition(), m_pt.m_userShearTestNormPos, m_psychparams.travel_time, elapsed); 
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
             }
             setLock(m_pt.m_userShearTestNormPos);
         }else {            
             // move shear dof to testing location
+            std::cout << "     move the shear direction to zero for testing  (n)" << std::endl;
             double elapsed = 0;
-            while (m_psychparams.stimulus_time > elapsed) {
-                rampStimulus(m_cm_lock->getSpoolPosition(), 0, m_psychparams.stimulus_time, elapsed);
+            while (m_psychparams.travel_time > elapsed) {
+                rampStimulus(m_cm_lock->getSpoolPosition(), 0, m_psychparams.travel_time, elapsed);
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
             }
         }
     }
 
-    Enumerator PsychGui::setControlDof(){
+    Enumerator PsychGui::setControlDof(){ // assume already in position control
+        std::cout << "Set control dof" << std::endl;
         // Set controller for testing DOF
-        m_cm_test->disable();
         if (m_pt.m_whichDof == PsychTest::Shear){ // already at 0, directly commanded
-            if (m_pt.m_controller == PsychTest::Position){
-                m_cm_test->setControlMode(CM::Position);
-                m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_t;
-                m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_t;
-                m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_t;
-            }else if (m_pt.m_controller == PsychTest::Force){
-                m_cm_test->setControlMode(CM::Force);
-                m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_t;
-                m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_t;
-                m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_t;
+            if (m_pt.m_controller == PsychTest::Force){
+                std::cout << "     set to Force control" << std::endl;
+                setForceControl(1);
             }
+            std::cout << "     set to zero" << std::endl;
             setStimulus(0);
-            m_cm_test->enable();
             m_cm_test->limits_exceeded();
         }else if (m_pt.m_whichDof == PsychTest::Normal){ // currently above the skin by an inch, need to move down
-            m_cm_test->setControlMode(CM::Position);
-            setStimulus(m_cm_test->getSpoolPosition());
-            m_cm_test->enable();
-            m_cm_test->limits_exceeded();
-
             // move normal dof to testing location
+            std::cout << "     move norm to contact point" << std::endl;
             double elapsed = 0;
-            while (m_psychparams.stimulus_time > elapsed) {
-                rampStimulus(m_cm_test->getSpoolPosition(), m_pt.m_userparams.positionCont_n, m_psychparams.stimulus_time, elapsed); 
+            while (m_psychparams.travel_time > elapsed) {
+                rampStimulus(m_cm_test->getSpoolPosition(), m_pt.m_userparams.positionCont_n, m_psychparams.travel_time, elapsed); 
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
             }
 
-            if (m_pt.m_controller == PsychTest::Position){
-                setStimulus(m_pt.m_userparams.positionCont_n);
-                m_cm_test->limits_exceeded();
-                userLimitsExceeded();
+            std::cout << "set controller m_pt.m_userparams.positionCont_n" << m_pt.m_userparams.positionCont_n << std::endl;
+            std::cout << "m_cm_test->getSpoolPosition()" << m_cm_test->getSpoolPosition() << std::endl;
 
-                m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_n;
-                m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_n;
-                m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_n;
-            }else if (m_pt.m_controller == PsychTest::Force){
-                m_cm_test->disable();
-                m_cm_test->setControlMode(CM::Force);
-                setStimulus(0);
-                m_cm_test->enable();
-                m_cm_test->limits_exceeded();
-                userLimitsExceeded();
-
-                m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_n;
-                m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_n;
-                m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_n;
-                
+            if (m_pt.m_controller == PsychTest::Force){
+                std::cout << "     set to force control at contact point" << std::endl;
+                setForceControl(1);
             }
 
+        }
+    }
+
+    void PsychGui::setPositionControl(bool isTest){
+        if(isTest){
+            m_cm_test->disable();
+            m_cm_test->setControlMode(CM::Position);
+            setStimulus(m_cm_test->getSpoolPosition());
+            m_cm_test->enable();
+            m_cm_test->limits_exceeded();
+            userLimitsExceeded();
+
+            m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_n;
+            m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_n;
+            m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_n;
+        }else{
+            m_cm_lock->disable();
+            m_cm_lock->setControlMode(CM::Position);
+            setStimulus(m_cm_lock->getSpoolPosition());
+            m_cm_lock->enable();
+            m_cm_lock->limits_exceeded();
+            userLimitsExceeded();
+        }
+    }
+
+    void PsychGui::setForceControl(bool isTest){
+        if(isTest){
+            m_cm_test->disable();
+            m_cm_test->setControlMode(CM::Force);
+            setStimulus(m_cm_test->getForce());
+            m_cm_test->enable();
+            m_cm_test->limits_exceeded();
+            userLimitsExceeded();
+
+            m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_n;
+            m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_n;
+            m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_n;
+        }else{
+            m_cm_lock->disable();
+            m_cm_lock->setControlMode(CM::Force);
+            setStimulus(m_cm_lock->getForce());
+            m_cm_lock->enable();
+            m_cm_lock->limits_exceeded();
+            userLimitsExceeded();
         }
     }
 
@@ -1008,13 +1053,13 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 stopExp();
             }
             
-            if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
-                LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
-                stopExp();
-            }else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
-                LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
-                stopExp();
-            }
+            // if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
+            //     LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
+            //     stopExp();
+            // }else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
+            //     LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
+            //     stopExp();
+            // }
     
         }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
             if(m_cm_test->getForce() > m_pt.m_userparams.forceMax_n){
@@ -1025,13 +1070,13 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 stopExp();
             }
             
-            if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
-                LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
-                stopExp();
-            } else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
-                LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
-                stopExp();
-            }
+            // if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
+            //     LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
+            //     stopExp();
+            // } else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
+            //     LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
+            //     stopExp();
+            // }
     
         }
 

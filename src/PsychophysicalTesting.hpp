@@ -36,7 +36,7 @@ class PsychTest : public mahi::util::NonCopyable {
 public:
 
     enum WhichExp   { MCS, SM, MA };
-    enum Mode       { Idle, Run };
+    enum Mode       { Idle, SetUp, Run };
     enum Gender     { NoGender, Male, Female };
     enum Handedness { Left, Right, Other };
     enum ControlType{ Position, Force };
@@ -55,6 +55,7 @@ public:
         double sm_force_inc         = 1.0;
         int    n_ma_trials          = 3;       
         double stimulus_time        = 0.33;
+        double travel_time        = 0.33;
     };
 
     /// PsychTest QueryMCS

@@ -91,13 +91,17 @@ public:
 
     void calibrate();
 
-    Enumerator bringToStartPosition();
-
     Enumerator bringToContact();
+
+    Enumerator bringToStartPosition();
 
     Enumerator lockExtraDofs();
 
     Enumerator setControlDof();
+
+    void setPositionControl(bool isTest);
+
+    void setForceControl(bool isTest);
 
     void setStimulus(double N);
 
@@ -121,6 +125,7 @@ public:
     double m_whatChange = 0;
     int m_adjust = -1;
     double m_jnd_current_stimulus;
+    bool m_flag_first_to_start;
 
     // Create buffers for calculating the forces and positions during each cue
     mahi::util::RingBuffer<double> m_stim1_normF{50};

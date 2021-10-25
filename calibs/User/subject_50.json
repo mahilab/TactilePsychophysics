@@ -17,7 +17,7 @@
           "positionCont_t": 0.0,
           "forceMin_n": 0.0,
           "forceMax_n": 23.0,
-          "forceCont_n": 0.10,
+          "forceCont_n": 0.5,
           "forceMin_t": 0.0,
           "forceMax_t": 10.0,
           "forceCont_t": 0.0

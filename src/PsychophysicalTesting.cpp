@@ -98,6 +98,7 @@ bool PsychTest::exportParams(const std::string& filepath) {
     j["sm_force_inc"]           = params.sm_force_inc;
     j["n_ma_trials"]           = params.n_ma_trials;
     j["stimulus_time"]          = params.stimulus_time;
+    j["travel_time"]          = params.travel_time;
 
     std::ofstream file(path);
     if (file.is_open()) {
@@ -129,6 +130,7 @@ bool PsychTest::importParams(const std::string& filepath) {
             params.sm_force_inc         = j["sm_force_inc"].get<double>();
             params.n_ma_trials          = j["n_ma_trials"].get<int>();
             params.stimulus_time        = j["stimulus_time"].get<double>();
+            params.travel_time          = j["travel_time"].get<double>();
                 
             setParams(params);
             LOG(Info) << "Imported PsychTest Subject " << m_subject << " parameters from " << path.generic_string();

@@ -17,7 +17,7 @@
     "forceSenseSignFlip": true,
     "has_velocity_limit_": true,
     "has_torque_limit_": true,
-    "velocityMax": 30.0,
+    "velocityMax": 40.0,
     "torqueMax": 0.02,
     "positionMin": 0,
     "positionMax": 0,
