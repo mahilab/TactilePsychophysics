@@ -7,11 +7,28 @@ using namespace xbox;
 
 PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDof whichDOF, PsychTest::ControlType controller) : 
     Application(600,600,"Capstan Module Psychophysical Test (Subject " + std::to_string(subject) + ")" ,false), 
-    m_pt(subject, PsychTest::Params(), whichExp, whichDOF, controller) // Hardware specific
+    m_pt(subject, PsychTest::Params(), whichExp, whichDOF, controller), // Hardware specific
+    ts(),
+    filename_timeseries("C:/Git/TactilePsychophysics/data/_subject_timeseries_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
+    csv_timeseries(filename_timeseries),
+    filename("C:/Git/TactilePsychophysics/data/_subject_trialdata_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
+    csv(filename)
     {          
         connectToIO();
         importUserHardwareParams();
         set_frame_limit(90_Hz);
+
+        if(whichExp == PsychTest::MCS){
+            writeMCSOutputTimeVariables(csv_timeseries);
+            writeMCSOutputStimVariables(csv);
+        } else if (whichExp == PsychTest::SM){
+            writeSMOutputTimeVariables(csv_timeseries);
+            writeSMOutputStimVariables(csv);
+        } else if (whichExp == PsychTest::MA){
+            writeMAOutputTimeVariables(csv_timeseries);
+            writeMAOutputStimVariables(csv);
+        }
+
     }
 
     PsychGui::~PsychGui() {
@@ -22,7 +39,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
         ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{600,1000}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         ImGui::BeginDisabled(m_pt.m_testmode == PsychTest::Run);
-        m_flag_first_to_start = 0;
 
         // Flags to walk through menus
         static bool flag_confirm_exp_settings = 0;
@@ -78,7 +94,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         // after device calibrated, bring to contact
         if (flag_start_calibration && !flag_bring_contact){
             if (ImGui::Button("Bring to Contact",ImVec2(-1,0))){
-                start_coroutine(bringToContact());
+                start_coroutine(findContact());
                 flag_bring_contact = 1;
             }
         }
@@ -91,7 +107,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             }
         }
 
-        // after bring to contact, back to start position
+        // when at start position, lock extra dofs
         if (flag_bring_start && !flag_lock_extra_dofs){
             if (ImGui::Button("Lock Extra Dofs",ImVec2(-1,0))){
                 start_coroutine(lockExtraDofs());
@@ -99,7 +115,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             }
         }
 
-        // after bring to contact, back to start position
+        // after locking extra dofs, set the control dofs
         if (flag_lock_extra_dofs && !flag_set_control_dofs){
             if (ImGui::Button("Set Control Dofs",ImVec2(-1,0))){
                 start_coroutine(setControlDof());
@@ -138,13 +154,24 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         if (m_pt.m_testmode == PsychTest::Idle) {
             //When not coducting trials, go to neutral contact position
             if(!m_flag_first_to_start && flag_start_calibration){
-                std::cout << "m_flag_first_to_start" << m_flag_first_to_start << std::endl;
                 start_coroutine(bringToStartPosition());
                 m_flag_first_to_start = 1;
             }
         }
 
-        plotDebugExpInfo();
+        //plot force and position information
+        if (m_debug)
+            plotDebugExpInfo();
+
+
+        if(m_pt.m_whichExp == PsychTest::MCS){
+            writeMCSOutputTimeData(csv_timeseries);
+        } else if (m_pt.m_whichExp == PsychTest::SM){
+            writeSMOutputTimeData(csv_timeseries);
+        } else if (m_pt.m_whichExp == PsychTest::MA){
+            writeMAOutputTimeData(csv_timeseries);
+        }
+
         ImGui::End();     
     }
 
@@ -194,11 +221,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             }
         }
 
-        //plot force and position information
-        if (m_debug){
-            plotDebugExpInfo();
-        }
-
         ImGui::End();
         return ans;
     }
@@ -206,7 +228,8 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
     void PsychGui::rampStimulus(double start, double end, double ramptime, double elapsed){
         double stimVal = Tween::Linear(start, end, (float)(elapsed / ramptime));
-        PsychGui::setStimulus(stimVal);
+        double pos = m_cm_test->getSpoolPosition();
+        PsychGui::setTest(stimVal);
     }
 
     void PsychGui::rampLock(double start, double end, double ramptime, double elapsed){
@@ -220,42 +243,47 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
     Enumerator PsychGui::runMCSExperiment() {
         m_pt.m_testmode = PsychTest::Run;
+        std::cout << "set to run mode" << std::endl;
         m_flag_first_to_start = 0;
-        Timestamp ts;
-        
-        std::string filename;
-        filename = "C:/Git/TactilePsychophysics/data/_jnd_subject_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv";
-        Csv csv(filename);
-        
-        //Create data file
-        writeMCSOutputVariables(csv,ts);
+
 
         // Run trials
         for (int w = 0; w < m_psychparams.n_mcs_windows; ++w) {
             set_window_title("CM " + m_pt.method[m_pt.m_whichExp] + " (Subject " + std::to_string(m_pt.m_subject) + ") (Test " + m_pt.dofChoice[m_pt.m_whichDof] + " dof, " + m_pt.controlChoice[m_pt.m_controller] + " Control) (S" + std::to_string(w+1) + ")"); // Hardware specific
 
             // beginning delay
+            std::cout << "1 second delay" << std::endl;
             double elapsed = 0;
             while (elapsed < 1) {
                 responseWindow(PsychTest::NA);
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
             }
+            int i = 1;
             for (auto& trial : m_pt.m_stim_trials_mcs[w]) {
+                std::cout << "start trial " << i << std::endl;
+                i++;
                 ////////////////////////////////////// run trial
                 m_pt.m_q_mcs = trial;
                 m_pt.m_jnd_stimulus_comparison = m_pt.m_q_mcs.comparison == 1 ? m_pt.m_q_mcs.stimulus1 : m_pt.m_q_mcs.stimulus2;
                 // render first stimulus - ramp up
+                std::cout << "ramp up to first stim" << std::endl;
                 elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_mcs.stimulus1, m_psychparams.stimulus_time, elapsed);
+                while (elapsed < m_psychparams.ramp_time) {
+                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_mcs.stimulus1, m_psychparams.ramp_time, elapsed);
                     responseWindow(PsychTest::First);
                     elapsed += delta_time().as_seconds();
+                    if(int(elapsed*10) == 0){
+                        double pos = m_cm_test->getSpoolPosition();
+                        double force = m_cm_test->getForce(1);
+                        std::cout << "      elapsed " << elapsed << " pos " << pos << " force " << force << std::endl;
+                    }
                     co_yield nullptr;
                 } 
 
                 // render first stimulus - hold stim and record position and force info
-                setStimulus(m_pt.m_q_mcs.stimulus1);
+                std::cout << "hold stim" << std::endl;
+                setTest(m_pt.m_q_mcs.stimulus1);
                 elapsed = 0;
                 while (elapsed < m_psychparams.stimulus_time) {
                     responseWindow(PsychTest::First);
@@ -266,15 +294,17 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 }
 
                 // render first stimulus - ramp down
+                std::cout << "ramp down first stim to contact" << std::endl;
                 elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_q_mcs.stimulus1, m_pt.m_userStimulusContact, m_psychparams.stimulus_time, elapsed);
+                while (elapsed < m_psychparams.ramp_time) {
+                    rampStimulus(m_pt.m_q_mcs.stimulus1, m_pt.m_userStimulusContact, m_psychparams.ramp_time, elapsed);
                     responseWindow(PsychTest::First);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 } 
-                setStimulus(m_pt.m_userStimulusContact);
+                setTest(m_pt.m_userStimulusContact);
                 // first delay
+                std::cout << "0.5 sec delay" << std::endl;
                 elapsed = 0;
                 while (elapsed < 0.5) {
                     responseWindow(PsychTest::NA);
@@ -282,15 +312,17 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                     co_yield nullptr;
                 }
                 // render second stimulus - ramp up
+                std::cout << "ramp up to second stim" << std::endl;
                 elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_mcs.stimulus2, m_psychparams.stimulus_time, elapsed);
+                while (elapsed < m_psychparams.ramp_time) {
+                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_mcs.stimulus2, m_psychparams.ramp_time, elapsed);
                     responseWindow(PsychTest::Second);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 } 
                 // render second stimulus - hold stim and record position and force info
-                setStimulus(m_pt.m_q_mcs.stimulus2);
+                std::cout << "hold second stim" << std::endl;
+                setTest(m_pt.m_q_mcs.stimulus2);
                 elapsed = 0;
                 while (elapsed < m_psychparams.stimulus_time) {
                     responseWindow(PsychTest::Second);
@@ -300,20 +332,23 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                     co_yield nullptr;
                 }
                 // Average of the force and position values
+                std::cout << "collect force info" << std::endl;
                 avgSensorData();
 
                 // render second stimulus - ramp down
+                std::cout << "ramp down second stim to contact" << std::endl;
                 elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_q_mcs.stimulus2, m_pt.m_userStimulusContact, m_psychparams.stimulus_time, elapsed);
+                while (elapsed < m_psychparams.ramp_time) {
+                    rampStimulus(m_pt.m_q_mcs.stimulus2, m_pt.m_userStimulusContact, m_psychparams.ramp_time, elapsed);
                     responseWindow(PsychTest::Second);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 }
                 // End at contact point
-                setStimulus(m_pt.m_userStimulusContact);
+                setTest(m_pt.m_userStimulusContact);
 
                 // collect response
+                std::cout << "choose response" << std::endl;
                 while (true) {
                     int answer = responseWindow(PsychTest::Choose);
                     if (answer != -1) {
@@ -321,7 +356,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                         m_pt.setResponseMCS(answer,greater);
 
                         // Write Output Data
-                        writeMCSOutputData(csv, m_pt.m_q_mcs);
+                        writeMCSOutputStimData(csv, m_pt.m_q_mcs);
 
                         break;
                     }
@@ -329,14 +364,16 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 }
 
                 // second delay
+                std::cout << "delay 1 second" << std::endl;
                 elapsed = 0;
                 while (elapsed < 1) {
                     responseWindow(PsychTest::NA);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 }
-            }      
+            }  // for trial within each window    
 
+            std::cout << "delay 10 seconds between windows" << std::endl;
             if (w < (m_psychparams.n_mcs_windows - 1)) {
                 double remaining = 10;
                 while (remaining > 0) {
@@ -347,17 +384,27 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                     co_yield nullptr;
                 } 
             }
-        }
+        } // for window
+        std::cout << "set idle" << std::endl;
         m_pt.m_testmode = PsychTest::Idle;
         set_window_title("CM " + m_pt.method[m_pt.m_whichExp] + " (Subject " + std::to_string(m_pt.m_subject) + ") (Test " + m_pt.dofChoice[m_pt.m_whichDof] + " dof, " + m_pt.controlChoice[m_pt.m_controller] + " Control)"); // Hardware specific
     }
     
-    void PsychGui::writeMCSOutputVariables(Csv& csv, Timestamp ts){
+    void PsychGui::writeMCSOutputStimVariables(Csv& csv){
         csv.write_row("Mode","Dof","ControlType","Trial","GenNum","Window","Level","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
     }
     
-    void PsychGui::writeMCSOutputData(Csv& csv, PsychTest::QueryMCS trial){
+    void PsychGui::writeMCSOutputStimData(Csv& csv, PsychTest::QueryMCS trial){
         csv.write_row(trial.testmode, trial.whichDof, trial.controller, trial.trialnum, trial.generated_num, trial.window, trial.level, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.correct, trial.answer, trial.greater, m_stim1_avgNormF, m_stim1_avgShearF, m_stim1_avgNormP, m_stim1_avgShearP, m_stim2_avgNormF, m_stim2_avgShearF, m_stim2_avgNormP, m_stim2_avgShearP);
+    }
+
+    void PsychGui::writeMCSOutputTimeVariables(Csv& csv){
+        csv.write_row("Mode","Dof","ControlType","Trial","whichStim","NormF", "ShearF", "NormP", "ShearP");
+    }
+
+    void PsychGui::writeMCSOutputTimeData(Csv& csv){
+        getFNUpdate();
+        csv.write_row(m_pt.m_testmode, m_pt.m_whichDof, m_pt.m_controller, m_pt.m_q_mcs.trialnum, m_whichStim, m_NormF, m_ShearF, m_NormP, m_ShearP);
     }
  
     //////////////////////////////////////////////////////////////////////////////////////
@@ -365,18 +412,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     //////////////////////////////////////////////////////////////////////////////////////          
 
     Enumerator PsychGui::runSMExperiment() {
-        Timestamp ts;
-
-        while (m_pt.m_q_sm.num_staircase < m_psychparams.n_sm_staircases){ 
-            m_pt.m_testmode = PsychTest::Run;
-            m_flag_first_to_start = 0;
-        
-            std::string filename;
-            filename = "C:/Git/TactilePsychophysics/data/_jnd_subject_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_num" + std::to_string(m_pt.m_q_sm.num_staircase) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv";
-            Csv csv(filename);
-            
-            //Create data file
-            writeSMOutputVariables(csv,ts);
 
             set_window_title("CM " + m_pt.method[m_pt.m_whichExp] + " Num " + std::to_string(m_pt.m_q_sm.num_staircase) + " (Subject " + std::to_string(m_pt.m_subject) + ") (Test " + m_pt.dofChoice[m_pt.m_whichDof] + " dof, " + m_pt.controlChoice[m_pt.m_controller] + " Control)"); // Hardware specific
             
@@ -388,118 +423,155 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 co_yield nullptr;
             }
 
-            // run trials
-            while (m_pt.m_q_sm.num_reversal < m_psychparams.n_sm_crossovers){
+            while(m_pt.m_q_sm.num_staircase < m_psychparams.n_sm_staircases){
+                m_pt.m_testmode = PsychTest::Run;
+                m_flag_first_to_start = 0;
 
-                // render first stimulus - ramp up
-                elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_sm.stimulus1, m_psychparams.stimulus_time, elapsed);
-                    responseWindow(PsychTest::First);
-                    elapsed += delta_time().as_seconds();
-                    co_yield nullptr;
-                } 
-                // render first stimulus - hold stim and record position and force info
-                setStimulus(m_pt.m_q_sm.stimulus1);
-                elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    responseWindow(PsychTest::First);
-                    // collect values while the stimulus is held
-                    collectSensorData(PsychTest::First);
-                    elapsed += delta_time().as_seconds();
-                    co_yield nullptr;
-                }
+                std::cout << "trial num: " << m_pt.m_q_sm.trialnum << ", stair num: " << m_pt.m_q_sm.num_staircase << std::endl;
+                if ( m_pt.m_q_sm.trialnum == 1 && m_pt.m_q_sm.num_staircase > 0){ // bring to contact if new stair, but not the first staircase (is from setcontroldofs)
+                    std::cout << "Set control dof" << std::endl;
+                    // Set controller for testing DOF
+                    if (m_pt.m_whichDof == PsychTest::Shear){ // already at 0, directly commanded
+                        if (m_pt.m_controller == PsychTest::Force){
+                            std::cout << "     set to Force control" << std::endl;
+                            setForceControl(1);
+                        }
+                        std::cout << "     set to zero" << std::endl;
+                        setTest(0);
+                    }else if (m_pt.m_whichDof == PsychTest::Normal){ // currently above the skin by an inch, need to move down
+                        // move normal dof to testing location
+                        std::cout << "     move norm to contact point" << std::endl;
+                        double elapsed = 0;
+                        while (m_psychparams.travel_time > elapsed) {
+                            rampStimulus(m_cm_test->getSpoolPosition(), m_pt.m_userparams.positionCont_n, m_psychparams.travel_time, elapsed); 
+                            elapsed += delta_time().as_seconds();
+                            co_yield nullptr;
+                        }
 
-                // render first stimulus - ramp down
-                elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_q_sm.stimulus1, m_pt.m_userStimulusContact, m_psychparams.stimulus_time, elapsed);
-                    responseWindow(PsychTest::First);
-                    elapsed += delta_time().as_seconds();
-                    co_yield nullptr;
-                } 
-                setStimulus(m_pt.m_userStimulusContact);
-                // first delay
-                elapsed = 0;
-                while (elapsed < 0.5) {
-                    responseWindow(PsychTest::NA);
-                    elapsed += delta_time().as_seconds();
-                    co_yield nullptr;
-                }
-                // render second stimulus - ramp up
-                elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_sm.stimulus2, m_psychparams.stimulus_time, elapsed);
-                    responseWindow(PsychTest::Second);
-                    elapsed += delta_time().as_seconds();
-                    co_yield nullptr;
-                } 
-                // render second stimulus - hold stim and record position and force info
-                setStimulus(m_pt.m_q_sm.stimulus2);
-                elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    responseWindow(PsychTest::Second);
-                    //collect values while the stimulus is held
-                    collectSensorData(PsychTest::Second);
-                    elapsed += delta_time().as_seconds();
-                    co_yield nullptr;
-                }
-                // Average of the force and position values
-                avgSensorData();
+                        std::cout << "set controller to m_pt.m_userparams.positionCont_n" << m_pt.m_userparams.positionCont_n << std::endl;
+                        std::cout << "m_cm_test->getSpoolPosition()" << m_cm_test->getSpoolPosition() << std::endl;
 
-                // render second stimulus - ramp down
-                elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_q_sm.stimulus2, m_pt.m_userStimulusContact, m_psychparams.stimulus_time, elapsed);
-                    responseWindow(PsychTest::Second);
-                    elapsed += delta_time().as_seconds();
-                    co_yield nullptr;
-                }
-                // End at contact point
-                setStimulus(m_pt.m_userStimulusContact);
+                        if (m_pt.m_controller == PsychTest::Force){
+                            std::cout << "     set to force control at contact point" << std::endl;
+                            setForceControl(1);
+                            setTest(m_pt.m_userparams.forceCont_n);
+                        }
 
-                // collect response
-                while (true) {
-                    int answer = responseWindow(PsychTest::Choose);
-                    if (answer != -1) {
-                        int greater = m_pt.m_q_sm.comparison == answer ? 1 : 0;
-                        m_pt.setResponseSM(answer,greater);
-
-                        // Write Output Data
-                        writeSMOutputData(csv, m_pt.m_q_sm);
-
-                        break;
                     }
-                    co_yield nullptr;
                 }
 
-                m_pt.setNextTrialSM(); 
+                // run trials
+                while (m_pt.m_q_sm.num_reversal < m_psychparams.n_sm_reversals){
 
-                // second delay
-                elapsed = 0;
-                while (elapsed < 1) {
-                    responseWindow(PsychTest::NA);
-                    elapsed += delta_time().as_seconds();
+                    // render first stimulus - ramp up
+                    elapsed = 0;
+                    while (elapsed < m_psychparams.ramp_time) {
+                        rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_sm.stimulus1, m_psychparams.ramp_time, elapsed);
+                        responseWindow(PsychTest::First);
+                        elapsed += delta_time().as_seconds();
+                        co_yield nullptr;
+                    } 
+                    // render first stimulus - hold stim and record position and force info
+                    setTest(m_pt.m_q_sm.stimulus1);
+                    elapsed = 0;
+                    while (elapsed < m_psychparams.stimulus_time) {
+                        responseWindow(PsychTest::First);
+                        // collect values while the stimulus is held
+                        collectSensorData(PsychTest::First);
+                        elapsed += delta_time().as_seconds();
+                        co_yield nullptr;
+                    }
+
+                    // render first stimulus - ramp down
+                    elapsed = 0;
+                    while (elapsed < m_psychparams.ramp_time) {
+                        rampStimulus(m_pt.m_q_sm.stimulus1, m_pt.m_userStimulusContact, m_psychparams.ramp_time, elapsed);
+                        responseWindow(PsychTest::First);
+                        elapsed += delta_time().as_seconds();
+                        co_yield nullptr;
+                    } 
+                    setTest(m_pt.m_userStimulusContact);
+                    // first delay
+                    elapsed = 0;
+                    while (elapsed < 0.5) {
+                        responseWindow(PsychTest::NA);
+                        elapsed += delta_time().as_seconds();
+                        co_yield nullptr;
+                    }
+                    // render second stimulus - ramp up
+                    elapsed = 0;
+                    while (elapsed < m_psychparams.ramp_time) {
+                        rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_sm.stimulus2, m_psychparams.ramp_time, elapsed);
+                        responseWindow(PsychTest::Second);
+                        elapsed += delta_time().as_seconds();
+                        co_yield nullptr;
+                    } 
+                    // render second stimulus - hold stim and record position and force info
+                    setTest(m_pt.m_q_sm.stimulus2);
+                    elapsed = 0;
+                    while (elapsed < m_psychparams.stimulus_time) {
+                        responseWindow(PsychTest::Second);
+                        //collect values while the stimulus is held
+                        collectSensorData(PsychTest::Second);
+                        elapsed += delta_time().as_seconds();
+                        co_yield nullptr;
+                    }
+                    // Average of the force and position values
+                    avgSensorData();
+
+                    // render second stimulus - ramp down
+                    elapsed = 0;
+                    while (elapsed < m_psychparams.ramp_time) {
+                        rampStimulus(m_pt.m_q_sm.stimulus2, m_pt.m_userStimulusContact, m_psychparams.ramp_time, elapsed);
+                        responseWindow(PsychTest::Second);
+                        elapsed += delta_time().as_seconds();
+                        co_yield nullptr;
+                    }
+                    // End at contact point
+                    setTest(m_pt.m_userStimulusContact);
+
+                    // collect response
+                    while (true) {
+                        int answer = responseWindow(PsychTest::Choose);
+                        if (answer != -1) {
+                            int greater = m_pt.m_q_sm.comparison == answer ? 1 : 0;
+                            m_pt.setResponseSM(answer,greater);
+
+                            // Write Output Data
+                            writeSMOutputStimData(csv, m_pt.m_q_sm);
+
+                            break;
+                        }
+                        co_yield nullptr;
+                    }
+
+                    m_pt.setNextTrialSM(); 
+
+                    // second delay
+                    elapsed = 0;
+                    while (elapsed < 1) {
+                        responseWindow(PsychTest::NA);
+                        elapsed += delta_time().as_seconds();
+                        co_yield nullptr;
+                    }
+                    
+                } // while - under the number of reversals      
+
+                // 10s break between staircases
+                m_pt.m_testmode = PsychTest::Idle;
+                double remaining = 10;
+                while (remaining > 0) {
+                    ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{500,500}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+                    ImGui::Text("Staircase Complete");
+                    ImGui::Text("Break (%.3f)", remaining);
+                    ImGui::End();
+                    remaining -= delta_time().as_seconds();
                     co_yield nullptr;
-                }
-                
-            } // while - under the number of reversals      
-
-            // 10s break between staircases
-            double remaining = 10;
-            while (remaining > 0) {
-                ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{500,500}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-                ImGui::Text("Staircase Complete");
-                ImGui::Text("Break (%.3f)", remaining);
-                ImGui::End();
-                remaining -= delta_time().as_seconds();
-                co_yield nullptr;
-            } 
-            m_pt.m_testmode = PsychTest::Idle;
-            set_window_title("CM " + m_pt.method[m_pt.m_whichExp] + " Num " + std::to_string(m_pt.m_q_sm.num_staircase) + " (Subject " + std::to_string(m_pt.m_subject) + ") (Test " + m_pt.dofChoice[m_pt.m_whichDof] + " dof, " + m_pt.controlChoice[m_pt.m_controller] + " Control)"); // Hardware specific
-            m_pt.setNewStaircase(); // staircase num is incremented inside here while preparing settings for next trial
-            m_pt.setNextTrialSM();
-       } // while under the number of staircases
+                } 
+                set_window_title("CM " + m_pt.method[m_pt.m_whichExp] + " Num " + std::to_string(m_pt.m_q_sm.num_staircase) + " (Subject " + std::to_string(m_pt.m_subject) + ") (Test " + m_pt.dofChoice[m_pt.m_whichDof] + " dof, " + m_pt.controlChoice[m_pt.m_controller] + " Control)"); // Hardware specific
+                m_pt.setNewStaircase(); // staircase num is incremented inside here while preparing settings for next trial
+                m_pt.setNextTrialSM();
+        } // while - number of staircases
 
         double remaining = 10;
         while (remaining > 0) {
@@ -509,15 +581,25 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             remaining -= delta_time().as_seconds();
             co_yield nullptr;
         } 
+        
     } // run experiment
     
-    void PsychGui::writeSMOutputVariables(Csv& csv, Timestamp ts){
-        csv.write_row("StairNum","Mode","Dof","ControlType","Trial","Dir","lastSlope","CrossNum","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
+    void PsychGui::writeSMOutputStimVariables(Csv& csv){
+        csv.write_row("Mode","Dof","ControlType","StairNum","Trial","Dir","lastSlope","CrossNum","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
     }
 
-    void PsychGui::writeSMOutputData(Csv& csv, PsychTest::QuerySM trial){
-        csv.write_row(trial.num_staircase, trial.testmode, trial.whichDof, trial.controller, trial.trialnum, trial.direction, trial.lastSlope, trial.num_reversal, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.correct, trial.answer, trial.greater, m_stim1_avgNormF, m_stim1_avgShearF, m_stim1_avgNormP, m_stim1_avgShearP, m_stim2_avgNormF, m_stim2_avgShearF, m_stim2_avgNormP, m_stim2_avgShearP);
+    void PsychGui::writeSMOutputStimData(Csv& csv, PsychTest::QuerySM trial){
+        csv.write_row(trial.testmode, trial.whichDof, trial.controller, trial.num_staircase, trial.trialnum, trial.direction, trial.lastSlope, trial.num_reversal, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.correct, trial.answer, trial.greater, m_stim1_avgNormF, m_stim1_avgShearF, m_stim1_avgNormP, m_stim1_avgShearP, m_stim2_avgNormF, m_stim2_avgShearF, m_stim2_avgNormP, m_stim2_avgShearP);
     } 
+
+    void PsychGui::writeSMOutputTimeVariables(Csv& csv){
+        csv.write_row("Mode","Dof","ControlType","StairNum","Trial","whichStim","NormF", "ShearF", "NormP", "ShearP");
+    }
+
+    void PsychGui::writeSMOutputTimeData(Csv& csv){
+        getFNUpdate();
+        csv.write_row(m_pt.m_testmode, m_pt.m_whichDof, m_pt.m_controller, m_pt.m_q_sm.num_staircase, m_pt.m_q_sm.trialnum, m_whichStim, m_NormF, m_ShearF, m_NormP, m_ShearP);
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////
     //           Method of Adjustments Functions
@@ -575,6 +657,8 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             if (ImGui::Button("No, Adjust Value", ImVec2(290,buttonHeight)) || m_xbox.is_button_pressed(XboxController::B)){
                 // the stimuli don't feel the same, need to adjust
                 flag_chooseAdjust = 1;
+                std::cout << "flag_chooseAdjust" << flag_chooseAdjust << std::endl;
+                std::cout << "m_flag_reachedMAValue" << m_flag_reachedMAValue << std::endl;
             }
         }
 
@@ -599,26 +683,14 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             }                  
         }
 
-        //plot force and position information
-        if (m_debug){
-            plotDebugExpInfo();
-        }
-
         ImGui::End();
     }
     
     Enumerator PsychGui::runMAExperiment(){
-        Timestamp ts;
+
  
         m_pt.m_testmode = PsychTest::Run;
         m_flag_first_to_start = 0;
-    
-        std::string filename;
-        filename = "C:/Git/TactilePsychophysics/data/_jnd_subject_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv";
-        Csv csv(filename);
-        
-        //Create data file
-        writeMAOutputVariables(csv,ts);
 
         set_window_title("CM " + m_pt.method[m_pt.m_whichExp] + " (Subject " + std::to_string(m_pt.m_subject) + ") (Test " + m_pt.dofChoice[m_pt.m_whichDof] + " dof, " + m_pt.controlChoice[m_pt.m_controller] + " Control)"); // Hardware specific
         
@@ -639,14 +711,14 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
                 // render first stimulus - ramp up
                 elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_ma.stimulus1, m_psychparams.stimulus_time, elapsed);
+                while (elapsed < m_psychparams.ramp_time) {
+                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_ma.stimulus1, m_psychparams.ramp_time, elapsed);
                     responseWindowMA(PsychTest::First);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 } 
                 // render first stimulus - hold stim and record position and force info
-                setStimulus(m_pt.m_q_ma.stimulus1);
+                setTest(m_pt.m_q_ma.stimulus1);
                 elapsed = 0;
                 while (elapsed < m_psychparams.stimulus_time) {
                     responseWindowMA(PsychTest::First);
@@ -658,13 +730,13 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
                 // render first stimulus - ramp down
                 elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_q_ma.stimulus1, m_pt.m_userStimulusContact, m_psychparams.stimulus_time, elapsed);
+                while (elapsed < m_psychparams.ramp_time) {
+                    rampStimulus(m_pt.m_q_ma.stimulus1, m_pt.m_userStimulusContact, m_psychparams.ramp_time, elapsed);
                     responseWindowMA(PsychTest::First);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 } 
-                setStimulus(m_pt.m_userStimulusContact);
+                setTest(m_pt.m_userStimulusContact);
                 // first delay
                 elapsed = 0;
                 while (elapsed < 0.5) {
@@ -674,14 +746,14 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 }
                 // render second stimulus - ramp up
                 elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_ma.stimulus2, m_psychparams.stimulus_time, elapsed);
+                while (elapsed < m_psychparams.ramp_time) {
+                    rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_ma.stimulus2, m_psychparams.ramp_time, elapsed);
                     responseWindowMA(PsychTest::Second);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 } 
                 // render second stimulus - hold stim and record position and force info
-                setStimulus(m_pt.m_q_ma.stimulus2);
+                setTest(m_pt.m_q_ma.stimulus2);
                 elapsed = 0;
                 while (elapsed < m_psychparams.stimulus_time) {
                     responseWindowMA(PsychTest::Second);
@@ -695,14 +767,14 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
                 // render second stimulus - ramp down
                 elapsed = 0;
-                while (elapsed < m_psychparams.stimulus_time) {
-                    rampStimulus(m_pt.m_q_ma.stimulus2, m_pt.m_userStimulusContact, m_psychparams.stimulus_time, elapsed);
+                while (elapsed < m_psychparams.ramp_time) {
+                    rampStimulus(m_pt.m_q_ma.stimulus2, m_pt.m_userStimulusContact, m_psychparams.ramp_time, elapsed);
                     responseWindowMA(PsychTest::Second);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 }
                 // End at contact point
-                setStimulus(m_pt.m_userStimulusContact); 
+                setTest(m_pt.m_userStimulusContact); 
 
             } // end two stimuli in JND case
 
@@ -718,8 +790,8 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
             // render comparison stimulus for adjustment - ramp up
             elapsed = 0;
-            while (elapsed < m_psychparams.stimulus_time) {
-                rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_ma.stimulus2, m_psychparams.stimulus_time, elapsed);
+            while (elapsed < m_psychparams.ramp_time) {
+                rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_ma.stimulus2, m_psychparams.ramp_time, elapsed);
                 responseWindowMA(PsychTest::Choose);
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
@@ -730,12 +802,12 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 responseWindowMA(PsychTest::Choose);
 
                 double stimChange = m_whatChange*m_pt.m_jnd_stimulus_interval;
-                setStimulus(m_jnd_current_stimulus += stimChange);
+                setTest(m_jnd_current_stimulus += stimChange);
 
                 if (m_adjust != -1) {
                     m_pt.setResponseMA(m_adjust,m_jnd_current_stimulus);
                     // Write Output Data
-                    writeMAOutputData(csv, m_pt.m_q_ma);
+                    writeMAOutputStimData(csv, m_pt.m_q_ma);
 
                     break;
                 }
@@ -744,14 +816,13 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
             // return to contact position for next trial - ramp down
             elapsed = 0;
-            while (elapsed < m_psychparams.stimulus_time) {
-                rampStimulus(m_jnd_current_stimulus, m_pt.m_userStimulusContact, m_psychparams.stimulus_time, elapsed);
+            while (elapsed < m_psychparams.ramp_time) {
+                rampStimulus(m_jnd_current_stimulus, m_pt.m_userStimulusContact, m_psychparams.ramp_time, elapsed);
                 responseWindowMA(PsychTest::NA);
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
             } 
-            // render second stimulus - hold stim and record position and force info
-            setStimulus(m_pt.m_userStimulusContact);
+            setTest(m_pt.m_userStimulusContact);
 
             // third delay
             elapsed = 0;
@@ -783,12 +854,21 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         set_window_title("CM " + m_pt.method[m_pt.m_whichExp] + " (Subject " + std::to_string(m_pt.m_subject) + ") (Test " + m_pt.dofChoice[m_pt.m_whichDof] + " dof, " + m_pt.controlChoice[m_pt.m_controller] + " Control)"); // Hardware specific
     }
     
-    void PsychGui::writeMAOutputVariables(Csv& csv, Timestamp ts){
+    void PsychGui::writeMAOutputStimVariables(Csv& csv){
         csv.write_row("Mode","Dof","ControlType","Trial","Stimulus1","Stimulus2","Standard","Comparison","Adjust","Dir","Change","FinalVal","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
     }
 
-    void PsychGui::writeMAOutputData(Csv& csv, PsychTest::QueryMA trial){
+    void PsychGui::writeMAOutputStimData(Csv& csv, PsychTest::QueryMA trial){
         csv.write_row(trial.testmode, trial.whichDof, trial.controller, trial.trialnum, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.adjust, trial.direction, trial.change, trial.finalVal, m_stim1_avgNormF, m_stim1_avgShearF, m_stim1_avgNormP, m_stim1_avgShearP, m_stim2_avgNormF, m_stim2_avgShearF, m_stim2_avgNormP, m_stim2_avgShearP);
+    } 
+
+    void PsychGui::writeMAOutputTimeVariables(Csv& csv){
+        csv.write_row("Mode","Dof","ControlType","Trial","whichStim","NormF", "ShearF", "NormP", "ShearP");
+    }
+
+    void PsychGui::writeMAOutputTimeData(Csv& csv){
+        getFNUpdate();
+        csv.write_row(m_pt.m_testmode, m_pt.m_whichDof, m_pt.m_controller, m_pt.m_q_ma.trialnum, m_whichStim, m_NormF, m_ShearF, m_NormP, m_ShearP);
     } 
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -862,7 +942,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         m_cm_lock->zeroForce();
     }
 
-    Enumerator PsychGui::bringToContact(){ // Put both in position control for now
+    Enumerator PsychGui::findContact(){ // Put both in position control for now
         std::cout << "Bring to contact" << std::endl;
         // disable while switching controllers
         setPositionControl(1);
@@ -872,18 +952,24 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         if (m_pt.m_whichDof == PsychTest::Shear){
             // keep the shear direction locked in the zero position
             std::cout << "     keep shear direction locked (t)" << std::endl;
-            setStimulus(0);
+            setTest(0);
 
             // move ee to contact point
-            std::cout << "     ramp normal force until contact force is reached (t)" << std::endl;
-            double elapsed = 0;
-            double step = 0.0008;
+            std::cout << "     ramp normal position until contact force is reached (t)" << std::endl;
+            double step = 0.10;
             double setPoint = m_cm_lock->getSpoolPosition();
-            while (m_cm_lock->getForce() < m_pt.m_userparams.forceCont_n) {
+            int num_above_force = 0;
+            while (num_above_force < 20) {
+                if (m_cm_lock->getForce(1) > m_pt.m_userparams.forceCont_n) num_above_force++;
+                else num_above_force = 0;
                 setLock(setPoint);
                 setPoint += step;
                 co_yield nullptr;
             }
+
+            std::cout << "     force control to contact force" << std::endl;
+            setForceControl(0);
+            setLock(m_pt.m_userparams.forceCont_n);
         }else {   
             // keep the shear direction locked in the zero position
             std::cout << "     keep shear direction locked (n)" << std::endl;
@@ -891,48 +977,92 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
             // move ee to contact point
             std::cout << "     ramp normal force until contact force is reached (n)" << std::endl;
-            double step = 0.0008;
+            double step = 0.10;
             double setPoint = m_cm_test->getSpoolPosition();
-            while (m_cm_test->getForce() < m_pt.m_userparams.forceCont_n) {
-                setStimulus(setPoint);
+            int num_above_force = 0;
+            while (num_above_force < 20) {
+                if (m_cm_test->getForce(1) > m_pt.m_userparams.forceCont_n) num_above_force++;
+                else num_above_force = 0;
+                setTest(setPoint);
                 setPoint += step;
                 co_yield nullptr;
             }
+
+            std::cout << "     force control to contact force" << std::endl;
+            setForceControl(1);
+            setTest( m_pt.m_userparams.forceCont_n);
         }
 
-        // Record the positions at the contact force
-        std::cout << "pre m_pt.m_userparams.positionCont_n" << m_pt.m_userparams.positionCont_n << std::endl;
-        m_pt.m_userparams.positionCont_n = (m_pt.m_whichDof == PsychTest::Normal) ? m_cm_test->getSpoolPosition() : m_cm_lock->getSpoolPosition();
-        std::cout << "post m_pt.m_userparams.positionCont_n" << m_pt.m_userparams.positionCont_n << std::endl;
+        // Allow time to settle at contact force
+        std::cout << "     allow time to settle at desired force" << std::endl;
+        double elapsed = 0;
+        while (elapsed < 1) {
+            elapsed += delta_time().as_seconds();
+            co_yield nullptr;
+        }
+
+        // Rezero at contact force so contact point is zero. Set back to position control
+        m_cm_test->zeroPosition();
+        setPositionControl(1);
+        m_cm_lock->zeroPosition();
+        setPositionControl(0);
+        std::cout << "     zero and set back to position control" << std::endl;        
     }
 
     Enumerator PsychGui::bringToStartPosition(){ // above arm, Idle/pre-experiment position, assume already in position control
         // disable while switching controllers
         std::cout << "Bring to start" << std::endl;
 
-        // move lock dof directly, will lift up if normal, will stay put if tangential
-        m_cm_lock->setControlValue(0.0); 
-        m_cm_lock->limits_exceeded();
-        std::cout << "     set lock to zero position" << std::endl;
+        if (m_pt.m_whichDof == PsychTest::Shear){
+            // move shear to center
+            double elapsed = 0;
+            while (elapsed < m_psychparams.travel_time) {
+                rampStimulus(m_cm_test->getSpoolPosition(), m_pt.m_userparams.positionStart_t, m_psychparams.travel_time, elapsed);
+                elapsed += delta_time().as_seconds();
+                co_yield nullptr;
+            }
+            std::cout << "     set shear (test) to zero position" << std::endl;
+            setTest(m_pt.m_userparams.positionStart_t);
 
-        // move out of stimulus to starting position above the arm
-        double elapsed = 0;
-        while (elapsed < m_psychparams.travel_time) {
-            rampStimulus(m_cm_test->getSpoolPosition(), 0.0, m_psychparams.travel_time, elapsed);
-            elapsed += delta_time().as_seconds();
-            co_yield nullptr;
+            // move out of stimulus to starting position above the arm
+            elapsed = 0;
+            while (elapsed < m_psychparams.travel_time) {
+                rampStimulus(m_cm_lock->getSpoolPosition(), m_pt.m_userparams.positionStart_n, m_psychparams.travel_time, elapsed);
+                elapsed += delta_time().as_seconds();
+                co_yield nullptr;
+            }
+            std::cout << "     ramp normal (lock) to start position" << std::endl;
+            setLock(m_pt.m_userparams.positionStart_n);
+        
+        }else if (m_pt.m_whichDof == PsychTest::Normal){
+            // move shear to center
+            double elapsed = 0;
+            while (elapsed < m_psychparams.travel_time) {
+                rampStimulus(m_cm_lock->getSpoolPosition(), m_pt.m_userparams.positionStart_t, m_psychparams.travel_time, elapsed);
+                elapsed += delta_time().as_seconds();
+                co_yield nullptr;
+            }
+            std::cout << "     set shear (lock) to zero position" << std::endl;
+            setLock(m_pt.m_userparams.positionStart_t);
+
+            // move out of stimulus to starting position above the arm
+            elapsed = 0;
+            while (elapsed < m_psychparams.travel_time) {
+                rampStimulus(m_cm_test->getSpoolPosition(), m_pt.m_userparams.positionStart_n, m_psychparams.travel_time, elapsed);
+                elapsed += delta_time().as_seconds();
+                co_yield nullptr;
+            }
+            std::cout << "     ramp normal (test) to start position" << std::endl;
+            std::cout << "     sono qui" << std::endl;
+            setTest(m_pt.m_userparams.positionStart_n);
         }
-        std::cout << "     ramp test to zero position" << std::endl;
-        setStimulus(0);
     }
 
     Enumerator PsychGui::lockExtraDofs(){ // starting from centered an inch above arm, assume already in position control
         std::cout << "Lock extra dofs" << std::endl;
         m_pt.m_userShearTestNormPos = 0.75*(m_pt.m_userparams.positionMax_n - m_pt.m_userparams.positionMin_n) + m_pt.m_userparams.positionMin_n;
 
-        // disable while switching controller
         std::cout << "     set lock in position control in the current location" << std::endl;
-
         if (m_pt.m_whichDof == PsychTest::Shear){
             // move normal dof to testing location
             std::cout << "     move normal direction to 75% of the range for testing  (t)" << std::endl;
@@ -943,12 +1073,12 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 co_yield nullptr;
             }
             setLock(m_pt.m_userShearTestNormPos);
-        }else {            
+        }else if (m_pt.m_whichDof == PsychTest::Normal) {            
             // move shear dof to testing location
             std::cout << "     move the shear direction to zero for testing  (n)" << std::endl;
             double elapsed = 0;
             while (m_psychparams.travel_time > elapsed) {
-                rampStimulus(m_cm_lock->getSpoolPosition(), 0, m_psychparams.travel_time, elapsed);
+                rampLock(m_cm_lock->getSpoolPosition(), 0, m_psychparams.travel_time, elapsed);
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
             }
@@ -964,8 +1094,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 setForceControl(1);
             }
             std::cout << "     set to zero" << std::endl;
-            setStimulus(0);
-            m_cm_test->limits_exceeded();
+            setTest(0);
         }else if (m_pt.m_whichDof == PsychTest::Normal){ // currently above the skin by an inch, need to move down
             // move normal dof to testing location
             std::cout << "     move norm to contact point" << std::endl;
@@ -976,12 +1105,13 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 co_yield nullptr;
             }
 
-            std::cout << "set controller m_pt.m_userparams.positionCont_n" << m_pt.m_userparams.positionCont_n << std::endl;
+            std::cout << "set controller to m_pt.m_userparams.positionCont_n" << m_pt.m_userparams.positionCont_n << std::endl;
             std::cout << "m_cm_test->getSpoolPosition()" << m_cm_test->getSpoolPosition() << std::endl;
 
             if (m_pt.m_controller == PsychTest::Force){
                 std::cout << "     set to force control at contact point" << std::endl;
                 setForceControl(1);
+                setTest(m_pt.m_userparams.forceCont_n);
             }
 
         }
@@ -989,20 +1119,29 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
     void PsychGui::setPositionControl(bool isTest){
         if(isTest){
+            double currentPos = m_cm_test->getSpoolPosition();
+            std::cout << "currentPos " << currentPos << std::endl;
             m_cm_test->disable();
             m_cm_test->setControlMode(CM::Position);
-            setStimulus(m_cm_test->getSpoolPosition());
+            setTest(currentPos);
             m_cm_test->enable();
             m_cm_test->limits_exceeded();
             userLimitsExceeded();
 
-            m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_n;
-            m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_n;
-            m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_n;
+            if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
+                m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_t;
+                m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_t;
+                m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_t;
+            }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
+                m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_n;
+                m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_n;
+                m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_n;
+            }
         }else{
+            double currentPos = m_cm_lock->getSpoolPosition();
             m_cm_lock->disable();
             m_cm_lock->setControlMode(CM::Position);
-            setStimulus(m_cm_lock->getSpoolPosition());
+            setLock(m_cm_lock->getSpoolPosition());
             m_cm_lock->enable();
             m_cm_lock->limits_exceeded();
             userLimitsExceeded();
@@ -1011,27 +1150,35 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
     void PsychGui::setForceControl(bool isTest){
         if(isTest){
+            double currentF = m_cm_test->getForce(1);
             m_cm_test->disable();
             m_cm_test->setControlMode(CM::Force);
-            setStimulus(m_cm_test->getForce());
+            setTest(currentF);
             m_cm_test->enable();
             m_cm_test->limits_exceeded();
             userLimitsExceeded();
 
-            m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_n;
-            m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_n;
-            m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_n;
+            if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
+                m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_t;
+                m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_t;
+                m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_t;
+            }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
+                m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_n;
+                m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_n;
+                m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_n;
+            }
         }else{
+            double currentF = m_cm_lock->getForce(1);
             m_cm_lock->disable();
             m_cm_lock->setControlMode(CM::Force);
-            setStimulus(m_cm_lock->getForce());
+            setLock(currentF);
             m_cm_lock->enable();
             m_cm_lock->limits_exceeded();
             userLimitsExceeded();
         }
     }
 
-    void PsychGui::setStimulus(double N) {
+    void PsychGui::setTest(double N) {
         m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(N));
         m_cm_test->limits_exceeded();
         userLimitsExceeded();
@@ -1043,13 +1190,33 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         userLimitsExceeded();
     }
 
+    void  PsychGui::getFNUpdate(){
+        if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
+            m_ShearF = mean(m_cm_test->FBuff.get_vector());
+            m_NormF = mean(m_cm_lock->FBuff.get_vector());
+            m_ShearP = m_cm_test->getSpoolPosition();
+            m_NormP = m_cm_lock->getSpoolPosition();  
+        }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
+            m_NormF = mean(m_cm_test->FBuff.get_vector());
+            m_ShearF = mean(m_cm_lock->FBuff.get_vector());
+            m_NormP = m_cm_test->getSpoolPosition();
+            m_ShearP = m_cm_lock->getSpoolPosition();
+            // if(m_ShearP == 0) {
+            //     LOG(Warning) << "Position is not recorded for shear ";
+            // }  
+            // if(m_NormP == 0) {
+            //     LOG(Warning) << "Position is not recorded for normal ";
+            // }  
+        }
+    }
+
     void PsychGui::userLimitsExceeded(){
         if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
-            if(m_cm_test->getForce() > m_pt.m_userparams.forceMax_t){
-                LOG(Warning) << "Exceeded User Shear Force Limit, " << m_pt.m_userparams.forceMax_t << " N with a value of " << m_cm_test->getForce() << " N.";
+            if(m_cm_test->getForce(1) > m_pt.m_userparams.forceMax_t){
+                LOG(Warning) << "Exceeded User Shear Force Limit, " << m_pt.m_userparams.forceMax_t << " N with a value of " << m_cm_test->getForce(1) << " N.";
                 stopExp();
-            } else if(m_cm_lock->getForce() > m_pt.m_userparams.forceMax_n){
-                LOG(Warning) << "Exceeded User Normal Force Limit, " << m_pt.m_userparams.forceMax_n << " N with a value of " << m_cm_lock->getForce() << " N.";
+            } else if(m_cm_lock->getForce(1) > m_pt.m_userparams.forceMax_n){
+                LOG(Warning) << "Exceeded User Normal Force Limit, " << m_pt.m_userparams.forceMax_n << " N with a value of " << m_cm_lock->getForce(1) << " N.";
                 stopExp();
             }
             
@@ -1062,11 +1229,11 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             // }
     
         }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
-            if(m_cm_test->getForce() > m_pt.m_userparams.forceMax_n){
-                LOG(Warning) << "Exceeded User Normal Force Limit, " << m_pt.m_userparams.forceMax_n << " N with a value of " << m_cm_test->getForce() << " N.";
+            if(m_cm_test->getForce(1) > m_pt.m_userparams.forceMax_n){
+                LOG(Warning) << "Exceeded User Normal Force Limit, " << m_pt.m_userparams.forceMax_n << " N with a value of " << m_cm_test->getForce(1) << " N.";
                 stopExp();
-            } else if(m_cm_lock->getForce() > m_pt.m_userparams.forceMax_t){
-                LOG(Warning) << "Exceeded User Shear Force Limit, " << m_pt.m_userparams.forceMax_t << " N with a value of " << m_cm_lock->getForce() << " N.";
+            } else if(m_cm_lock->getForce(1) > m_pt.m_userparams.forceMax_t){
+                LOG(Warning) << "Exceeded User Shear Force Limit, " << m_pt.m_userparams.forceMax_t << " N with a value of " << m_cm_lock->getForce(1) << " N.";
                 stopExp();
             }
             
@@ -1086,25 +1253,25 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
         if(whichStim == PsychTest::First){
             if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
-                m_stim1_normF.push_back(m_cm_lock->getForce());
-                m_stim1_shearF.push_back(m_cm_test->getForce());
+                m_stim1_normF.push_back(m_cm_lock->getForce(1));
+                m_stim1_shearF.push_back(m_cm_test->getForce(1));
                 m_stim1_normP.push_back(m_cm_lock->getSpoolPosition());
                 m_stim1_shearP.push_back(m_cm_test->getSpoolPosition());
             }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
-                m_stim1_normF.push_back(m_cm_test->getForce());
-                m_stim1_shearF.push_back(m_cm_lock->getForce());
+                m_stim1_normF.push_back(m_cm_test->getForce(1));
+                m_stim1_shearF.push_back(m_cm_lock->getForce(1));
                 m_stim1_normP.push_back(m_cm_test->getSpoolPosition());
                 m_stim1_shearP.push_back(m_cm_lock->getSpoolPosition());
             }
         }else if(whichStim == PsychTest::Second){
             if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
-                m_stim2_normF.push_back(m_cm_lock->getForce());
-                m_stim2_shearF.push_back(m_cm_test->getForce());
+                m_stim2_normF.push_back(m_cm_lock->getForce(1));
+                m_stim2_shearF.push_back(m_cm_test->getForce(1));
                 m_stim2_normP.push_back(m_cm_lock->getSpoolPosition());
                 m_stim2_shearP.push_back(m_cm_test->getSpoolPosition());
             }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
-                m_stim2_normF.push_back(m_cm_test->getForce());
-                m_stim2_shearF.push_back(m_cm_lock->getForce());
+                m_stim2_normF.push_back(m_cm_test->getForce(1));
+                m_stim2_shearF.push_back(m_cm_lock->getForce(1));
                 m_stim2_normP.push_back(m_cm_test->getSpoolPosition());
                 m_stim2_shearP.push_back(m_cm_lock->getSpoolPosition());
             }
@@ -1123,7 +1290,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         m_stim2_avgShearP = mean(m_stim2_shearP.get_vector());
     }
 
-        void PsychGui::plotDebugExpInfo(){
+    void PsychGui::plotDebugExpInfo(){
         
         static bool paused = false;
         if(ImGui::Button(paused ? "unpause" : "pause")) paused = !paused;
@@ -1132,21 +1299,21 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         t += ImGui::GetIO().DeltaTime;
         ImGui::SliderFloat("History",&m_history,1,30,"%.1f s");
 
-        if(!paused){
-            ref.AddPoint(t, m_pt.m_jnd_stimulus_reference* 1.0f);
-            comp.AddPoint(t, m_pt.m_jnd_stimulus_comparison* 1.0f);
-            curr.AddPoint(t, m_jnd_current_stimulus* 1.0f);
-        }
+        // if(!paused){
+        //     ref.AddPoint(t, m_pt.m_jnd_stimulus_reference* 1.0f);
+        //     comp.AddPoint(t, m_pt.m_jnd_stimulus_comparison* 1.0f);
+        //     curr.AddPoint(t, m_jnd_current_stimulus* 1.0f);
+        // }
 
-        ImPlot::SetNextPlotLimitsX(t - m_history, t, !paused ? ImGuiCond_Always : ImGuiCond_Once);
-        if (ImPlot::BeginPlot("##StimValues", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
-            ImPlot::PlotLine("Ref Value", &ref.Data[0].x, &ref.Data[0].y, ref.Data.size(), ref.Offset, 2*sizeof(float));
-            ImPlot::PlotLine("Comparison", &comp.Data[0].x, &comp.Data[0].y, comp.Data.size(), comp.Offset, 2*sizeof(float));
-            ImPlot::PlotLine("Current Value", &curr.Data[0].x, &curr.Data[0].y, curr.Data.size(), curr.Offset, 2*sizeof(float));
-            ImPlot::EndPlot();
-        }
+        // ImPlot::SetNextPlotLimitsX(t - m_history, t, !paused ? ImGuiCond_Always : ImGuiCond_Once);
+        // if (ImPlot::BeginPlot("##StimValues", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
+        //     ImPlot::PlotLine("Ref Value", &ref.Data[0].x, &ref.Data[0].y, ref.Data.size(), ref.Offset, 2*sizeof(float));
+        //     ImPlot::PlotLine("Comparison", &comp.Data[0].x, &comp.Data[0].y, comp.Data.size(), comp.Offset, 2*sizeof(float));
+        //     ImPlot::PlotLine("Current Value", &curr.Data[0].x, &curr.Data[0].y, curr.Data.size(), curr.Offset, 2*sizeof(float));
+        //     ImPlot::EndPlot();
+        // }
 
-        ImGui::Separator();
+        // ImGui::Separator();
 
         ImGui::PushItemWidth(100);
         ImGui::LabelText("Reference Value", "%f", m_pt.m_jnd_stimulus_reference);
@@ -1165,15 +1332,36 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             ImGui::LabelText("Current Value", "%f", m_jnd_current_stimulus);
             ImGui::LabelText("Trial Number", "%i", m_pt.m_q_ma.trialnum);
         }
+
+        if(m_pt.m_whichDof == PsychTest::Shear){
+            ImGui::LabelText("Normal Encoder", "%i", m_cm_lock->getEncoderCounts());
+            ImGui::LabelText("Shear Encoder", "%i", m_cm_test->getEncoderCounts());
+        }else{
+            ImGui::LabelText("Normal Encoder", "%i", m_cm_test->getEncoderCounts());
+            ImGui::LabelText("Shear Encoder", "%i", m_cm_lock->getEncoderCounts());
+        }
+
+        // ImGui::Separator();
+
+        // if(!paused){
+        // torCmd.AddPoint(t, m_cm_test->m_torque* 1.0f);
+        // }
+
+        // ImPlot::SetNextPlotLimitsX(t - m_history, t,  !paused ? ImGuiCond_Always : ImGuiCond_Once);
+        // if (ImPlot::BeginPlot("##torques", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
+        //     ImPlot::PlotLine("commanded torque", &torCmd.Data[0].x, &torCmd.Data[0].y, torCmd.Data.size(), torCmd.Offset, 2 * sizeof(float));
+        //     ImPlot::EndPlot();
+        // }
+            
         
         ImGui::PopItemWidth();
 
         ImGui::Separator();
 
         if(!paused){
-        lockForce.AddPoint(t, m_cm_lock->getForce()* 1.0f);
+        lockForce.AddPoint(t, m_cm_lock->getForce(1)* 1.0f);
         lockPosition.AddPoint(t, m_cm_lock->getSpoolPosition()* 1.0f);
-        testForce.AddPoint(t, m_cm_test->getForce()* 1.0f);
+        testForce.AddPoint(t, m_cm_test->getForce(1)* 1.0f);
         testPosition.AddPoint(t, m_cm_test->getSpoolPosition()* 1.0f);
         }
 

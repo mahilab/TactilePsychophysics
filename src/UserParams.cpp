@@ -25,9 +25,11 @@ bool UserParams::exportParams(const std::string& filepath) {
     j["positionMin_n"]          = params.positionMin_n;
     j["positionMax_n"]          = params.positionMax_n;
     j["positionCont_n"]         = params.positionCont_n;
+    j["positionStart_n"]        = params.positionStart_n;
     j["positionMin_t"]          = params.positionMin_t;
     j["positionMax_t"]          = params.positionMax_t;
     j["positionCont_t"]         = params.positionCont_t;
+    j["positionStart_t"]        = params.positionStart_t;
     j["forceMin_n"]             = params.forceMin_n;
     j["forceMax_n"]             = params.forceMax_n;
     j["forceCont_n"]            = params.forceCont_n;
@@ -68,9 +70,11 @@ bool UserParams::importParams(const std::string& filepath) {
             m_params.positionMin_n        = j["positionMin_n"].get<double>();
             m_params.positionMax_n        = j["positionMax_n"].get<double>();
             m_params.positionCont_n       = j["positionCont_n"].get<double>();
+            m_params.positionStart_n      = j["positionStart_n"].get<double>();
             m_params.positionMin_t        = j["positionMin_t"].get<double>();
             m_params.positionMax_t        = j["positionMax_t"].get<double>();
             m_params.positionCont_t       = j["positionCont_t"].get<double>();
+            m_params.positionStart_t      = j["positionStart_t"].get<double>();
             m_params.forceMin_n           = j["forceMin_n"].get<double>();
             m_params.forceMax_n           = j["forceMax_n"].get<double>();
             m_params.forceCont_n          = j["forceCont_n"].get<double>();

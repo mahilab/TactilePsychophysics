@@ -22,6 +22,9 @@ CM::CM(const std::string &name, Io io, Params config) :
     m_forceFiltMode(FilterMode::Median),
     m_forceFilterL(2, 0.1, Butterworth::Lowpass),
     m_forceFilterM(31),
+    m_dFdtFiltMode(FilterMode::Median),
+    m_dFdtFilterL(2, 0.1, Butterworth::Lowpass),
+    m_dFdtFilterM(31),
     m_outputFilter(2,config.outputFilterCutoff,Butterworth::Lowpass),
     m_posDiff(),
     m_velocityFilter(2,0.1),
@@ -65,6 +68,8 @@ void CM::update(const Time &t) {
     m_Q.push_back(m_q);
     // on update
     onUpdate();
+    // Force RingBuffer
+    FBuff.push_back(getForce());
     // reset lockcount
     m_lockCount = 0;
 };
@@ -79,8 +84,10 @@ void CM::setParams(CM::Params config) {
     m_forcePd.kp = m_params.forceKp;
     m_forcePd.kd = m_params.forceKd;
     m_ctrlFilter.configure(2, m_params.cvFilterCutoff);
-    m_forceFilterL.configure(2, m_params.forceFilterCutoff);
+    m_forceFilterL.configure(3, m_params.forceFilterCutoff);
     m_forceFilterM.resize(m_params.forceFilterN);
+    m_dFdtFilterL.configure(2, m_params.dFdtFilterCutoff);
+    m_dFdtFilterM.resize(m_params.forceFilterN);
     m_outputFilter.configure(2, m_params.outputFilterCutoff);
     m_velocityFilter.configure(2, m_params.velFilterCutoff);
     m_forcePID.setPID(m_params.forceKp, m_params.forceKi, m_params.forceKd);
@@ -383,6 +390,11 @@ void CM::setForceFilterMode(FilterMode mode) {
     m_forceFiltMode = mode;
 }
 
+void CM::setdFdtFilterMode(FilterMode mode) {
+    TASBI_LOCK
+    m_dFdtFiltMode = mode;
+}
+
 
 void CM::setControlMode(CM::ControlMode mode) {
     TASBI_LOCK
@@ -400,9 +412,15 @@ void CM::setControlMode(CM::ControlMode mode) {
 void CM::setControlValue(double value) {
     TASBI_LOCK
     if (m_ctrlMode == ControlMode::Torque){
+        if((m_ctrlValue<-1.0)||(m_ctrlValue>1.0)){
+            LOG(Warning) << "Control value " << m_ctrlValue <<" clamped by thresholds -1.0 and 1.0";
+        }
         m_ctrlValue = clamp(value, -1.0, 1.0);
     }
     else{
+        if((m_ctrlValue<0.0)||(m_ctrlValue>1.0)){
+            LOG(Warning) << "Control value " << m_ctrlValue <<" clamped by thresholds 0.0 and 1.0";
+        }
         m_ctrlValue = clamp(value, 0.0, 1.0);
     }
     m_feedRate.tick();
@@ -412,6 +430,12 @@ void CM::setForceFilter(double cutoff) {
     TASBI_LOCK
     LOG(Info) << "Set CM " << name() << "force filter cutoff ratio to " << cutoff;
     m_forceFilterL.configure(2, cutoff);
+}
+
+void CM::setdFdtFilter(double cutoff) {
+    TASBI_LOCK
+    LOG(Info) << "Set CM " << name() << "force derivative filter cutoff ratio to " << cutoff;
+    m_dFdtFilterL.configure(2, cutoff);
 }
 
 void CM::setControlValueFilter(double cutoff) {
@@ -466,9 +490,6 @@ void CM::controlUpdate(double ctrlValue) {
     } else if (m_ctrlMode == ControlMode::ForceHybrid) {
         double force = scaleCtrlValue(ctrlValue, ControlMode::Force);
         controlForceHybrid(force);
-    } else if (m_ctrlMode == ControlMode::ForceErr) {
-        double force = scaleCtrlValue(ctrlValue, ControlMode::Force);
-        controlForceErr(force);
     } else if (m_ctrlMode == ControlMode::Custom) {
         m_customController->update(ctrlValue, m_t, *this);
     }
@@ -483,6 +504,7 @@ void CM::setMotorTorque(double torque) {
     }else{
         commandSign = m_params.forceCmdSignFlip ? -1.0 : 1.0;
     }
+    m_torque = torque;
     double amps = torque*commandSign / m_params.motorTorqueConstant;
     double volts = amps / m_params.commandGain;
     m_io.commandCh.set_volts(volts);
@@ -490,7 +512,7 @@ void CM::setMotorTorque(double torque) {
 
 void CM::controlMotorPosition(double degrees) {
     double motor_torque = m_positionPd.calculate(degrees, getMotorPosition(), 0, getMotorVelocity());
-    setMotorTorque(motor_torque);
+    setMotorTorque(motor_torque);        
 }
 
 void CM::controlSpoolPosition(double degrees) {
@@ -499,15 +521,12 @@ void CM::controlSpoolPosition(double degrees) {
 
 void CM::controlForce(double newtons) {
     double df_ref = m_forceRefDiff.update(newtons, m_t);
-    double f_act  = getForce();
+    double f_act  = getForce(CM::Lowpass);
     double dfdt_act = getdFdt();
     double torque = m_forcePd.calculate(newtons,f_act,0,dfdt_act);
     // ff term
     double torque_ff = scaleCtrlValue(m_params.forceKff, ControlMode::Torque);
     torque += torque_ff * newtons;
-    // prevent unwinding when controller wants to do less force the the weight of cm
-    if (getSpoolPosition() < -10 && torque < 0)
-        torque = 0;
     setMotorTorque(torque);
 }
 
@@ -518,21 +537,6 @@ void CM::controlForceHybrid(double newtons) {
     // ff term
     double torque_ff = scaleCtrlValue(m_params.forceKff, ControlMode::Torque);
     torque += torque_ff * newtons;
-    // prevent unwinding when controller wants to do less force the the weight of cm
-    if (getSpoolPosition() < -10 && torque < 0)
-        torque = 0;
-    setMotorTorque(torque);
-}
-
-void CM::controlForceErr(double newtons) {
-    double f_act = getForce();
-    double err   = newtons - f_act;
-    double derr  = m_forceDiff.update(err, m_t);
-    double torque = m_params.forceKp * err + m_params.forceKd * derr;
-    double torque_ff = scaleCtrlValue(m_params.forceKff, ControlMode::Torque);
-    torque += torque_ff * newtons;
-    if (getSpoolPosition() < -10 && torque < 0)
-        torque = 0;
     setMotorTorque(torque);
 }
 
@@ -564,12 +568,22 @@ double CM::getMotorTorqueCommand() {
 
 double CM::getMotorPosition() { 
     double senseSign = m_params.posSenseSignFlip ? -1.0 : 1.0;
-    return senseSign*m_io.encoderCh.get_pos(); 
+    double pp = senseSign*m_io.encoderCh.get_pos();
+    // if(pp == 0) {
+    //     LOG(Warning) << "motor position is not recorded for cm " << name();
+    // }
+    return pp;
 }
 
 double CM::getMotorVelocity() { return m_params.useSoftwareVelocity ? m_velocityFilter.get_value() : *m_io.vel; }
 
-double CM::getSpoolPosition() { return getMotorPosition() * m_params.gearRatio; }
+double CM::getSpoolPosition() { 
+    double pp = getMotorPosition() * m_params.gearRatio;
+    // if(pp == 0) {
+    //     LOG(Warning) << "Spool position is not recorded for cm " << name();
+    // } 
+    return pp; 
+}
 
 double CM::getSpoolVelocity() { return getMotorVelocity() * m_params.gearRatio; }
 
@@ -592,11 +606,11 @@ double CM::getdFdt(bool filtered) {
     double raw = m_forceDiff.get_value();
     if (!filtered)
         return raw;
-    switch(m_forceFiltMode) {
+    switch(m_dFdtFiltMode) {
         case None:    return raw;
-        case Lowpass: return m_forceFilterL.update(raw);
-        case Median:  return m_forceFilterM.filter(raw);
-        case Cascade: return m_forceFilterL.update(m_forceFilterM.filter(raw));
+        case Lowpass: return m_dFdtFilterL.update(raw);
+        case Median:  return m_dFdtFilterM.filter(raw);
+        case Cascade: return m_dFdtFilterL.update(m_forceFilterM.filter(raw));
         default:      return raw;
     }
 }
@@ -605,7 +619,7 @@ bool CM::velocity_limit_exceeded() {
     double m_velocity = getMotorVelocity();
     bool exceeded = false;
     if (m_params.has_velocity_limit_ && abs(m_velocity) > m_params.velocityMax) {
-        LOG(Warning) << "Capstan Module " << name() << " velocity exceeded the velocity limit " << m_params.velocityMax << " deg/s with a value of " << m_velocity << " deg/s.";
+        LOG(Error) << "Capstan Module " << name() << " velocity exceeded the velocity limit " << m_params.velocityMax << " deg/s with a value of " << m_velocity << " deg/s.";
         exceeded = true;
         on_disable();
     }
@@ -616,7 +630,7 @@ bool CM::torque_limit_exceeded() {
     bool exceeded = false;
     double torque = getMotorTorqueCommand();
     if (m_params.has_torque_limit_ && abs(torque) > m_params.torqueMax) {
-        LOG(Warning) << "Capstan Module " << name() << " command torque exceeded the torque limit " << m_params.torqueMax << " Nm with a value of " << torque << " Nm.";
+        LOG(Error) << "Capstan Module " << name() << " command torque exceeded the torque limit " << m_params.torqueMax << " Nm with a value of " << torque << " Nm.";
         exceeded = true;
         on_disable();
     }
@@ -651,11 +665,6 @@ double CM::scaleRefToCtrlValue(double ref) {
          LOG(Info) << "Reference value " << ref << " N for CM " << name() << " converted to " << cv << " for force 2 control.";
          return cv;
     }
-    else if (m_ctrlMode == ControlMode::ForceErr){
-         double cv = (ref - m_params.forceMin)/(m_params.forceMax - m_params.forceMin);
-         LOG(Info) << "Reference value " << ref << " N for CM " << name() << " converted to " << cv << " for force 2 control.";
-         return cv;
-    }
     else
         LOG(Info) << "Control scheme not found for scaling control reference value" << " ].";
 }
@@ -668,8 +677,6 @@ double CM::scaleCtrlValue(double ctrlValue, ControlMode mode) {
     else if (mode == ControlMode::Force)
         return m_params.forceMin + ctrlValue * (m_params.forceMax - m_params.forceMin);
     else if (mode == ControlMode::ForceHybrid)
-        return m_params.forceMin + ctrlValue * (m_params.forceMax - m_params.forceMin);
-    else if (mode == ControlMode::ForceErr)
         return m_params.forceMin + ctrlValue * (m_params.forceMax - m_params.forceMin);
     else
         return 0;

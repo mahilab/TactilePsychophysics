@@ -50,12 +50,13 @@ public:
         int    n_mcs_reps           = 1; // total = 90 -> 45 reference first, 45 reference second
         int    n_mcs_windows        = 2;
         int    n_sm_staircases      = 2;
-        int    n_sm_crossovers      = 4;
+        int    n_sm_reversals      = 4;
         double sm_pos_inc           = 0.3;
         double sm_force_inc         = 1.0;
         int    n_ma_trials          = 3;       
-        double stimulus_time        = 0.33;
-        double travel_time        = 0.33;
+        double stimulus_time        = 1.0;  // time to hold the stimulus
+        double ramp_time            = 0.5;  // travel time for ramping up to a stimulus during the experiment
+        double travel_time          = 0.33; // travel time for find the contact point and setting up the rig
     };
 
     /// PsychTest QueryMCS

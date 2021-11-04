@@ -50,10 +50,10 @@ public:
         cm_n->setPosCtrlCmdSign(1);
         cm_n->setForceSenseSign(1);
         cm_n->setPositionSenseSign(0);
-        cm_n->setVelocityMax(50, 1);
+        cm_n->setVelocityMax(2500, 1);
         cm_n->setTorqueMax(0.75,1);
         cm_n->setPositionRange(posMin, posMax); //(0, 65); //[mm]
-        cm_n->setPositionGains(1.0/1e3,0.1/1e3);
+        cm_n->setPositionGains(0.5/1e3,0.01/1e3);
         cm_n->setControlValue(0.0);
     
         // initialize tangential capstan module
@@ -62,10 +62,10 @@ public:
         cm_t->setPosCtrlCmdSign(1);
         cm_t->setForceSenseSign(0);
         cm_t->setPositionSenseSign(0);
-        cm_t->setVelocityMax(50, 1);
+        cm_t->setVelocityMax(2500, 1);
         cm_t->setTorqueMax(0.75,1);
         cm_t->setPositionRange(posMin, posMax); //(0, 65); //[mm]
-        cm_t->setPositionGains(1.0/1e3,0.1/1e3);
+        cm_t->setPositionGains(0.5/1e3,0.01/1e3);
         cm_t->setControlValue(0.0);
     }
 
@@ -139,11 +139,13 @@ public:
         ImGui::PushItemWidth(100);
         ImGui::LabelText("normal motor encoder counts", "%d", cm_n->getEncoderCounts());
         ImGui::LabelText("normal motor encoder position", "%f", pos1);
+        ImGui::LabelText("normal motor spool position", "%f", cm_n->getSpoolPosition());
         ImGui::LabelText("normal motor encoder velocity", "%f", cm_n->getMotorVelocity());
         ImGui::LabelText("normal motor translational commanded torque", "%f", cm_n->getMotorTorqueCommand());
         ImGui::Spacing(); 
         ImGui::LabelText("shear motor encoder counts", "%d", cm_t->getEncoderCounts());
         ImGui::LabelText("shear motor encoder position", "%f", pos2);
+        ImGui::LabelText("shear motor spool position", "%f", cm_t->getSpoolPosition());
         ImGui::LabelText("shear motor encoder velocity", "%f", cm_t->getMotorVelocity());
         ImGui::LabelText("shear motor translational commanded torque", "%f", cm_t->getMotorTorqueCommand());
         ImGui::PopItemWidth();
@@ -177,8 +179,8 @@ public:
     int id_n = 0;
     int id_t = 1;
 
-    double kp = 1;
-    double kd = .1;
+    double kp = 0.5;
+    double kd = 0.01;
 
     double x_ref1 = 0;
     double x_ref2 = 0;

@@ -59,17 +59,25 @@ public:
 
     Enumerator runMCSExperiment();
 
-    void writeMCSOutputVariables(Csv& csv, Timestamp ts);
+    void writeMCSOutputStimVariables(Csv& csv);
 
-    void writeMCSOutputData(Csv& csv, PsychTest::QueryMCS trial);
+    void writeMCSOutputStimData(Csv& csv, PsychTest::QueryMCS trial);
+
+    void writeMCSOutputTimeVariables(Csv& csv);
+
+    void writeMCSOutputTimeData(Csv& csv);
 
     // Staircase Method Functions  
 
     Enumerator runSMExperiment();
 
-    void writeSMOutputVariables(Csv& csv, Timestamp ts);
+    void writeSMOutputStimVariables(Csv& csv);
 
-    void writeSMOutputData(Csv& csv, PsychTest::QuerySM trial);
+    void writeSMOutputStimData(Csv& csv, PsychTest::QuerySM trial);
+
+    void writeSMOutputTimeVariables(Csv& csv);
+
+    void writeSMOutputTimeData(Csv& csv);
 
     // Method of Adjustments Functions
 
@@ -77,9 +85,13 @@ public:
 
     Enumerator runMAExperiment();
     
-    void writeMAOutputVariables(Csv& csv, Timestamp ts);
+    void writeMAOutputStimVariables(Csv& csv);
 
-    void writeMAOutputData(Csv& csv, PsychTest::QueryMA trial);
+    void writeMAOutputStimData(Csv& csv, PsychTest::QueryMA trial);
+
+    void writeMAOutputTimeVariables(Csv& csv);
+
+    void writeMAOutputTimeData(Csv& csv);
     
     // Hardware Specific Functions
 
@@ -91,7 +103,7 @@ public:
 
     void calibrate();
 
-    Enumerator bringToContact();
+    Enumerator findContact();
 
     Enumerator bringToStartPosition();
 
@@ -103,9 +115,11 @@ public:
 
     void setForceControl(bool isTest);
 
-    void setStimulus(double N);
+    void setTest(double N);
 
     void setLock(double N);
+
+    void  getFNUpdate();
 
     void userLimitsExceeded();
 
@@ -125,7 +139,13 @@ public:
     double m_whatChange = 0;
     int m_adjust = -1;
     double m_jnd_current_stimulus;
-    bool m_flag_first_to_start;
+    bool m_flag_first_to_start = 0;
+
+    std::string filename_timeseries;
+    Csv csv_timeseries;
+    std::string filename;
+    Csv csv;
+    Timestamp ts;
 
     // Create buffers for calculating the forces and positions during each cue
     mahi::util::RingBuffer<double> m_stim1_normF{50};
@@ -148,8 +168,14 @@ public:
     double m_stim2_avgNormP;
     double m_stim2_avgShearP;
 
+    PsychTest::WhichStim m_whichStim;
+    double m_NormF;
+    double m_ShearF;
+    double m_NormP;
+    double m_ShearP;
+
     // Plotting variables
-    ScrollingBuffer lockForce, lockPosition, testForce, testPosition, ref, comp, curr;
+    ScrollingBuffer lockForce, lockPosition, testForce, testPosition, ref, comp, curr, torCmd;
     float t = 0;
     float m_history = 30.0f;
 

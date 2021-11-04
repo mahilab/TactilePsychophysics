@@ -60,10 +60,10 @@ public:
         cm_n->setForceCtrlCmdSign(1);
         cm_n->setForceSenseSign(1);
         cm_n->setPositionSenseSign(0);
-        cm_n->setVelocityMax(50, 1);
+        cm_n->setVelocityMax(2500, 1);
         cm_n->setTorqueMax(0.75,1);
         cm_n->setForceRange(forceMin, forceMax); //(-2, 2); //[N]
-        cm_n->setForceGains(500.0/1e6,0.0,15.0/1e6);
+        cm_n->setForceGains(1500.0/1e6,0.0,20.0/1e6);
         cm_n->setControlValue(0.0);
     
         // initialize tangential capstan module
@@ -72,10 +72,10 @@ public:
         cm_t->setForceCtrlCmdSign(0);
         cm_t->setForceSenseSign(0);
         cm_t->setPositionSenseSign(0);
-        cm_t->setVelocityMax(50, 1);
+        cm_t->setVelocityMax(2500, 1);
         cm_t->setTorqueMax(0.75,1);
         cm_t->setForceRange(forceMin, forceMax); //(-2, 2); //[N]
-        cm_t->setForceGains(500.0/1e6,0.0,15.0/1e6);
+        cm_t->setForceGains(1500.0/1e6,0.0,20.0/1e6);
         cm_t->setControlValue(0.0);
     }
 
@@ -87,9 +87,9 @@ public:
 
     void update() override
     {
-        //ImGui::Begin("my widget");
-        ImGui::BeginFixed("##Force Control with Module Code", {0,0}, {width, height}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings);
-
+        //ImGui::BeginFixed("##Force Control with Module Code", {0,0}, {width, height}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings);
+        ImGui::Begin("my widget");
+        
         if(ImGui::Button("Enable")){
             cm_n->enable();
             cm_t->enable();
@@ -147,17 +147,17 @@ public:
 
         double f_act1 = cm_n->getForce(0);
         double f_act2 = cm_t->getForce(0);
-        double dfdt1 =  cm_n->getForce(CM::Lowpass);
-        double dfdt2 =  cm_t->getForce(CM::Lowpass);
+        double dfdt1 =  cm_n->getdFdt(0);
+        double dfdt2 =  cm_t->getdFdt(0);
 
         double torque1 = -((kp1/1e6) * (f_ref1 - f_act1) + (kd1/1e6) * (0 - hub.daq.velocity.velocities[0]));
-        std::cout << std::endl;
-        std::cout << "enc counts " << cm_n->getEncoderCounts() << " | " << hub.daq.encoder[0] << std::endl;
-        std::cout << "force " << cm_n->getForce() << std::endl;
-        std::cout << "velocity " << hub.daq.encoder.positions[0] << std::endl;
-        std::cout << "dfdt " << dfdt1 << std::endl;
-        std::cout << "torque " << cm_n->getMotorTorqueCommand() << " | " << torque1 << std::endl;
-        std::cout << "cv " << cm_n->scaleRefToCtrlValue(f_ref1) << std::endl;
+        // std::cout << std::endl;
+        // std::cout << "enc counts " << cm_n->getEncoderCounts() << " | " << hub.daq.encoder[0] << std::endl;
+        // std::cout << "force " << cm_n->getForce() << std::endl;
+        // std::cout << "velocity " << hub.daq.encoder.positions[0] << std::endl;
+        // std::cout << "dfdt " << dfdt1 << std::endl;
+        // std::cout << "torque " << cm_n->getMotorTorqueCommand() << " | " << torque1 << std::endl;
+        // std::cout << "cv " << cm_n->scaleRefToCtrlValue(f_ref1) << std::endl;
 
         ImGui::PushItemWidth(100);
         ImGui::Text("Motor 1 - Normal Dir - Encoder Info");
@@ -226,12 +226,12 @@ public:
     int id_n = 0;
     int id_t = 1;
 
-    double kp1 = 500;
-    double kd1 = 15;
+    double kp1 = 1500.0;
+    double kd1 = 20.0;
     double forceKff1 = 0;
 
-    double kp2 = 500;
-    double kd2 = 15;
+    double kp2 = 1500.0;
+    double kd2 = 20.0;
     double forceKff2 = 0;
 
     //double torque = 0;
@@ -241,8 +241,8 @@ public:
     double f_act1 = 0;
     double f_act2 = 0;
 
-    double forceMax = 2.0;
-    double forceMin = -2.0;
+    double forceMax = 25.0;
+    double forceMin = -25.0;
 
     CM::Query queryN;
     CM::Query queryT;

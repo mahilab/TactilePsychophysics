@@ -29,9 +29,11 @@ struct Params {
         double positionMin_n        = 0;
         double positionMax_n        = 8;
         double positionCont_n       = 1;
+        double positionStart_n      = -25.0;
         double positionMin_t        = 0;
         double positionMax_t        = 8;
         double positionCont_t       = 0;
+        double positionStart_t      = 0.0;
         double forceMin_n           = 1;
         double forceMax_n           = 12;
         double forceCont_n          = 1;

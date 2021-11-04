@@ -93,12 +93,13 @@ bool PsychTest::exportParams(const std::string& filepath) {
     j["n_mcs_reps"]             = params.n_mcs_reps;
     j["n_mcs_windows"]          = params.n_mcs_windows;
     j["n_sm_staircases"]        = params.n_sm_staircases;
-    j["n_sm_crossovers"]        = params.n_sm_crossovers;
+    j["n_sm_reversals"]        = params.n_sm_reversals;
     j["sm_pos_inc"]             = params.sm_pos_inc;
     j["sm_force_inc"]           = params.sm_force_inc;
-    j["n_ma_trials"]           = params.n_ma_trials;
+    j["n_ma_trials"]            = params.n_ma_trials;
     j["stimulus_time"]          = params.stimulus_time;
-    j["travel_time"]          = params.travel_time;
+    j["ramp_time"]              = params.ramp_time;
+    j["travel_time"]            = params.travel_time;
 
     std::ofstream file(path);
     if (file.is_open()) {
@@ -125,11 +126,12 @@ bool PsychTest::importParams(const std::string& filepath) {
             params.n_mcs_reps           = j["n_mcs_reps"].get<int>();
             params.n_mcs_windows        = j["n_mcs_windows"].get<int>(); 
             params.n_sm_staircases      = j["n_sm_staircases"].get<int>();
-            params.n_sm_crossovers      = j["n_sm_crossovers"].get<int>();
+            params.n_sm_reversals      = j["n_sm_reversals"].get<int>();
             params.sm_pos_inc           = j["sm_pos_inc"].get<double>();
             params.sm_force_inc         = j["sm_force_inc"].get<double>();
             params.n_ma_trials          = j["n_ma_trials"].get<int>();
             params.stimulus_time        = j["stimulus_time"].get<double>();
+            params.ramp_time            = j["ramp_time"].get<double>();
             params.travel_time          = j["travel_time"].get<double>();
                 
             setParams(params);
@@ -214,6 +216,7 @@ void PsychTest::buildComparisonVector(){
 }
 
 void PsychTest::buildStimTrials() {
+    std::cout << "Build Stim Trials" << std::endl;
         std::random_device rd;
         std::mt19937 g(rd());
         g.seed(m_subject);
@@ -276,6 +279,7 @@ void PsychTest::buildStimTrials() {
 void PsychTest::setResponseSM(int answer, int greater){
     m_q_sm.answer = answer;
     m_q_sm.greater = greater;
+    m_q_sm.testmode = m_testmode;
     m_stim_trials_sm.push_back(m_q_sm);
 }
 
@@ -350,8 +354,14 @@ void PsychTest::setNextTrialSM(){
                 m_jnd_stimulus_comparison = (lastComp > m_jnd_stimulus_reference) ? (lastComp + m_jnd_stimulus_interval) : (lastComp - m_jnd_stimulus_interval);
             }
             // clamp at stimulus max and stimulus min (comfort threshold and absolute threshold (or 0 if determining it))
+            if((m_jnd_stimulus_comparison < m_userStimulusMin) || (m_jnd_stimulus_comparison > m_userStimulusMax)){
+                if(m_controller==PsychTest::Position)
+                    LOG(Warning) << "Comparison value " << m_jnd_stimulus_comparison <<" mm clamped by stimulus position thresholds " << m_userStimulusMin << " mm and " << m_userStimulusMax  << "mm";
+                else if (m_controller==PsychTest::Force)
+                    LOG(Warning) << "Comparison value " << m_jnd_stimulus_comparison <<" N clamped by stimulus force thresholds " << m_userStimulusMin << " N and " << m_userStimulusMax  << "N";
+            }
             m_jnd_stimulus_comparison = clamp(m_jnd_stimulus_comparison, m_userStimulusMin, m_userStimulusMax);
-
+            
             // Determine the direction change since last trial
             if (m_jnd_stimulus_comparison > lastComp)
                 m_direction = Up;
@@ -461,18 +471,21 @@ void PsychTest::setNextTrialMA(){
     static int j(0);
     
     // determine initial starting point
+    double maxStartVal;
     if (m_trialnum != 0){
         if(m_q_ma.adjust == -1)
             LOG(Error) << "Response for last trial is not recorded, unable to continue.";  
     }else{
         if (m_controller == PsychTest::Position){
             m_jnd_stimulus_interval = m_params.sm_pos_inc; // Question - or defined by subject range??????????????
+            maxStartVal = 7; // start at less than a point torable by everyone ??????????????????? determine through pilots
         } else if (m_controller == PsychTest::Force){
             m_jnd_stimulus_interval = m_params.sm_force_inc; // Question - or defined by subject range??????????????
+            maxStartVal = 7; // start at less than a point torable by everyone ??????????????????? determine through pilots
+        
         }
 
         // intitial starting value options
-        double maxStartVal = 3; // start at less than a point torable by everyone ??????????????????? determine through pilots
         int n_startComps = floor(maxStartVal/m_jnd_stimulus_interval); // divide the range into chunks by the step-size from the params
         double maxStartComp = n_startComps*m_jnd_stimulus_interval; // max start value as a multiple of the interval
         startComps.resize(n_startComps);

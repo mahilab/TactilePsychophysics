@@ -42,7 +42,7 @@ class ContactMechGui : public mahi::gui::Application {
 public:
 
     enum WhichExp       { Ind, Creep, Relax, Cycle};
-    enum Mode           { Idle, Run};
+    enum Mode           { Idle, SetUp, Run};
     enum Gender         { NoGender, Male, Female};
     enum Handedness     { Left, Right };
     enum ControlType    { Position, Force};
@@ -50,13 +50,16 @@ public:
     enum WhichStim      { First, Second, Choose, NA};
     enum Direction      { Up, Down, None};
     enum PointInterest  { Start, Peak, Min, HoldInitial, HoldFinal, Other};
+    enum TestLockDof    { Lock, Test};
+    enum WhichSpeed     { Experiment, Calibration};
 
     /// ContactMechGui Parameter Configuration
     struct Params {
-        double start_height         = 10;   // [mm]
-        double initial_force        = .5;    // [N]  Question - what is 1G of force ?????????????
+        double start_height         = -5.0;   // [mm]
+        double initial_force        = 0.5;    // [N]  Question - what is 1G of force ?????????????
         double normalForceForTan    = 3;    // [N]
         double stimulus_velocity    = 0.5;  // [mm/s]
+        double travel_velocity      = 4.0;  // [mm/s]
         double trial_break          = 30;   // [s]
         int    n_ind_trials         = 5;
         double ind_final_force      = 2;    // [N]  Question - what is 5-10G of force ?????????
@@ -96,7 +99,7 @@ public:
 
     void update() override;
 
-    void moveConstVel(double elapsed, bool isTest, double start, double stop);
+    void moveConstVel(double elapsed, TestLockDof isTest, WhichSpeed whichSpeed, double start, double stop);
 
     void updateQuery();
     
@@ -121,13 +124,17 @@ public:
 
     void calibrate();
 
-    Enumerator bringToStartPosition();
+    Enumerator findContact();
 
-    Enumerator bringToContact();
+    Enumerator bringToStartPosition();
 
     Enumerator lockExtraDofs();
 
-    void switchControllers(); // toggle between force and position control
+    Enumerator setControlDof();
+
+    void setPositionControl(TestLockDof isTest);
+
+    void setForceControl(TestLockDof isTest);
 
     void setTest(double N);
 
@@ -152,22 +159,28 @@ private:
     int         m_subject;
     WhichExp    m_whichExp;
     WhichDof    m_whichDof;
-    Mode        m_testmode = Idle;
+    Mode        m_testmode = SetUp;
     Params      m_params;    ///< parameters
     Gender      m_sex;
     Handedness  m_hand;
+
+    Timestamp ts;
+    std::string filename_timeseries;
+    Csv csv_timeseries;
+    std::string filename;
+    Csv csv;
     
     UserParams::Params m_userparams;
     UserParams m_up;
 
-    std::string expchoice[4] = { "Ind", "Creep", "Relax", "Cycle"};
+    std::array<std::string,4> expchoice = { "Ind", "Creep", "Relax", "Cycle"};
     std::array<std::string,4> method = { "Indentation", "Creep", "Stress Relaxation", "Cycle Between Bounds"};
-    std::string dofChoice[2] = { "Shear", "Normal"};
-    std::string currdirection[3] = {"Up", "Down", "None"};
-    std::string currpoi[6]  = { "Start", "Peak", "Min", "HoldInitial", "HoldFinal", "Other"};
+    std::vector<std::string> dofChoice = { "Shear", "Normal"};
+    std::array<std::string,3> currdirection = {"Up", "Down", "None"};
+    std::array<std::string,6> currpoi  = { "Start", "Peak", "Min", "HoldInitial", "HoldFinal", "Other"};
     
     // General Experiment Variables
-    PointInterest m_poi;
+    PointInterest m_poi = Other;
     ControlType m_controller = Position;
     int     m_cyclenum             = 0;
     double  m_Fn                   = 0;
@@ -183,6 +196,7 @@ private:
     double  m_userShearTestNormPos = 0;
     double  m_targetPosLock        = 0;
     double  m_targetPosTest        = 0;
+    bool    m_flag_first_to_start;
     QueryContact    m_q;     ///< most recent QueryInd point
 
     // Plotting variables

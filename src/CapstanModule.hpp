@@ -78,7 +78,6 @@ public:
         Position    = 1,  ///< spool position control
         Force       = 2,  ///< force control
         ForceHybrid = 3,  ///< force control (hybrid with velocity)
-        ForceErr    = 4,  ///< force control (with force error)
         Custom      = 5   ///< custom controller
     };
 
@@ -112,7 +111,7 @@ public:
         double motorNominalSpeed   = 31320.0;        // [deg/s]
         double motorMaxSpeed       = 46440.0;        // [deg/s]
         double gearRatio           = 0.332*25.4*mahi::util::PI/360.0;    // [mm/deg] from spool pitch diameter (.332") and capstan radius if applicable, converted to mm
-        double degPerCount         = 2 * mahi::util::PI / (1024 * 35); //360.0 / (1024.0 * (4554.0 / 130.0));  // [deg/count] for motor shaft, including gearbox if applicable
+        double degPerCount         = 360.0 / (1024.0 * 35.0); // [deg/count] for motor shaft, including gearbox if applicable
         double commandGain         = 1.35 / 10.0;   // [A/V]
         bool   posCmdSignFlip      = 1;
         bool   posSenseSignFlip    = 0;
@@ -124,20 +123,21 @@ public:
         double torqueMax           = 0.02; // [Nm]
         double positionMin         = -3.5; // [deg] ???? 
         double positionMax         = 3.0;  // [deg] ????
-        double positionKp          = 1.0/(1e3); //?????
-        double positionKd          = 0.1/(1e3); //????
+        double positionKp          = 0.5/(1e3); //?????
+        double positionKd          = 0.01/(1e3); //????
         double forceMin            = -10.0;            // [N] ?????
         double forceMax            = 10.0;             // [N] ?????
-        double forceKp             = 500.0/(1e6);
+        double forceKp             = 1500.0/(1e6);
         double forceKi             = 0;
-        double forceKd             = 15.0/(1e6);
+        double forceKd             = 20.0/(1e6);
         double forceKff            = 0;
         double forceFilterCutoff   = 0.25;           // normalized [0,1]
+        double dFdtFilterCutoff   = 0.25;           // normalized [0,1]
         int    forceFilterN        = 31;  
         double cvFilterCutoff      = 0.02;           // normalized [0,1]
-        bool   filterControlValue  = true;           // [true/false]
+        bool   filterControlValue  = false;           // [true/false]
         double outputFilterCutoff  = 0.2;            //
-        bool   filterOutputValue   = false;          //
+        bool   filterOutputValue   = true;          //
         double velFilterCutoff     = 0.2;
         bool   useSoftwareVelocity = false;
     };
@@ -215,8 +215,12 @@ public:
     void setForceGains(double kp, double ki, double kd);
     /// Sets the normalize cutoff ratio of the force filter (thead safe)
     void setForceFilter(double cutoff);
+    /// Sets the normalize cutoff ratio of the force derivative filter (thead safe)
+    void setdFdtFilter(double cutoff);
     /// Sets the force filter mode (thread safe)
     void setForceFilterMode(FilterMode mode);
+    /// Sets the force derivative filter mode (thread safe)
+    void setdFdtFilterMode(FilterMode mode);
     /// Sets the control mode used  (thread safe)
     void setControlMode(ControlMode mode);
     /// Sets the normalized value [-1 to 1] for torque or [0 to 1] for position/force (thread safe)
@@ -246,8 +250,6 @@ public:
     virtual void controlForce(double newtons);
     /// Implements hybrid force control with velocity instead of dF (DO NOT LOCK)
     virtual void controlForceHybrid(double newtons);
-    /// Implements force conbtrol based on force errors (DO NOT LOCK)
-    virtual void controlForceErr(double newtons);
     /// Called inside of update after controlUpdate (does nothing by default) (DO NOT LOCK)
     virtual void onUpdate();
 
@@ -288,6 +290,11 @@ public:
     /// Fills a Query with current state information
     void fillQuery(Query &q);
 
+public:
+double m_torque=0;
+//Force Ringbuffer
+mahi::util::RingBuffer<double> FBuff{50};
+
 protected:
     // Status and Congiguration
     Status      m_status;    ///< status
@@ -306,6 +313,9 @@ protected:
     FilterMode   m_forceFiltMode;
     Butterworth  m_forceFilterL;        ///< filters raw voltage from integrated force sensor
     MedianFilter m_forceFilterM;
+    FilterMode   m_dFdtFiltMode;
+    Butterworth  m_dFdtFilterL;        ///< filters raw voltage from derivative of integrated force sensor
+    MedianFilter m_dFdtFilterM;
     AverageFilter<21> m_forceFilterA;
     Butterworth  m_outputFilter;
     Differentiator m_posDiff;

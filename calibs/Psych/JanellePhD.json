@@ -1,13 +1,14 @@
 {
           "n_mcs_comparisons": 7,
-          "n_mcs_reps": 1,
+          "n_mcs_reps": 5,
           "n_mcs_windows": 2,
-          "n_sm_staircases": 2,
-          "n_sm_crossovers": 4,
-          "sm_pos_inc": 0.3,
+          "n_sm_staircases": 5,
+          "n_sm_reversals": 12,
+          "sm_pos_inc": 0.5,
           "sm_force_inc": 0.1,
-          "n_ma_trials": 3,
+          "n_ma_trials": 5,
           "stimulus_time": 1.0,
+          "ramp_time": 0.2,
           "travel_time": 2.0
   
 }
