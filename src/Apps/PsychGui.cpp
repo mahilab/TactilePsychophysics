@@ -9,9 +9,9 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     Application(600,600,"Capstan Module Psychophysical Test (Subject " + std::to_string(subject) + ")" ,false), 
     m_pt(subject, PsychTest::Params(), whichExp, whichDOF, controller), // Hardware specific
     ts(),
-    filename_timeseries("C:/Git/TactilePsychophysics/data/_subject_timeseries_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
+    filename_timeseries("C:/Git/TactilePsychophysics/data/" + m_pt.expchoice[m_pt.m_whichExp] + "/_subject_" + std::to_string(m_pt.m_subject) + "_timeseries_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
     csv_timeseries(filename_timeseries),
-    filename("C:/Git/TactilePsychophysics/data/_subject_trialdata_" + std::to_string(m_pt.m_subject) + "_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
+    filename("C:/Git/TactilePsychophysics/data/" + m_pt.expchoice[m_pt.m_whichExp] + "/_subject_" + std::to_string(m_pt.m_subject) + "_trialdata_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
     csv(filename)
     {          
         connectToIO();
@@ -1299,21 +1299,21 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         t += ImGui::GetIO().DeltaTime;
         ImGui::SliderFloat("History",&m_history,1,30,"%.1f s");
 
-        // if(!paused){
-        //     ref.AddPoint(t, m_pt.m_jnd_stimulus_reference* 1.0f);
-        //     comp.AddPoint(t, m_pt.m_jnd_stimulus_comparison* 1.0f);
-        //     curr.AddPoint(t, m_jnd_current_stimulus* 1.0f);
-        // }
+        if(!paused){
+            ref.AddPoint(t, m_pt.m_jnd_stimulus_reference* 1.0f);
+            comp.AddPoint(t, m_pt.m_jnd_stimulus_comparison* 1.0f);
+            curr.AddPoint(t, m_jnd_current_stimulus* 1.0f);
+        }
 
-        // ImPlot::SetNextPlotLimitsX(t - m_history, t, !paused ? ImGuiCond_Always : ImGuiCond_Once);
-        // if (ImPlot::BeginPlot("##StimValues", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
-        //     ImPlot::PlotLine("Ref Value", &ref.Data[0].x, &ref.Data[0].y, ref.Data.size(), ref.Offset, 2*sizeof(float));
-        //     ImPlot::PlotLine("Comparison", &comp.Data[0].x, &comp.Data[0].y, comp.Data.size(), comp.Offset, 2*sizeof(float));
-        //     ImPlot::PlotLine("Current Value", &curr.Data[0].x, &curr.Data[0].y, curr.Data.size(), curr.Offset, 2*sizeof(float));
-        //     ImPlot::EndPlot();
-        // }
+        ImPlot::SetNextPlotLimitsX(t - m_history, t, !paused ? ImGuiCond_Always : ImGuiCond_Once);
+        if (ImPlot::BeginPlot("##StimValues", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
+            ImPlot::PlotLine("Ref Value", &ref.Data[0].x, &ref.Data[0].y, ref.Data.size(), ref.Offset, 2*sizeof(float));
+            ImPlot::PlotLine("Comparison", &comp.Data[0].x, &comp.Data[0].y, comp.Data.size(), comp.Offset, 2*sizeof(float));
+            ImPlot::PlotLine("Current Value", &curr.Data[0].x, &curr.Data[0].y, curr.Data.size(), curr.Offset, 2*sizeof(float));
+            ImPlot::EndPlot();
+        }
 
-        // ImGui::Separator();
+        ImGui::Separator();
 
         ImGui::PushItemWidth(100);
         ImGui::LabelText("Reference Value", "%f", m_pt.m_jnd_stimulus_reference);

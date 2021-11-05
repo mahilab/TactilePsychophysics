@@ -7,9 +7,9 @@ using namespace mahi::robo;
 ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF) : 
     Application(600,600,"Contact Mechanics Test (Subject " + std::to_string(subject) + ")" ,false),
     ts(),
-    filename_timeseries("C:/Git/TactilePsychophysics/data/_subject_timeseries_" + std::to_string(subject) + "_dof" + std::to_string(whichDOF) + "_exp" + std::to_string(whichExp) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
+    filename_timeseries("C:/Git/TactilePsychophysics/data/" + std::to_string(whichExp) + "/_subject_" + std::to_string(subject) + "_timeseries_dof" + std::to_string(whichDOF) + "_exp" + std::to_string(whichExp) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
     csv_timeseries(filename_timeseries),
-    filename("C:/Git/TactilePsychophysics/data/_subject_" + std::to_string(subject) + "_dof" + std::to_string(whichDOF) + "_exp" + std::to_string(whichExp) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
+    filename("C:/Git/TactilePsychophysics/data/" + std::to_string(whichExp) + "/_subject_" + std::to_string(subject) + "_poiData_dof" + std::to_string(whichDOF) + "_exp" + std::to_string(whichExp) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
     csv(filename)
     {       
         std::cout << "dofChoice[whichDOF]" << dofChoice[whichDOF] << std::endl;   

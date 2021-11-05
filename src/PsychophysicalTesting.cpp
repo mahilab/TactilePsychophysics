@@ -321,12 +321,13 @@ void PsychTest::setNextTrialSM(){
         std::shuffle(m_stdFirst.begin(),m_stdFirst.end(),g);
 
         // intitial starting value
-        double maxStartVal = 0.25*m_userStimulusMax; // start between 0 and 25% of their max value
-        int n_startComps = floor(maxStartVal/m_jnd_stimulus_interval); // divide the range into chunks by the step-size from the params
+        double maxStartVal = 0.15*m_userStimulusMax; // start between 10 and 15% of their max value
+        double minStartVal = 0.1*m_userStimulusMax; // start between 10 and 15% of their max value
+        int n_startComps = floor((maxStartVal-minStartVal)/m_jnd_stimulus_interval); // divide the range into chunks by the step-size from the params
         std::cout << "n_startComps: " << n_startComps << std::endl; // ????????????????????????????????????
-        double maxStartComp = n_startComps*m_jnd_stimulus_interval; // max start value as a multiple of the interval
+        double maxStartComp = n_startComps*m_jnd_stimulus_interval + minStartVal; // max start value as a multiple of the interval
         std::vector<double> startComps(n_startComps);
-        startComps[0] = m_jnd_stimulus_interval; 
+        startComps[0] = minStartVal; 
         for (int i = 1; i < n_startComps; i++){
             startComps[i] = startComps[i-1] + m_jnd_stimulus_interval;
         }
@@ -340,7 +341,7 @@ void PsychTest::setNextTrialSM(){
         if(m_q_sm.answer == -1){
             LOG(Error) << "Response for last trial is not recorded, unable to continue.";
         }else{
-            double lastComp = m_q_sm.comparison == 1 ? m_q_sm.stimulus1 : m_q_sm.stimulus2;
+            double lastComp = (m_q_sm.comparison == 1) ? m_q_sm.stimulus1 : m_q_sm.stimulus2;
 
             std::cout << "____________________________" << std::endl;
             std::cout << "Last Query" << std::endl;
@@ -353,6 +354,19 @@ void PsychTest::setNextTrialSM(){
             }else{ // answered incorrectly
                 m_jnd_stimulus_comparison = (lastComp > m_jnd_stimulus_reference) ? (lastComp + m_jnd_stimulus_interval) : (lastComp - m_jnd_stimulus_interval);
             }
+            // If it's an absolute threshold experiemnt, don't allow the comparison to be negative
+            if (m_jnd_stimulus_reference == 0 && m_jnd_stimulus_comparison < 0){
+                m_jnd_stimulus_comparison = abs(m_jnd_stimulus_comparison);
+                // If you get stuck here with infinite comparisons of this value, the increment should be reduced
+            }
+
+            // If it's force control and normal testing, don't let force go below contact force
+            if ((m_whichDof == Normal) && (m_controller == Force) && (m_jnd_stimulus_comparison < m_userStimulusContact)){
+                m_jnd_stimulus_comparison = m_userStimulusContact;
+                // If this is above the threshold, then adjust the contact force value
+                // If you get stuck here with infinite comparisons of this value, the increment should be reduced
+            }
+
             // clamp at stimulus max and stimulus min (comfort threshold and absolute threshold (or 0 if determining it))
             if((m_jnd_stimulus_comparison < m_userStimulusMin) || (m_jnd_stimulus_comparison > m_userStimulusMax)){
                 if(m_controller==PsychTest::Position)
@@ -482,7 +496,6 @@ void PsychTest::setNextTrialMA(){
         } else if (m_controller == PsychTest::Force){
             m_jnd_stimulus_interval = m_params.sm_force_inc; // Question - or defined by subject range??????????????
             maxStartVal = 7; // start at less than a point torable by everyone ??????????????????? determine through pilots
-        
         }
 
         // intitial starting value options
