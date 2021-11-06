@@ -90,7 +90,8 @@
         "*.rh": "cpp",
         "resumable": "cpp",
         "codecvt": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "coroutine": "cpp"
     },
     "cSpell.ignoreWords": [
         "g",
