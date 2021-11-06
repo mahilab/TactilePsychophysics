@@ -20,11 +20,11 @@ CM::CM(const std::string &name, Io io, Params config) :
     m_forcePID(0,0,0),
     m_ctrlFilter(2, 0.02, Butterworth::Lowpass),
     m_forceFiltMode(FilterMode::Median),
-    m_forceFilterL(2, 0.1, Butterworth::Lowpass),
-    m_forceFilterM(31),
+    m_forceFilterL(2, 1000),
+    m_forceFilterM(50),
     m_dFdtFiltMode(FilterMode::Median),
-    m_dFdtFilterL(2, 0.1, Butterworth::Lowpass),
-    m_dFdtFilterM(31),
+    m_dFdtFilterL(2, 1000),
+    m_dFdtFilterM(20),
     m_outputFilter(2,config.outputFilterCutoff,Butterworth::Lowpass),
     m_posDiff(),
     m_velocityFilter(2,0.1),
@@ -84,7 +84,7 @@ void CM::setParams(CM::Params config) {
     m_forcePd.kp = m_params.forceKp;
     m_forcePd.kd = m_params.forceKd;
     m_ctrlFilter.configure(2, m_params.cvFilterCutoff);
-    m_forceFilterL.configure(3, m_params.forceFilterCutoff);
+    m_forceFilterL.configure(2, m_params.forceFilterCutoff);
     m_forceFilterM.resize(m_params.forceFilterN);
     m_dFdtFilterL.configure(2, m_params.dFdtFilterCutoff);
     m_dFdtFilterM.resize(m_params.forceFilterN);
@@ -520,9 +520,8 @@ void CM::controlSpoolPosition(double degrees) {
 }
 
 void CM::controlForce(double newtons) {
-    double df_ref = m_forceRefDiff.update(newtons, m_t);
     double f_act  = getForce(CM::Lowpass);
-    double dfdt_act = getdFdt();
+    double dfdt_act = getdFdt(CM::Lowpass);
     double torque = m_forcePd.calculate(newtons,f_act,0,dfdt_act);
     // ff term
     double torque_ff = scaleCtrlValue(m_params.forceKff, ControlMode::Torque);
@@ -579,7 +578,7 @@ double CM::getMotorVelocity() { return m_params.useSoftwareVelocity ? m_velocity
 
 double CM::getSpoolPosition() { 
     double pp = getMotorPosition() * m_params.gearRatio;
-    // if(pp == 0) {
+    // if(abs(pp) < 1e-100) {
     //     LOG(Warning) << "Spool position is not recorded for cm " << name();
     // } 
     return pp; 
@@ -590,11 +589,19 @@ double CM::getSpoolVelocity() { return getMotorVelocity() * m_params.gearRatio; 
 double CM::getForce(bool filtered) {
     double senseSign = m_params.forceSenseSignFlip ? -1.0 : 1.0;
     double raw = senseSign*m_io.forceCh.get_force(m_io.forceaxis);
+    // if(abs(raw) < 1e-100) {
+    //     LOG(Warning) << "Force is not recorded for cm " << name();
+    // } 
+    // std::cout << "raw" << raw << std::endl;
     if (!filtered)
         return raw;
     switch(m_forceFiltMode) {
         case None:    return raw;
-        case Lowpass: return m_forceFilterL.update(raw);
+        case Lowpass: {
+            auto filtered = m_forceFilterL.update(raw);
+            std::cout << "m_forceFilterL.update(raw)" << filtered << std::endl;
+            return filtered;
+        }
         case Median:  return m_forceFilterM.filter(raw);
         case Cascade: return m_forceFilterL.update(m_forceFilterM.filter(raw));
         default:      return raw;
@@ -684,6 +691,7 @@ double CM::scaleCtrlValue(double ctrlValue, ControlMode mode) {
 
 bool CM::on_enable() {
     TASBI_LOCK
+    m_io.commandCh.set_volts(0.0);
     if (m_io.enableCh.write_high()) {
         m_status = Status::Enabled;
         return true;
@@ -693,6 +701,7 @@ bool CM::on_enable() {
 
 bool CM::on_disable() {
     TASBI_LOCK
+    m_io.commandCh.set_volts(0.0);
     if (m_io.enableCh.write_low()) {
         m_status = Status::Disabled;
         return true;

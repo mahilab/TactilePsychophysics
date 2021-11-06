@@ -77,6 +77,8 @@ public:
         cm_t->setForceRange(forceMin, forceMax); //(-2, 2); //[N]
         cm_t->setForceGains(1500.0/1e6,0.0,20.0/1e6);
         cm_t->setControlValue(0.0);
+
+        // cm_n->setForceFilter(500);
     }
 
     ~MyGui(){
@@ -130,10 +132,29 @@ public:
             f_ref2 = 3.0 * std::cos(2 * PI * 0.25 * time().as_seconds() - toff.as_seconds());
         }
         else {
-            ImGui::DragDouble("X Ref Normal", &f_ref1, 0.1f, forceMin, forceMax);
-            ImGui::DragDouble("X Ref Shear", &f_ref2, 0.1f, forceMin, forceMax);
+            ImGui::DragDouble("F Ref Normal", &f_ref1, 0.1f, forceMin, forceMax);
+            ImGui::DragDouble("F Ref Shear", &f_ref2, 0.1f, forceMin, forceMax);
         }
 
+        ImGui::Separator();
+
+        // if(ImGui::Button("Configure Filter Cutoffs")){
+        //     cm_n->setForceFilterMode(CM::Lowpass);
+        //     cm_n->setForceFilter(cutoffForce);
+        //     //cm_n->m_params.outputFilterCutoff = cutoffOut;
+        //     cm_n->m_outputFilter.configure(2, cutoffOut);
+
+        //     cm_t->setForceFilterMode(CM::Lowpass);
+        //     cm_t->setForceFilter(cutoffForce);
+        //     //cm_t->m_params.outputFilterCutoff = cutoffOut;
+        //     cm_t->m_outputFilter.configure(2, cutoffOut);
+        // }
+
+        // ImGui::DragDouble("Force Filter Cutoff", &cutoffForce, 0.1f, 0, 500);
+        // ImGui::DragDouble("Output Filter Cutoff", &cutoffOut, 0.1f, 0, 500);
+
+
+        
         cm_n->setForceGains(kp1/1e6,0,kd1/1e6);
         cm_n->setControlValue(cm_n->scaleRefToCtrlValue(f_ref1));
         cm_n->limits_exceeded();
@@ -145,10 +166,12 @@ public:
         queryN = cm_n->getQuery();
         queryT = cm_t->getQuery();
 
-        double f_act1 = cm_n->getForce(0);
-        double f_act2 = cm_t->getForce(0);
-        double dfdt1 =  cm_n->getdFdt(0);
-        double dfdt2 =  cm_t->getdFdt(0);
+        double f_act1 = cm_n->getForce(1);
+        double f_act2 = cm_t->getForce(1);
+        double dfdt1 =  cm_n->getdFdt(1);
+        double dfdt2 =  cm_t->getdFdt(1);
+        double vn =  cm_n->getSpoolVelocity();
+        double vt =  cm_t->getSpoolVelocity();
 
         double torque1 = -((kp1/1e6) * (f_ref1 - f_act1) + (kd1/1e6) * (0 - hub.daq.velocity.velocities[0]));
         // std::cout << std::endl;
@@ -162,25 +185,25 @@ public:
         ImGui::PushItemWidth(100);
         ImGui::Text("Motor 1 - Normal Dir - Encoder Info");
         ImGui::LabelText("normal motor encoder counts", "%d", cm_n->getEncoderCounts());
-        ImGui::LabelText("normal motor encoder position", "%f", cm_n->getMotorPosition());
-        ImGui::LabelText("normal motor encoder velocity", "%f", cm_n->getMotorVelocity());
+        ImGui::LabelText("normal motor angular position [deg]", "%f", cm_n->getMotorPosition());
+        ImGui::LabelText("normal motor angular velocity [deg/s]", "%f", cm_n->getMotorVelocity());
         ImGui::Spacing(); 
 
         ImGui::Text("Motor 2 - Shear Dir - Encoder Info");
         ImGui::LabelText("shear motor encoder counts", "%d", cm_t->getEncoderCounts());
-        ImGui::LabelText("shear motor encoder position", "%f", cm_t->getMotorPosition());
-        ImGui::LabelText("shear motor encoder velocity", "%f", cm_t->getMotorVelocity());
+        ImGui::LabelText("shear motor angular position [deg]", "%f", cm_t->getMotorPosition());
+        ImGui::LabelText("shear motor angular velocity [deg/s]", "%f", cm_t->getMotorVelocity());
         ImGui::Spacing();
 
         ImGui::Text("Motor 1 - Normal Dir - Spool Info");
         ImGui::LabelText("normal motor translational position", "%f", cm_n->getSpoolPosition());
-        ImGui::LabelText("normal motor translational velocity", "%f", cm_n->getSpoolVelocity());
+        ImGui::LabelText("normal motor translational velocity", "%f", vn);
         ImGui::LabelText("normal motor translational commanded torque", "%f", cm_n->getMotorTorqueCommand());
         ImGui::Spacing(); 
 
         ImGui::Text("Motor 2 - Shear Dir - Spool Info");
         ImGui::LabelText("shear motor translational position", "%f", cm_t->getSpoolPosition());
-        ImGui::LabelText("shear motor translational velocity", "%f", cm_t->getSpoolVelocity());
+        ImGui::LabelText("shear motor translational velocity", "%f", vt);
         ImGui::LabelText("shear motor translational commanded torque", "%f", cm_t->getMotorTorqueCommand());
         ImGui::Spacing(); 
 
@@ -194,6 +217,8 @@ public:
         fdata2.AddPoint(t, f_act2* 1.0f);
         dfdtData1.AddPoint(t, dfdt1* 1.0f);
         dfdtData2.AddPoint(t, dfdt2* 1.0f);
+        vNData.AddPoint(t, vn* 1.0f);
+        vTData.AddPoint(t, vt* 1.0f);
 
         ImGui::SliderFloat("History",&history,1,30,"%.1f s");
 
@@ -213,6 +238,16 @@ public:
             ImPlot::PlotLine("dFdt X - Motor 2 Shear", &dfdtData2.Data[0].x, &dfdtData2.Data[0].y, dfdtData2.Data.size(), dfdtData2.Offset, 2*sizeof(float));
             ImPlot::EndPlot();
         }
+
+        ImGui::Separator();
+
+        ImPlot::SetNextPlotLimitsX(t - history, t, ImGuiCond_Always);
+        if (ImPlot::BeginPlot("##Velocity", NULL, NULL, ImVec2(-1,200), 0, 0, 0)) {
+            ImPlot::PlotLine("Vel Z - Motor 1 Normal [mm/s]", &vNData.Data[0].x, &vNData.Data[0].y, vNData.Data.size(), vNData.Offset, 2 * sizeof(float));
+            ImPlot::PlotLine("Vel X - Motor 2 Shear [mm/s]", &vTData.Data[0].x, &vTData.Data[0].y, vTData.Data.size(), vTData.Offset, 2*sizeof(float));
+            ImPlot::EndPlot();
+        }
+
         ImGui::End();
     }
 
@@ -244,6 +279,9 @@ public:
     double forceMax = 25.0;
     double forceMin = -25.0;
 
+    double cutoffForce = 0.2;
+    double cutoffOut = 200;
+
     CM::Query queryN;
     CM::Query queryT;
 
@@ -251,7 +289,7 @@ public:
     bool followSine = false;
     Time toff = Time::Zero;
 
-    ScrollingBuffer fdata1, fdata2, dfdtData1, dfdtData2;
+    ScrollingBuffer fdata1, fdata2, dfdtData1, dfdtData2, vNData, vTData;
     float t = 0;
     float history = 30.0f;
 };

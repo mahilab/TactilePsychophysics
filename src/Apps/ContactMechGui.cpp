@@ -195,13 +195,15 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
     }
 
     void ContactMechGui::writeOutputVariables(Csv& csv){
-        csv.write_row("Mode","Dof","ControlType", "PointOfInterest","Cycle","Fn","Ft","deltaN","deltaN");
+        csv.write_row("Time", "Mode","Dof","ControlType", "PointOfInterest","Cycle","Fn","Ft","deltaN","deltaN", "eeRadius", "CombinedE","ContactRadius","PlanarA","SphericalA","MeanStress","MeanStrain","ElasticStrainEnergy_N","YoungModulusNS","PoissonNS","CouplingBetaNS","ShearModulusNS","ComplianceN_NS","ComplianceT_NS");
     }
     
     void ContactMechGui::writeOutputData(Csv& csv){
         updateQuery();
-        csv.write_row(m_q.testmode, m_q.whichDof, m_q.controller, m_q.poi, m_q.cyclenum, m_q.Fn, m_q.Ft, m_q.deltaN, m_q.deltaT);
+        m_q_hz_ns = m_hz.makeQuery_TanNoSlip(m_R, m_q.Fn, m_q.Ft, m_q.deltaN, m_q.deltaT);
+        csv.write_row(time().as_seconds(), m_q.testmode, m_q.whichDof, m_q.controller, m_q.poi, m_q.cyclenum, m_q.Fn, m_q.Ft, m_q.deltaN, m_q.deltaT, m_q_hz_ns.R, m_q_hz_ns.combinedE, m_q_hz_ns.a, m_q_hz_ns.planarA, m_q_hz_ns.sphericalA, m_q_hz_ns.meanStress, m_q_hz_ns.meanStrain, m_q_hz_ns.Wn, m_q_hz_ns.E, m_q_hz_ns.v, m_q_hz_ns.couplingP, m_q_hz_ns.G, m_q_hz_ns.complianceN, m_q_hz_ns.complianceT);
     }
+
 
     //////////////////////////////////////////////////////////////////////////////////////
     //           Indentation, Creep, and Stress Relaxation Experiment-Specific Functions

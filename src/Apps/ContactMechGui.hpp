@@ -8,9 +8,12 @@
 #include "CapstanModule.hpp"
 #include "CMHub.hpp"
 #include "UserParams.hpp"
+#include "Util/HertzianContact.hpp"
 
 #include <Mahi/Daq.hpp>
 #include <Mahi/Util.hpp>
+
+using namespace ContactMechanics;
 
 
 struct ScrollingBuffer {
@@ -107,6 +110,18 @@ public:
 
     void writeOutputData(Csv& csv);
 
+    void writeNormalHzOutputVariables(Csv& csv);
+
+    void writeNormalHzOutputData(Csv& csv);
+
+    void writeTanNoSlipHzOutputVariables(Csv& csv);
+
+    void writeTanNoSlipHzOutputData(Csv& csv);
+
+    void writeTanPartialSlipHzOutputVariables(Csv& csv);
+
+    void writeTanPartialSlipHzOutputData(Csv& csv);
+
     
     // Experiment Functions
 
@@ -187,9 +202,9 @@ private:
     double  m_Ft                   = 0;
     double  m_deltaN               = 0;
     double  m_deltaT               = 0;
-    bool    m_debug                = 0;
-    bool    m_flag_presentStims    = 0;
-    bool    m_flag_reachedMAValue  = 0;
+    bool    m_debug                = false;
+    bool    m_flag_presentStims    = false;
+    bool    m_flag_reachedMAValue  = false;
     double  m_userStimulusMin      = 0;
     double  m_userStimulusMax      = 0;
     double  m_userStimulusContact  = 0;
@@ -197,7 +212,12 @@ private:
     double  m_targetPosLock        = 0;
     double  m_targetPosTest        = 0;
     bool    m_flag_first_to_start;
-    QueryContact    m_q;     ///< most recent QueryInd point
+    QueryContact                m_q;        //< most recent QueryInd point
+
+    // Hertzian Contact
+    HertzianContact             m_hz;
+    HertzianContact::QueryHZ    m_q_hz_ns;  // Hertzian contact query - no slip
+    double                      m_R = 30;       // [mm] - Radius of the spherical end effector
 
     // Plotting variables
     ScrollingBuffer lockForce, lockPosition, testForce, testPosition, testCmd, lockCmd;

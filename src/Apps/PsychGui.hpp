@@ -9,6 +9,9 @@
 #include "CMHub.hpp"
 #include "PsychophysicalTesting.hpp"
 #include "Util/XboxController.hpp"
+#include "Util/HertzianContact.hpp"
+
+using namespace ContactMechanics;
 
 
 struct ScrollingBuffer {
@@ -141,11 +144,11 @@ public:
     double m_jnd_current_stimulus;
     bool m_flag_first_to_start = 0;
 
-    std::string filename_timeseries;
-    Csv csv_timeseries;
-    std::string filename;
-    Csv csv;
     Timestamp ts;
+    std::string filename_timeseries;
+    std::string filename;
+    Csv csv_timeseries;
+    Csv csv;
 
     // Create buffers for calculating the forces and positions during each cue
     mahi::util::RingBuffer<double> m_stim1_normF{50};
@@ -157,6 +160,11 @@ public:
     mahi::util::RingBuffer<double> m_stim2_shearF{50};
     mahi::util::RingBuffer<double> m_stim2_normP{50};
     mahi::util::RingBuffer<double> m_stim2_shearP{50};
+
+    mahi::util::RingBuffer<double> m_adjust_normF{50};
+    mahi::util::RingBuffer<double> m_adjust_shearF{50};
+    mahi::util::RingBuffer<double> m_adjust_normP{50};
+    mahi::util::RingBuffer<double> m_adjust_shearP{50};
     
     double m_stim1_avgNormF;
     double m_stim1_avgShearF;
@@ -168,7 +176,12 @@ public:
     double m_stim2_avgNormP;
     double m_stim2_avgShearP;
 
-    PsychTest::WhichStim m_whichStim;
+    double m_adjust_avgNormF;
+    double m_adjust_avgShearF;
+    double m_adjust_avgNormP;
+    double m_adjust_avgShearP;
+
+    PsychTest::WhichStim m_whichStim = PsychTest::NA;
     double m_NormF;
     double m_ShearF;
     double m_NormP;
@@ -178,6 +191,11 @@ public:
     ScrollingBuffer lockForce, lockPosition, testForce, testPosition, ref, comp, curr, torCmd;
     float t = 0;
     float m_history = 30.0f;
+
+    // Hertzian Contact
+    HertzianContact             m_hz;
+    HertzianContact::QueryHZ    m_q_hz_ns;  // Hertzian contact query - no slip
+    double                      m_R = 30;       // [mm] - Radius of the spherical end effector
 
     // CM
     CMHub m_hub;

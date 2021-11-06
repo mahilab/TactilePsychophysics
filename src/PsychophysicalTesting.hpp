@@ -41,7 +41,7 @@ public:
     enum Handedness { Left, Right, Other };
     enum ControlType{ Position, Force };
     enum WhichDof   { Shear, Normal };
-    enum WhichStim  { First, Second, Choose, NA};
+    enum WhichStim  { First, Second, Choose, Adjust, NA};
     enum Direction  { Up, Down, None};
 
     /// PsychTest Parameter Configuration
