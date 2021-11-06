@@ -113,12 +113,12 @@ public:
         double gearRatio           = 0.332*25.4*mahi::util::PI/360.0;    // [mm/deg] from spool pitch diameter (.332") and capstan radius if applicable, converted to mm
         double degPerCount         = 360.0 / (1024.0 * 35.0); // [deg/count] for motor shaft, including gearbox if applicable
         double commandGain         = 1.35 / 10.0;   // [A/V]
-        bool   posCmdSignFlip      = 1;
-        bool   posSenseSignFlip    = 0;
-        bool   forceCmdSignFlip    = 1;
-        bool   forceSenseSignFlip  = 1;
-        bool   has_velocity_limit_ = 1;
-        bool   has_torque_limit_   = 1;
+        bool   posCmdSignFlip      = true;
+        bool   posSenseSignFlip    = false;
+        bool   forceCmdSignFlip    = true;
+        bool   forceSenseSignFlip  = true;
+        bool   has_velocity_limit_ = true;
+        bool   has_torque_limit_   = true;
         double velocityMax         = 30.0; // [mm/s] ????
         double torqueMax           = 0.02; // [Nm]
         double positionMin         = -3.5; // [deg] ???? 
@@ -131,8 +131,8 @@ public:
         double forceKi             = 0;
         double forceKd             = 20.0/(1e6);
         double forceKff            = 0;
-        double forceFilterCutoff   = 0.25;           // normalized [0,1]
-        double dFdtFilterCutoff   = 0.25;           // normalized [0,1]
+        double forceFilterCutoff   = 2000;        
+        double dFdtFilterCutoff   = 0.25;        
         int    forceFilterN        = 31;  
         double cvFilterCutoff      = 0.02;           // normalized [0,1]
         bool   filterControlValue  = false;           // [true/false]
@@ -294,6 +294,8 @@ public:
 double m_torque=0;
 //Force Ringbuffer
 mahi::util::RingBuffer<double> FBuff{50};
+//Params      m_params;    ///< parameters
+Butterworth  m_outputFilter;
 
 protected:
     // Status and Congiguration
@@ -317,7 +319,7 @@ protected:
     Butterworth  m_dFdtFilterL;        ///< filters raw voltage from derivative of integrated force sensor
     MedianFilter m_dFdtFilterM;
     AverageFilter<21> m_forceFilterA;
-    Butterworth  m_outputFilter;
+    //Butterworth  m_outputFilter;
     Differentiator m_posDiff;
     Butterworth    m_velocityFilter;
     Differentiator m_forceRefDiff;

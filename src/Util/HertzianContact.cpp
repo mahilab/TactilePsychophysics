@@ -166,17 +166,17 @@ void HertzianContact::fillQuery_Normal(){
 }
 
 void HertzianContact::fillQuery_TanNoSlip(){
-    getCouplingParameter_Tan();
     fillQuery_Normal();
     getYoungAndPoisson_TanNoSlip();
+    getCouplingParameter_Tan();
     getShearModulus_Tan();
     getCompliance_Tan();
 }
 
 void HertzianContact::fillQuery_TanPartialSlip(){
-    getCouplingParameter_Tan();
     fillQuery_Normal();
     getYoungAndPoisson_TanPartialSlip();
+    getCouplingParameter_Tan();
     getShearModulus_Tan();
     getCompliance_Tan();
 }
