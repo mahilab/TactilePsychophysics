@@ -916,18 +916,18 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         m_hub.start();
 
         if (m_pt.m_whichDof == PsychTest::Shear) { // test shear direction
-            m_cm_lock->setPositionRange(m_pt.m_userparams.positionMin_n, m_pt.m_userparams.positionMax_n); // [mm] subject-specific
-            m_cm_lock->setForceRange(m_pt.m_userparams.forceMin_n, m_pt.m_userparams.forceMax_n); // [N] subject-specific
+            m_cm_lock->setPositionRange(m_pt.m_userparams.positionMin_n, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_n); // [mm] subject-specific
+            m_cm_lock->setForceRange(m_pt.m_userparams.forceMin_n, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_n); // [N] subject-specific
 
-            m_cm_test->setPositionRange(m_pt.m_userparams.positionMin_t, m_pt.m_userparams.positionMax_t); // [mm] subject-specific
-            m_cm_test->setForceRange(m_pt.m_userparams.forceMin_t, m_pt.m_userparams.forceMax_t); // [N] subject-specific
+            m_cm_test->setPositionRange(m_pt.m_userparams.positionMin_t, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_t); // [mm] subject-specific
+            m_cm_test->setForceRange(m_pt.m_userparams.forceMin_t, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_t); // [N] subject-specific
 
         }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal direction
-            m_cm_lock->setPositionRange(m_pt.m_userparams.positionMin_t, m_pt.m_userparams.positionMax_t); // [mm] subject-specific
-            m_cm_lock->setForceRange(m_pt.m_userparams.forceMin_t, m_pt.m_userparams.forceMax_t); // [N] subject-specific
+            m_cm_lock->setPositionRange(m_pt.m_userparams.positionMin_t, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_t); // [mm] subject-specific
+            m_cm_lock->setForceRange(m_pt.m_userparams.forceMin_t, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_t); // [N] subject-specific
             
-            m_cm_test->setPositionRange(m_pt.m_userparams.positionMin_n, m_pt.m_userparams.positionMax_n); // [mm] subject-specific
-            m_cm_test->setForceRange(m_pt.m_userparams.forceMin_n, m_pt.m_userparams.forceMax_n); // [N] subject-specific
+            m_cm_test->setPositionRange(m_pt.m_userparams.positionMin_n, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_n); // [mm] subject-specific
+            m_cm_test->setForceRange(m_pt.m_userparams.forceMin_n, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_n); // [N] subject-specific
         }
     }
 
@@ -1134,11 +1134,11 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
             if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
                 m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_t;
-                m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_t;
+                m_pt.m_userStimulusMax = m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_t;
                 m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_t;
             }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
                 m_pt.m_userStimulusMin = m_pt.m_userparams.positionMin_n;
-                m_pt.m_userStimulusMax = m_pt.m_userparams.positionMax_n;
+                m_pt.m_userStimulusMax = m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_n;
                 m_pt.m_userStimulusContact = m_pt.m_userparams.positionCont_n;
             }
         }else{
@@ -1164,11 +1164,11 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
             if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
                 m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_t;
-                m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_t;
+                m_pt.m_userStimulusMax = m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_t;
                 m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_t;
             }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
                 m_pt.m_userStimulusMin = m_pt.m_userparams.forceMin_n;
-                m_pt.m_userStimulusMax = m_pt.m_userparams.forceMax_n;
+                m_pt.m_userStimulusMax = m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_n;
                 m_pt.m_userStimulusContact = m_pt.m_userparams.forceCont_n;
             }
         }else{
@@ -1224,13 +1224,13 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 stopExp();
             }
             
-            // if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
-            //     LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
-            //     stopExp();
-            // }else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
-            //     LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
-            //     stopExp();
-            // }
+            if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
+                LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
+                stopExp();
+            }else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
+                LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
+                stopExp();
+            }
     
         }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
             if(m_cm_test->getForce(1) > m_pt.m_userparams.forceMax_n){
@@ -1241,13 +1241,13 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 stopExp();
             }
             
-            // if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
-            //     LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
-            //     stopExp();
-            // } else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
-            //     LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
-            //     stopExp();
-            // }
+            if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
+                LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
+                stopExp();
+            } else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
+                LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
+                stopExp();
+            }
     
         }
 

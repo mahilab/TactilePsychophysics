@@ -51,7 +51,9 @@ public:
     /// Constructor
     Likert() : Application(500,500,"",false) { 
         ImGui::DisableViewports();
+        std::cout << "constructor before" << std::endl;
         loaded = load();
+        std::cout << "constructor after" << std::endl;
         ImGui::StyleColorsMahiDark3();
     }
 
@@ -191,6 +193,7 @@ public:
     /// Load in Likert config file
     bool load() {
         if (fs::exists("survey_config.json")) {
+            std::cout << "sono qui" << std::endl;
             try {
                 std::ifstream file("survey_config.json");
                 json j;
@@ -220,10 +223,13 @@ public:
                 center_window();
             }
             catch(...) {
+                std::cout << "sono qui 2" << std::endl;
                 return false;
             }
+            std::cout << "sono qui 3" << std::endl;
             return true;
         }
+        std::cout << "sono qui 4" << std::endl;
         return false;
     }
 

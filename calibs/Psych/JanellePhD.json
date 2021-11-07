@@ -1,7 +1,7 @@
 {
           "n_mcs_comparisons": 7,
           "n_mcs_reps": 5,
-          "n_mcs_windows": 2,
+          "n_mcs_windows": 4,
           "n_sm_staircases": 5,
           "n_sm_reversals": 12,
           "sm_pos_inc": 0.2,
