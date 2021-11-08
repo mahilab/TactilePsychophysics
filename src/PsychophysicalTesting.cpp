@@ -277,10 +277,69 @@ void PsychTest::buildStimTrials() {
 //////////// Staircase Method (SM) Functions ///////////////
 
 void PsychTest::setResponseSM(int answer, int greater){
+
+    // Start filling in and save query for finished trial
     m_q_sm.answer = answer;
     m_q_sm.greater = greater;
-    m_q_sm.testmode = m_testmode;
+    
+    double lastComp = (m_q_sm.comparison == 1) ? m_q_sm.stimulus1 : m_q_sm.stimulus2;
+    // Determine if the next trial has a larger or smaller comparison (if right, toward the std, if wrong, away from it)
+    if (m_q_sm.answer == m_q_sm.correct){ // answered correctly
+        m_jnd_stimulus_comparison = (lastComp > m_jnd_stimulus_reference) ? (lastComp - m_jnd_stimulus_interval) : (lastComp + m_jnd_stimulus_interval);
+    }else{ // answered incorrectly
+        m_jnd_stimulus_comparison = (lastComp > m_jnd_stimulus_reference) ? (lastComp + m_jnd_stimulus_interval) : (lastComp - m_jnd_stimulus_interval);
+    }
+    // If it's an absolute threshold experiment, don't allow the comparison to be negative
+    if (m_jnd_stimulus_reference == 0 && m_jnd_stimulus_comparison < 0){
+        m_jnd_stimulus_comparison = abs(m_jnd_stimulus_comparison);
+        // If you get stuck here with infinite comparisons of this value, the increment should be reduced
+    }
+
+    // If it's force control and normal testing, don't let force go below contact force
+    if ((m_whichDof == Normal) && (m_controller == Force) && (m_jnd_stimulus_comparison < m_userStimulusContact)){
+        m_jnd_stimulus_comparison = m_userStimulusContact;
+        // If this is above the threshold, then adjust the contact force value
+        // If you get stuck here with infinite comparisons of this value, the increment should be reduced
+    }
+
+    // clamp at stimulus max and stimulus min (comfort threshold and absolute threshold (or 0 if determining it))
+    if((m_jnd_stimulus_comparison < m_userStimulusMin) || (m_jnd_stimulus_comparison > m_userStimulusMax)){
+        if(m_controller==PsychTest::Position)
+            LOG(Warning) << "Comparison value " << m_jnd_stimulus_comparison <<" mm clamped by stimulus position thresholds " << m_userStimulusMin << " mm and " << m_userStimulusMax  << "mm";
+        else if (m_controller==PsychTest::Force)
+            LOG(Warning) << "Comparison value " << m_jnd_stimulus_comparison <<" N clamped by stimulus force thresholds " << m_userStimulusMin << " N and " << m_userStimulusMax  << "N";
+    }
+    m_jnd_stimulus_comparison = clamp(m_jnd_stimulus_comparison, m_userStimulusMin, m_userStimulusMax);
+    
+    // Determine the direction change since last trial
+    if (m_jnd_stimulus_comparison > lastComp)
+        m_direction = Up;
+    else if (m_jnd_stimulus_comparison < lastComp)
+        m_direction = Down;
+    else
+        m_direction = None;
+
+    // Determine if a reversal has taken place
+    // Question ----- Actually, reversal was the last query? overwrite isReversal there?????????????????????????
+    m_isReversal = m_direction != m_lastSlope && m_direction !=None && m_lastSlope !=None;
+        
+    if(m_direction !=None){
+        m_lastSlope = m_direction;
+    }
+    
+    m_num_reversal += (m_isReversal ? 1 : 0); // if a reveral has taken place increment the number of reversals
+
+    // Finish filling in and save query for finished trial
+    m_q_sm.num_reversal  = m_num_reversal;
+    m_q_sm.isReversal = m_isReversal;
     m_stim_trials_sm.push_back(m_q_sm);
+
+    std::cout << "____________________________" << std::endl;
+    std::cout << "Last Query" << std::endl;
+    printQueriesSM(m_q_sm); // ?????????????????????????????????????????
+    std::cout << " " << std::endl;
+
+    m_q_sm.testmode = m_testmode;
 }
 
 void PsychTest::printQueriesSM(QuerySM q) {
@@ -338,64 +397,8 @@ void PsychTest::setNextTrialSM(){
         m_num_reversal = 0;
         m_lastSlope = None;
 
-    }else{
-        if(m_q_sm.answer == -1){
+    }else if(m_q_sm.answer == -1){
             LOG(Error) << "Response for last trial is not recorded, unable to continue.";
-        }else{
-            double lastComp = (m_q_sm.comparison == 1) ? m_q_sm.stimulus1 : m_q_sm.stimulus2;
-
-            std::cout << "____________________________" << std::endl;
-            std::cout << "Last Query" << std::endl;
-            printQueriesSM(m_q_sm); // ?????????????????????????????????????????
-            std::cout << " " << std::endl;
-            
-            // Determine if the next trial has a larger or smaller comparison (if right, toward the std, if wrong, away from it)
-            if (m_q_sm.answer == m_q_sm.correct){ // answered correctly
-                m_jnd_stimulus_comparison = (lastComp > m_jnd_stimulus_reference) ? (lastComp - m_jnd_stimulus_interval) : (lastComp + m_jnd_stimulus_interval);
-            }else{ // answered incorrectly
-                m_jnd_stimulus_comparison = (lastComp > m_jnd_stimulus_reference) ? (lastComp + m_jnd_stimulus_interval) : (lastComp - m_jnd_stimulus_interval);
-            }
-            // If it's an absolute threshold experiemnt, don't allow the comparison to be negative
-            if (m_jnd_stimulus_reference == 0 && m_jnd_stimulus_comparison < 0){
-                m_jnd_stimulus_comparison = abs(m_jnd_stimulus_comparison);
-                // If you get stuck here with infinite comparisons of this value, the increment should be reduced
-            }
-
-            // If it's force control and normal testing, don't let force go below contact force
-            if ((m_whichDof == Normal) && (m_controller == Force) && (m_jnd_stimulus_comparison < m_userStimulusContact)){
-                m_jnd_stimulus_comparison = m_userStimulusContact;
-                // If this is above the threshold, then adjust the contact force value
-                // If you get stuck here with infinite comparisons of this value, the increment should be reduced
-            }
-
-            // clamp at stimulus max and stimulus min (comfort threshold and absolute threshold (or 0 if determining it))
-            if((m_jnd_stimulus_comparison < m_userStimulusMin) || (m_jnd_stimulus_comparison > m_userStimulusMax)){
-                if(m_controller==PsychTest::Position)
-                    LOG(Warning) << "Comparison value " << m_jnd_stimulus_comparison <<" mm clamped by stimulus position thresholds " << m_userStimulusMin << " mm and " << m_userStimulusMax  << "mm";
-                else if (m_controller==PsychTest::Force)
-                    LOG(Warning) << "Comparison value " << m_jnd_stimulus_comparison <<" N clamped by stimulus force thresholds " << m_userStimulusMin << " N and " << m_userStimulusMax  << "N";
-            }
-            m_jnd_stimulus_comparison = clamp(m_jnd_stimulus_comparison, m_userStimulusMin, m_userStimulusMax);
-            
-            // Determine the direction change since last trial
-            if (m_jnd_stimulus_comparison > lastComp)
-                m_direction = Up;
-            else if (m_jnd_stimulus_comparison < lastComp)
-                m_direction = Down;
-            else
-                m_direction = None;
-
-            // Determine if a reversal has taken place
-            // Question ----- Actually, reversal was the last query? overwrite isReversal there?????????????????????????
-            m_isReversal = m_direction != m_lastSlope && m_direction !=None && m_lastSlope !=None;
-                
-            if(m_direction !=None){
-                m_lastSlope = m_direction;
-            }
-            
-            m_num_reversal = m_q_sm.num_reversal + (m_isReversal ? 1 : 0); // if a reveral has taken place increment the number of reversals
-
-        } // is response recorded?
     } // is it a new stair?
 
     // index for trial order boolean (standard or comparison first)
@@ -414,7 +417,7 @@ void PsychTest::setNextTrialSM(){
     m_q_sm.direction     = m_direction;
     m_q_sm.lastSlope     = m_lastSlope;
     m_q_sm.num_reversal  = m_num_reversal;
-    m_q_sm.isReversal    = m_isReversal;
+    m_q_sm.isReversal    = -1;
     m_q_sm.stimulus1     = m_stdFirst[num_0_9] ? m_jnd_stimulus_reference : m_jnd_stimulus_comparison;
     m_q_sm.stimulus2     = m_stdFirst[num_0_9] ? m_jnd_stimulus_comparison : m_jnd_stimulus_reference;
     m_q_sm.standard      = m_stdFirst[num_0_9] ? 1 : 2;

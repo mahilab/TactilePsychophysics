@@ -230,7 +230,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
     void PsychGui::rampStimulus(double start, double end, double ramptime, double elapsed){
         double stimVal = Tween::Linear(start, end, (float)(elapsed / ramptime));
-        double pos = m_cm_test->getSpoolPosition();
         PsychGui::setTest(stimVal);
     }
 
@@ -463,14 +462,15 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
                 // run trials
                 while (m_pt.m_q_sm.num_reversal < m_psychparams.n_sm_reversals){
-
                     // render first stimulus - ramp up
                     elapsed = 0;
                     while (elapsed < m_psychparams.ramp_time) {
                         rampStimulus(m_pt.m_userStimulusContact, m_pt.m_q_sm.stimulus1, m_psychparams.ramp_time, elapsed);
                         responseWindow(PsychTest::First);
+                        elapsed += delta_time().as_seconds();
                         co_yield nullptr;
                     } 
+                    
                     // render first stimulus - hold stim and record position and force info
                     setTest(m_pt.m_q_sm.stimulus1);
                     elapsed = 0;
@@ -608,7 +608,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
      void PsychGui::responseWindowMA(PsychTest::WhichStim whichStim) {
         float windowHeight = m_debug ? 1500.0 : -1;
         float windowWidth = m_debug ? 600.0 : -1;
-        float buttonHeight = m_debug ? 50.0 : -1;
+        float buttonHeight = m_debug ? 50.0 : 500.0;
 
         m_whichStim = whichStim;
 
@@ -654,14 +654,11 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             if (ImGui::Button("Yes, Confirm Value", ImVec2(290,buttonHeight)) || m_xbox.is_button_pressed(XboxController::A)){
                 m_adjust = 0; // the stimuli feel the same, finish trial.
                 m_flag_reachedMAValue = 1;
-                std::cout << "keep out"  << std::endl;
             }
             ImGui::SameLine();
             if (ImGui::Button("No, Adjust Value", ImVec2(290,buttonHeight)) || m_xbox.is_button_pressed(XboxController::B)){
                 // the stimuli don't feel the same, need to adjust
                 flag_chooseAdjust = 1;
-                std::cout << "flag_chooseAdjust" << flag_chooseAdjust << std::endl;
-                std::cout << "m_flag_reachedMAValue" << m_flag_reachedMAValue << std::endl;
             }
         }
 
@@ -944,6 +941,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
         m_cm_test->zeroForce();
         m_cm_lock->zeroForce();
+        std::cout << "     READY" << std::endl;
     }
 
     Enumerator PsychGui::findContact(){ // Put both in position control for now
@@ -1010,7 +1008,8 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         setPositionControl(1);
         m_cm_lock->zeroPosition();
         setPositionControl(0);
-        std::cout << "     zero and set back to position control" << std::endl;        
+        std::cout << "     zero and set back to position control" << std::endl;
+        std::cout << "     READY" << std::endl;        
     }
 
     Enumerator PsychGui::bringToStartPosition(){ // above arm, Idle/pre-experiment position, assume already in position control
@@ -1057,8 +1056,8 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 co_yield nullptr;
             }
             std::cout << "     ramp normal (test) to start position" << std::endl;
-            std::cout << "     sono qui" << std::endl;
             setTest(m_pt.m_userparams.positionStart_n);
+            std::cout << "     READY" << std::endl;
         }
     }
 
@@ -1087,6 +1086,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 co_yield nullptr;
             }
         }
+        std::cout << "     READY" << std::endl;
     }
 
     Enumerator PsychGui::setControlDof(){ // assume already in position control
@@ -1109,9 +1109,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 co_yield nullptr;
             }
 
-            std::cout << "set controller to m_pt.m_userparams.positionCont_n" << m_pt.m_userparams.positionCont_n << std::endl;
-            std::cout << "m_cm_test->getSpoolPosition()" << m_cm_test->getSpoolPosition() << std::endl;
-
             if (m_pt.m_controller == PsychTest::Force){
                 std::cout << "     set to force control at contact point" << std::endl;
                 setForceControl(1);
@@ -1119,6 +1116,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             }
 
         }
+        std::cout << "     READY" << std::endl;
     }
 
     void PsychGui::setPositionControl(bool isTest){
@@ -1205,12 +1203,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             m_ShearF = mean(m_cm_lock->FBuff.get_vector());
             m_NormP = m_cm_test->getSpoolPosition();
             m_ShearP = m_cm_lock->getSpoolPosition();
-            // if(m_ShearP == 0) {
-            //     LOG(Warning) << "Position is not recorded for shear ";
-            // }  
-            // if(m_NormP == 0) {
-            //     LOG(Warning) << "Position is not recorded for normal ";
-            // }  
         }
     }
 
@@ -1255,7 +1247,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
     void PsychGui::collectSensorData(PsychTest::WhichStim whichStim, int refOrder){
 
-        if((whichStim == PsychTest::First && refOrder == 1) || (whichStim == PsychTest::Second && refOrder == 2)){
+        if(((whichStim == PsychTest::First) && (refOrder == 1)) || ((whichStim == PsychTest::Second) && (refOrder == 2))){
             if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
                 m_ref_normF.push_back(m_cm_lock->getForce(1));
                 m_ref_shearF.push_back(m_cm_test->getForce(1));
@@ -1267,7 +1259,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 m_ref_normP.push_back(m_cm_test->getSpoolPosition());
                 m_ref_shearP.push_back(m_cm_lock->getSpoolPosition());
             }
-        }else if((whichStim == PsychTest::Second && refOrder == 1) || (whichStim == PsychTest::First && refOrder == 2)){
+        }else if(((whichStim == PsychTest::Second) && (refOrder == 1)) || ((whichStim == PsychTest::First) && (refOrder == 2))){
             if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
                 m_comp_normF.push_back(m_cm_lock->getForce(1));
                 m_comp_shearF.push_back(m_cm_test->getForce(1));
