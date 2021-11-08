@@ -38,7 +38,10 @@ class Likert : public Application {
 public:
 
     std::string filename = "C:/Git/TactilePsychophysics/src/Apps/survey_config.json";
-    enum Gender { NoGender, Male, Female, Other };
+    enum Gender { NA, Male, Female, Other };
+    enum Control { None, Position, Force };
+    enum DOF { Undefined, Normal, Shear };
+    enum Experiment { MCS, SM, MA, Cycle, Unspecified };
 
     enum Response {
         NoResponse = -3,
@@ -93,17 +96,6 @@ public:
             ImGui::SameLine();
             if (ImGui::RadioButton("Other", sex == Other))
                 sex = Other;
-            ImGui::SameLine(0, 50);
-            ImGui::Text("Wrist:");            
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(50);
-            ImGui::InputFloat("Width",&wristW);
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(50);
-            ImGui::InputFloat("Height",&wristH);
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(50);
-            ImGui::InputFloat("Circumference",&wristC);
 
             ImGui::SameLine(ImGui::GetWindowWidth() - 105);
             if (ImGui::ButtonColored("Submit", Blues::DodgerBlue, {100,0})) {
@@ -111,6 +103,42 @@ public:
                 if (result && autoClose)
                     quit();
             }
+
+            ImGui::Separator();
+
+            ImGui::Text("Which Experiment:");
+            if (ImGui::RadioButton("MCS", exp == MCS))
+                exp = MCS;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("SM", exp == SM))
+                exp = SM;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("MA", exp == MA))
+                exp = MA;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Cycle", exp == Cycle))
+                exp = Cycle;
+
+            ImGui::Separator();
+            
+            ImGui::Text("Which Control Scheme:");
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Position Control", control == Position))
+                control = Position;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Force Control", control == Force))
+                control = Force;
+
+            ImGui::Separator();
+
+            ImGui::Text("Which Degree of Freedom (dof):");
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Normal", dof == Normal))
+                dof = Normal;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Shear", dof == Shear))
+                dof = Shear;
+
             // Header
             ImGui::Separator();
             ImGui::Separator();
@@ -174,9 +202,6 @@ public:
                         responses[q] = StronglyAgree;
                 }
                 ImGui::PopID();
-
-                // if (hovered)
-                //     ImGui::PopStyleColor(2);
             }
             // begin message modal if opened this frame
             bool dummy = true;
@@ -208,7 +233,7 @@ public:
                     qWidth = 7 * q.length() > qWidth ? 7 * q.length() : qWidth;
                 qWidth += 75;
                 width = qWidth + 385;
-                height = 85 + rowHeight * questions.size();
+                height = 200 + rowHeight * questions.size();
                 responses = std::vector<Response>(questions.size(), NoResponse); 
                 responsesC = std::vector<float>(questions.size(), 0.5f);
                 order.resize(questions.size());
@@ -223,13 +248,10 @@ public:
                 center_window();
             }
             catch(...) {
-                std::cout << "sono qui 2" << std::endl;
                 return false;
             }
-            std::cout << "sono qui 3" << std::endl;
             return true;
         }
-        std::cout << "sono qui 4" << std::endl;
         return false;
     }
 
@@ -247,26 +269,29 @@ public:
             ImGui::OpenPopup("Message");
             return false;
         }
-        if (sex == NoGender) {
+        if (sex == NA) {
             message = "Please enter your gender";
             ImGui::OpenPopup("Message");
             return false;
         }
-        if (wristH <= 0 || wristC <= 0 || wristW <= 0) {
-            message = "Please enter your wrist dimensions";
+        if (control == None) {
+            message = "Please which controller";
+            ImGui::OpenPopup("Message");
+            return false;
+        }
+        if (dof == Undefined) {
+            message = "Please which dof";
+            ImGui::OpenPopup("Message");
+            return false;
+        }
+        if (exp == Unspecified) {
+            message = "Please which experiment";
             ImGui::OpenPopup("Message");
             return false;
         }
         // make sure every question answered
         for (unsigned int i = 0; i < questions.size();  ++i) {
-            if (continuous) {
-                // if (responsesC[order[i]] == -1) {
-                //     message = "Please respond to Question " + std::to_string(i+1);
-                //     ImGui::OpenPopup("Message");
-                //     return false;
-                // }
-            }
-            else {
+            if (!continuous) {
                 if (responses[order[i]] == NoResponse) {
                     message = "Please respond to Question " + std::to_string(i+1);
                     ImGui::OpenPopup("Message");
@@ -290,7 +315,7 @@ public:
         json j;
         j["subject"] = subject;
         j["age"] = age;
-        j["gender"] = (sex == Male ? "Male" : sex == Female ? "Female" : sex == Other ? "Other" : "None");
+        j["gender"] = genders[sex]; //(sex == Male ? "Male" : sex == Female ? "Female" : sex == Other ? "Other" : "NA");
         if (continuous) {
             j["responses"] = responsesC;
         }
@@ -299,21 +324,29 @@ public:
             j["responsesText"] = responsesText;
         }
         j["order"] = order;
-        j["wristW"] = wristW;
-        j["wristH"] = wristH;
-        j["wristC"] = wristC;
-        std::ofstream file("subject_" + std::to_string(subject) + ".json");
+        j["control"] = controllers[control]; //(control == Position ? "Position" : control == Force ? "Force" : "None");
+        j["dof"] = dofs[dof]; //(dof == Normal ? "Normal" : dof == Shear ? "Shear" : "Undefined");
+        j["exp"] = exps[exp]; //(exp == MCS ? "MCS" : exp == SM ? "SM" : exp == MA ? "MA" : exp == Cycle ? "Cycle" : "Unspecified");;
+        std::ofstream file("C:/Git/TactilePsychophysics/data/Likert/likert_subject_" + std::to_string(subject) + "_exp_" + exps[exp] + "_dof_" + dofs[dof] + "_control_" + controllers[control] + ".json");
         if (file.is_open())
             file << std::setw(4) << j << std::endl;
         // reset state
         subject = -1;
-        sex = NoGender;
+        sex = NA;
         age = -1;
+        control = None;
+        dof = Undefined;
+        exp = Unspecified;
         responses = std::vector<Response>(responses.size(), NoResponse);
         message = "Thank you for participating!";
         ImGui::OpenPopup("Message");
         return true;
     }
+
+    std::string genders[4] =  { "NA", "Male", "Female", "Other" };
+    std::string controllers[3] = { "None", "Position", "Force" };
+    std::string dofs[3] = { "Undefined", "Normal", "Shear" };
+    std::string exps[5] = { "MCS", "SM", "MA", "Cycle", "Unspecified" };
 
     int subject = -1;                    ///< subject input text
     bool loaded = false;                 ///< was the Likert config loaded?
@@ -322,7 +355,10 @@ public:
     std::vector<Response> responses;     ///< survey responses
     std::vector<float> responsesC;       ///< survey responses
     std::vector<int> order;              ///< question order
-    Gender sex = NoGender;               ///< is subject male?
+    Gender sex = NA;               ///< is subject male?
+    Control control = None;
+    DOF dof = Undefined;
+    Experiment exp = Unspecified;
     int age = -1;                        ///< subject age
     bool autoClose = false;              ///< should the app close when the user submits a response?
     float width, height;                 ///< window width/height
@@ -330,7 +366,6 @@ public:
     std::string message;                 ///< error message to dispaly
     bool continuous;
     bool randomize;
-    float wristH = 0, wristW = 0, wristC = 0; ///< wrist dims
 };
 
 int main(int argc, char const *argv[])

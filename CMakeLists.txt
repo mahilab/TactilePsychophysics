@@ -46,8 +46,11 @@ target_compile_features(cm PUBLIC cxx_std_17)
 
 # ANSI C DLL
 
-add_executable(survey src/Apps/survey.cpp)
-target_link_libraries(survey mahi::gui)
+add_executable(likert src/Apps/survey-likert.cpp)
+target_link_libraries(likert mahi::gui)
+
+add_executable(bioInfo src/Apps/survey-BioInfo.cpp)
+target_link_libraries(bioInfo mahi::gui)
 
 add_executable(PosControl2DOF_NoGui src/Apps/runTwoMotorPositionControl_moduleNoGui.cpp)
 target_link_libraries(PosControl2DOF_NoGui mahi::daq mahi::robo mahi::util cm)
