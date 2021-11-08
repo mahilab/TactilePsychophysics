@@ -205,13 +205,14 @@ private:
     bool    m_debug                = false;
     bool    m_flag_presentStims    = false;
     bool    m_flag_reachedMAValue  = false;
+    bool    m_flag_first_to_start;
+    double  m_maxRangePercent = 0.8;
     double  m_userStimulusMin      = 0;
     double  m_userStimulusMax      = 0;
     double  m_userStimulusContact  = 0;
     double  m_userShearTestNormPos = 0;
     double  m_targetPosLock        = 0;
     double  m_targetPosTest        = 0;
-    bool    m_flag_first_to_start;
     QueryContact                m_q;        //< most recent QueryInd point
 
     // Hertzian Contact

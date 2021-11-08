@@ -456,18 +456,18 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         m_hub.start();
 
         if (m_whichDof == ContactMechGui::Shear) { // test shear direction
-            m_cm_lock->setPositionRange(m_userparams.positionMin_n, m_userparams.positionMax_n); // [mm] subject-specific
-            m_cm_lock->setForceRange(m_userparams.forceMin_n, m_userparams.forceMax_n); // [N] subject-specific
+            m_cm_lock->setPositionRange(m_userparams.positionMin_n, m_maxRangePercent*m_userparams.positionMax_n); // [mm] subject-specific
+            m_cm_lock->setForceRange(m_userparams.forceMin_n, m_maxRangePercent*m_userparams.forceMax_n); // [N] subject-specific
 
-            m_cm_test->setPositionRange(m_userparams.positionMin_t, m_userparams.positionMax_t); // [mm] subject-specific
-            m_cm_test->setForceRange(m_userparams.forceMin_t, m_userparams.forceMax_t); // [N] subject-specific
+            m_cm_test->setPositionRange(m_userparams.positionMin_t, m_maxRangePercent*m_userparams.positionMax_t); // [mm] subject-specific
+            m_cm_test->setForceRange(m_userparams.forceMin_t, m_maxRangePercent*m_userparams.forceMax_t); // [N] subject-specific
 
         }else if (m_whichDof == ContactMechGui::Normal){ // test normal direction
-            m_cm_lock->setPositionRange(m_userparams.positionMin_t, m_userparams.positionMax_t); // [mm] subject-specific
-            m_cm_lock->setForceRange(m_userparams.forceMin_t, m_userparams.forceMax_t); // [N] subject-specific
+            m_cm_lock->setPositionRange(m_userparams.positionMin_t, m_maxRangePercent*m_userparams.positionMax_t); // [mm] subject-specific
+            m_cm_lock->setForceRange(m_userparams.forceMin_t, m_maxRangePercent*m_userparams.forceMax_t); // [N] subject-specific
             
-            m_cm_test->setPositionRange(m_userparams.positionMin_n, m_userparams.positionMax_n); // [mm] subject-specific
-            m_cm_test->setForceRange(m_userparams.forceMin_n, m_userparams.forceMax_n); // [N] subject-specific
+            m_cm_test->setPositionRange(m_userparams.positionMin_n, m_maxRangePercent*m_userparams.positionMax_n); // [mm] subject-specific
+            m_cm_test->setForceRange(m_userparams.forceMin_n, m_maxRangePercent*m_userparams.forceMax_n); // [N] subject-specific
         }
     }
 
@@ -585,7 +585,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
     Enumerator ContactMechGui::lockExtraDofs(){
         std::cout << "Lock extra dofs" << std::endl;
-        m_userShearTestNormPos = 0.75*(m_userparams.positionMax_n - m_userparams.positionMin_n) + m_userparams.positionMin_n;
+        m_userShearTestNormPos = 0.75*(m_maxRangePercent*m_userparams.positionMax_n - m_userparams.positionMin_n) + m_userparams.positionMin_n;
 
         std::cout << "     set lock in position control in the current location" << std::endl;
         if (m_whichDof == ContactMechGui::Shear){
@@ -648,11 +648,11 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
             if (m_whichDof == ContactMechGui::Shear){ // test shear
                 m_userStimulusMin = m_userparams.positionMin_t;
-                m_userStimulusMax = m_userparams.positionMax_t;
+                m_userStimulusMax = m_maxRangePercent*m_userparams.positionMax_t;
                 m_userStimulusContact = m_userparams.positionCont_t;
             }else if (m_whichDof == ContactMechGui::Normal){ // test normal
                 m_userStimulusMin = m_userparams.positionMin_n;
-                m_userStimulusMax = m_userparams.positionMax_n;
+                m_userStimulusMax = m_maxRangePercent*m_userparams.positionMax_n;
                 m_userStimulusContact = m_userparams.positionCont_n;
             }
 
@@ -681,11 +681,11 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
             if (m_whichDof == ContactMechGui::Shear){ // test shear
                 m_userStimulusMin = m_userparams.forceMin_t;
-                m_userStimulusMax = m_userparams.forceMax_t;
+                m_userStimulusMax = m_maxRangePercent*m_userparams.forceMax_t;
                 m_userStimulusContact = m_userparams.forceCont_t;
             }else if (m_whichDof == ContactMechGui::Normal){ // test normal
                 m_userStimulusMin = m_userparams.forceMin_n;
-                m_userStimulusMax = m_userparams.forceMax_n;
+                m_userStimulusMax = m_maxRangePercent*m_userparams.forceMax_n;
                 m_userStimulusContact = m_userparams.forceCont_n;
             }
         }else{

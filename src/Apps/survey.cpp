@@ -52,7 +52,9 @@ public:
     /// Constructor
     Likert() : Application(500,500,"",false) { 
         ImGui::DisableViewports();
+        std::cout << "constructor before" << std::endl;
         loaded = load();
+        std::cout << "constructor after" << std::endl;
         ImGui::StyleColorsMahiDark3();
     }
 
@@ -221,10 +223,13 @@ public:
                 center_window();
             }
             catch(...) {
+                std::cout << "sono qui 2" << std::endl;
                 return false;
             }
+            std::cout << "sono qui 3" << std::endl;
             return true;
         }
+        std::cout << "sono qui 4" << std::endl;
         return false;
     }
 
