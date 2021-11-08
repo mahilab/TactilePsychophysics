@@ -37,6 +37,7 @@ using namespace mahi::util;
 class Likert : public Application {
 public:
 
+    std::string filename = "C:/Git/TactilePsychophysics/src/Apps/survey_config.json";
     enum Gender { NoGender, Male, Female, Other };
 
     enum Response {
@@ -190,9 +191,9 @@ public:
 
     /// Load in Likert config file
     bool load() {
-        if (fs::exists("survey_config.json")) {
+        if (fs::exists(filename)) {
             try {
-                std::ifstream file("survey_config.json");
+                std::ifstream file(filename);
                 json j;
                 file >> j;
                 title = j["title"].get<std::string>();
@@ -329,8 +330,9 @@ public:
 
 int main(int argc, char const *argv[])
 {
-    // if there doesn't exist a "survey_config.json" file, make a default one
-    if (!fs::exists("survey_config.json")) {
+    Likert likert;
+    // if there doesn't exist a filename file, make a default one
+    if (!fs::exists(likert.filename)) {
         json j;
         j["title"] = "My Likert Survey";
         j["questions"] = {"Making GUIs with mahi-gui is easy", 
@@ -345,12 +347,12 @@ int main(int argc, char const *argv[])
         j["randomize"] = true;
         j["rowHeight"] = 30;
         j["continuous"] = false;
-        std::ofstream file("survey_config.json");
+        std::ofstream file(likert.filename);
         if (file.is_open())
             file << std::setw(4) << j;
     }
     // run the GUI
-    Likert likert;
+    
     likert.run();
     return 0;
 }
