@@ -230,11 +230,11 @@ void PsychTest::buildStimTrials() {
                     //  standard first
                     trial.testmode   = m_testmode;
                     trial.whichExp   = m_whichExp;
-                    trial.whichDof   = m_whichDof; // minus m_jnd_stimulus_reference?
+                    trial.whichDof   = m_whichDof; 
                     trial.controller = m_controller;
                     trial.generated_num     = i++;
                     trial.window     = w;
-                    trial.level      = f-5; // minus m_jnd_stimulus_reference?
+                    trial.level      = f - floor(m_params.n_mcs_comparisons/2); 
                     trial.stimulus1  = m_jnd_stimulus_reference;
                     trial.stimulus2  = m_jnd_stim_levels[f];
                     trial.standard   = 1;
@@ -246,11 +246,11 @@ void PsychTest::buildStimTrials() {
                     // standard second
                     trial.testmode   = m_testmode;
                     trial.whichExp   = m_whichExp;
-                    trial.whichDof   = m_whichDof; // minus m_jnd_stimulus_reference?
+                    trial.whichDof   = m_whichDof; 
                     trial.controller = m_controller;
                     trial.generated_num     = i++;
                     trial.window     = w;
-                    trial.level      = f-5; // minus m_jnd_stimulus_reference?
+                    trial.level      = f - floor(m_params.n_mcs_comparisons/2); 
                     trial.stimulus1  = m_jnd_stim_levels[f];
                     trial.stimulus2  = m_jnd_stimulus_reference;
                     trial.standard   = 2;
