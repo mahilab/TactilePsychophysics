@@ -583,12 +583,12 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     } // run experiment
     
     void PsychGui::writeSMOutputStimVariables(Csv& csv){
-        csv.write_row("Time", "Mode","Dof","ControlType","StairNum","Trial","Dir","lastSlope","CrossNum","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
+        csv.write_row("Time", "Mode","Dof","ControlType","StairNum","Trial","Dir","lastSlope","ReversalNum","isReversal","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
     }
 
     void PsychGui::writeSMOutputStimData(Csv& csv, PsychTest::QuerySM trial){
         avgSensorData();
-        csv.write_row(time().as_seconds(), trial.testmode, trial.whichDof, trial.controller, trial.num_staircase, trial.trialnum, trial.direction, trial.lastSlope, trial.num_reversal, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.correct, trial.answer, trial.greater, m_stim1_avgNormF, m_stim1_avgShearF, m_stim1_avgNormP, m_stim1_avgShearP, m_stim2_avgNormF, m_stim2_avgShearF, m_stim2_avgNormP, m_stim2_avgShearP);
+        csv.write_row(time().as_seconds(), trial.testmode, trial.whichDof, trial.controller, trial.num_staircase, trial.trialnum, trial.direction, trial.lastSlope, trial.num_reversal, trial.isReversal, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.correct, trial.answer, trial.greater, m_stim1_avgNormF, m_stim1_avgShearF, m_stim1_avgNormP, m_stim1_avgShearP, m_stim2_avgNormF, m_stim2_avgShearF, m_stim2_avgNormP, m_stim2_avgShearP);
     } 
 
     void PsychGui::writeSMOutputTimeVariables(Csv& csv){

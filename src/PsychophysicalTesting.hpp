@@ -91,6 +91,7 @@ public:
         Direction direction = PsychTest::None; // will be either moving up or down from the previous trial
         Direction lastSlope = PsychTest::None;
         int num_reversal = 0;
+        bool isReversal = 0;
         double stimulus1 = 0;
         double stimulus2 = 0;
         int standard = 0;   // 1 or 2
@@ -234,6 +235,7 @@ protected:
     bool        isNewStair = 1;
     int         m_num_staircase = 0;
     int         m_num_reversal = 0;
+    bool        m_isReversal = 0;
     Direction   m_direction = None; 
     Direction   m_lastSlope = None;
 

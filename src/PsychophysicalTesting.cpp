@@ -294,6 +294,7 @@ void PsychTest::printQueriesSM(QuerySM q) {
     std::cout << "direction " << currdirection[q.direction] << std::endl; 
     std::cout << "lastSlope " << currdirection[q.lastSlope] << std::endl; 
     std::cout << "num_reversal " << q.num_reversal << std::endl;
+    std::cout << "isReversal " << q.isReversal << std::endl;
     std::cout << "stimulus1 " << q.stimulus1 << std::endl;
     std::cout << "stimulus2 " << q.stimulus2 << std::endl;
     std::cout << "standard " << q.standard << std::endl; 
@@ -385,13 +386,14 @@ void PsychTest::setNextTrialSM(){
                 m_direction = None;
 
             // Determine if a reversal has taken place
-            bool ifReversal = m_direction != m_lastSlope && m_direction !=None && m_lastSlope !=None;
+            // Question ----- Actually, reversal was the last query? overwrite isReversal there?????????????????????????
+            m_isReversal = m_direction != m_lastSlope && m_direction !=None && m_lastSlope !=None;
                 
             if(m_direction !=None){
                 m_lastSlope = m_direction;
             }
             
-            m_num_reversal = m_q_sm.num_reversal + (ifReversal ? 1 : 0); // if a reveral has taken place increment the number of reversals
+            m_num_reversal = m_q_sm.num_reversal + (m_isReversal ? 1 : 0); // if a reveral has taken place increment the number of reversals
 
         } // is response recorded?
     } // is it a new stair?
@@ -412,6 +414,7 @@ void PsychTest::setNextTrialSM(){
     m_q_sm.direction     = m_direction;
     m_q_sm.lastSlope     = m_lastSlope;
     m_q_sm.num_reversal  = m_num_reversal;
+    m_q_sm.isReversal    = m_isReversal;
     m_q_sm.stimulus1     = m_stdFirst[num_0_9] ? m_jnd_stimulus_reference : m_jnd_stimulus_comparison;
     m_q_sm.stimulus2     = m_stdFirst[num_0_9] ? m_jnd_stimulus_comparison : m_jnd_stimulus_reference;
     m_q_sm.standard      = m_stdFirst[num_0_9] ? 1 : 2;
@@ -432,6 +435,7 @@ void PsychTest::setNewStaircase(){
     m_direction = None;
     m_lastSlope = None;
     m_num_reversal = 0;
+    m_isReversal = 0;
     m_jnd_stimulus_comparison = 0;
 
     //increment num of staircases
