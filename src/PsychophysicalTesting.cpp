@@ -54,23 +54,23 @@ void PsychTest::setParams(Params config) {
     
     if (m_whichDof == Shear){
         if (m_controller == Position){
-            m_userStimulusContact  = m_userparams.positionCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusContact  = m_userparams.positionCont_t; 
             m_userStimulusMin = m_userparams.positionMin_t;
-            m_userStimulusMax = m_userparams.positionMax_t;
+            m_userStimulusMax = m_maxRangePercent*m_userparams.positionMax_t;
         }else if (m_controller == Force){
-            m_userStimulusContact  = m_userparams.forceCont_t; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusContact  = m_userparams.forceCont_t; 
             m_userStimulusMin = m_userparams.forceMin_t;
-            m_userStimulusMax = m_userparams.forceMax_t;
+            m_userStimulusMax = m_maxRangePercent*m_userparams.forceMax_t;
         }
     }else if (m_whichDof == Normal){
         if (m_controller == Position){
-            m_userStimulusContact  = m_userparams.positionCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusContact  = m_userparams.positionCont_n; 
             m_userStimulusMin = m_userparams.positionMin_n;
-            m_userStimulusMax = m_userparams.positionMax_n;
+            m_userStimulusMax = m_maxRangePercent*m_userparams.positionMax_n;
         }else if (m_controller == Force){
-            m_userStimulusContact  = m_userparams.forceCont_n; // ??????????????????? contact or abs threshold for force/position (from calibration?) 
+            m_userStimulusContact  = m_userparams.forceCont_n; 
             m_userStimulusMin = m_userparams.forceMin_n;
-            m_userStimulusMax = m_userparams.forceMax_n;
+            m_userStimulusMax = m_maxRangePercent*m_userparams.forceMax_n;
         }
     }
     

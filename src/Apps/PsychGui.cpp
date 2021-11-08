@@ -290,7 +290,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 while (elapsed < m_psychparams.stimulus_time) {
                     responseWindow(PsychTest::First);
                     // collect values while the stimulus is held
-                    collectSensorData(PsychTest::First);
+                    collectSensorData(PsychTest::First, m_pt.m_q_mcs.standard);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 }
@@ -329,7 +329,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 while (elapsed < m_psychparams.stimulus_time) {
                     responseWindow(PsychTest::Second);
                     //collect values while the stimulus is held
-                    collectSensorData(PsychTest::Second);
+                    collectSensorData(PsychTest::Second, m_pt.m_q_mcs.standard);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 }
@@ -390,12 +390,12 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     }
     
     void PsychGui::writeMCSOutputStimVariables(Csv& csv){
-        csv.write_row("Time","Mode","Dof","ControlType","Trial","GenNum","Window","Level","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
+        csv.write_row("Time","Mode","Dof","ControlType","Trial","GenNum","Window","Level","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormFRef", "ShearFRef", "NormPRef", "ShearPRef","NormFComp", "ShearFComp", "NormPComp", "ShearPComp" );
     }
     
     void PsychGui::writeMCSOutputStimData(Csv& csv, PsychTest::QueryMCS trial){
         avgSensorData();
-        csv.write_row(time().as_seconds(), trial.testmode, trial.whichDof, trial.controller, trial.trialnum, trial.generated_num, trial.window, trial.level, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.correct, trial.answer, trial.greater, m_stim1_avgNormF, m_stim1_avgShearF, m_stim1_avgNormP, m_stim1_avgShearP, m_stim2_avgNormF, m_stim2_avgShearF, m_stim2_avgNormP, m_stim2_avgShearP);
+        csv.write_row(time().as_seconds(), trial.testmode, trial.whichDof, trial.controller, trial.trialnum, trial.generated_num, trial.window, trial.level, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.correct, trial.answer, trial.greater, m_ref_avgNormF, m_ref_avgShearF, m_ref_avgNormP, m_ref_avgShearP, m_comp_avgNormF, m_comp_avgShearF, m_comp_avgNormP, m_comp_avgShearP);
     }
 
     void PsychGui::writeMCSOutputTimeVariables(Csv& csv){
@@ -477,7 +477,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                     while (elapsed < m_psychparams.stimulus_time) {
                         responseWindow(PsychTest::First);
                         // collect values while the stimulus is held
-                        collectSensorData(PsychTest::First);
+                        collectSensorData(PsychTest::First, m_pt.m_q_sm.standard);
                         elapsed += delta_time().as_seconds();
                         co_yield nullptr;
                     }
@@ -512,7 +512,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                     while (elapsed < m_psychparams.stimulus_time) {
                         responseWindow(PsychTest::Second);
                         //collect values while the stimulus is held
-                        collectSensorData(PsychTest::Second);
+                        collectSensorData(PsychTest::Second, m_pt.m_q_sm.standard);
                         elapsed += delta_time().as_seconds();
                         co_yield nullptr;
                     }
@@ -583,12 +583,12 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     } // run experiment
     
     void PsychGui::writeSMOutputStimVariables(Csv& csv){
-        csv.write_row("Time", "Mode","Dof","ControlType","StairNum","Trial","Dir","lastSlope","ReversalNum","isReversal","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
+        csv.write_row("Time", "Mode","Dof","ControlType","StairNum","Trial","Dir","lastSlope","ReversalNum","isReversal","Stimulus1","Stimulus2","Standard","Comparison","Correct","Answer","Greater","NormFRef", "ShearFRef", "NormPRef", "ShearPRef","NormFComp", "ShearFComp", "NormPComp", "ShearPComp" );
     }
 
     void PsychGui::writeSMOutputStimData(Csv& csv, PsychTest::QuerySM trial){
         avgSensorData();
-        csv.write_row(time().as_seconds(), trial.testmode, trial.whichDof, trial.controller, trial.num_staircase, trial.trialnum, trial.direction, trial.lastSlope, trial.num_reversal, trial.isReversal, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.correct, trial.answer, trial.greater, m_stim1_avgNormF, m_stim1_avgShearF, m_stim1_avgNormP, m_stim1_avgShearP, m_stim2_avgNormF, m_stim2_avgShearF, m_stim2_avgNormP, m_stim2_avgShearP);
+        csv.write_row(time().as_seconds(), trial.testmode, trial.whichDof, trial.controller, trial.num_staircase, trial.trialnum, trial.direction, trial.lastSlope, trial.num_reversal, trial.isReversal, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.correct, trial.answer, trial.greater, m_ref_avgNormF, m_ref_avgShearF, m_ref_avgNormP, m_ref_avgShearP, m_comp_avgNormF, m_comp_avgShearF, m_comp_avgNormP, m_comp_avgShearP);
     } 
 
     void PsychGui::writeSMOutputTimeVariables(Csv& csv){
@@ -726,7 +726,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 while (elapsed < m_psychparams.stimulus_time) {
                     responseWindowMA(PsychTest::First);
                     // collect values while the stimulus is held
-                    collectSensorData(PsychTest::First);
+                    collectSensorData(PsychTest::First, m_pt.m_q_ma.standard);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 }
@@ -761,7 +761,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 while (elapsed < m_psychparams.stimulus_time) {
                     responseWindowMA(PsychTest::Second);
                     //collect values while the stimulus is held
-                    collectSensorData(PsychTest::Second);
+                    collectSensorData(PsychTest::Second, m_pt.m_q_ma.standard);
                     elapsed += delta_time().as_seconds();
                     co_yield nullptr;
                 }
@@ -801,7 +801,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             // collect response and adjust value
             while (true) {
                 responseWindowMA(PsychTest::Choose);
-                collectSensorData(PsychTest::Adjust);
+                collectSensorData(PsychTest::Adjust, m_pt.m_q_ma.standard);
 
                 double stimChange = m_whatChange*m_pt.m_jnd_stimulus_interval;
                 setTest(m_jnd_current_stimulus += stimChange);
@@ -857,12 +857,12 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     }
     
     void PsychGui::writeMAOutputStimVariables(Csv& csv){
-        csv.write_row("Time", "Mode","Dof","ControlType","Trial","Stimulus1","Stimulus2","Standard","Comparison","Adjust","Dir","Change","FinalVal","NormF1", "ShearF1", "NormP1", "ShearP1","NormF2", "ShearF2", "NormP2", "ShearP2" );
+        csv.write_row("Time", "Mode","Dof","ControlType","Trial","Stimulus1","Stimulus2","Standard","Comparison","Adjust","Dir","Change","FinalVal","NormFRef", "ShearFRef", "NormPRef", "ShearPRef","NormFComp", "ShearFComp", "NormPComp", "ShearPComp","NormFAdjust", "ShearFAdjust", "NormPAdjust", "ShearPAdjust"  );
     }
 
     void PsychGui::writeMAOutputStimData(Csv& csv, PsychTest::QueryMA trial){
         avgSensorData();
-        csv.write_row(time().as_seconds(), trial.testmode, trial.whichDof, trial.controller, trial.trialnum, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.adjust, trial.direction, trial.change, trial.finalVal, m_stim1_avgNormF, m_stim1_avgShearF, m_stim1_avgNormP, m_stim1_avgShearP, m_stim2_avgNormF, m_stim2_avgShearF, m_stim2_avgNormP, m_stim2_avgShearP);
+        csv.write_row(time().as_seconds(), trial.testmode, trial.whichDof, trial.controller, trial.trialnum, trial.stimulus1, trial.stimulus2, trial.standard, trial.comparison, trial.adjust, trial.direction, trial.change, trial.finalVal, m_ref_avgNormF, m_ref_avgShearF, m_ref_avgNormP, m_ref_avgShearP, m_comp_avgNormF, m_comp_avgShearF, m_comp_avgNormP, m_comp_avgShearP, m_adjust_avgNormF, m_adjust_avgShearF, m_adjust_avgNormP, m_adjust_avgShearP);
     } 
 
     void PsychGui::writeMAOutputTimeVariables(Csv& csv){
@@ -1253,31 +1253,31 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
     }
 
-    void PsychGui::collectSensorData(PsychTest::WhichStim whichStim){
+    void PsychGui::collectSensorData(PsychTest::WhichStim whichStim, int refOrder){
 
-        if(whichStim == PsychTest::First){
+        if((whichStim == PsychTest::First && refOrder == 1) || (whichStim == PsychTest::Second && refOrder == 2)){
             if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
-                m_stim1_normF.push_back(m_cm_lock->getForce(1));
-                m_stim1_shearF.push_back(m_cm_test->getForce(1));
-                m_stim1_normP.push_back(m_cm_lock->getSpoolPosition());
-                m_stim1_shearP.push_back(m_cm_test->getSpoolPosition());
+                m_ref_normF.push_back(m_cm_lock->getForce(1));
+                m_ref_shearF.push_back(m_cm_test->getForce(1));
+                m_ref_normP.push_back(m_cm_lock->getSpoolPosition());
+                m_ref_shearP.push_back(m_cm_test->getSpoolPosition());
             }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
-                m_stim1_normF.push_back(m_cm_test->getForce(1));
-                m_stim1_shearF.push_back(m_cm_lock->getForce(1));
-                m_stim1_normP.push_back(m_cm_test->getSpoolPosition());
-                m_stim1_shearP.push_back(m_cm_lock->getSpoolPosition());
+                m_ref_normF.push_back(m_cm_test->getForce(1));
+                m_ref_shearF.push_back(m_cm_lock->getForce(1));
+                m_ref_normP.push_back(m_cm_test->getSpoolPosition());
+                m_ref_shearP.push_back(m_cm_lock->getSpoolPosition());
             }
-        }else if(whichStim == PsychTest::Second){
+        }else if((whichStim == PsychTest::Second && refOrder == 1) || (whichStim == PsychTest::First && refOrder == 2)){
             if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
-                m_stim2_normF.push_back(m_cm_lock->getForce(1));
-                m_stim2_shearF.push_back(m_cm_test->getForce(1));
-                m_stim2_normP.push_back(m_cm_lock->getSpoolPosition());
-                m_stim2_shearP.push_back(m_cm_test->getSpoolPosition());
+                m_comp_normF.push_back(m_cm_lock->getForce(1));
+                m_comp_shearF.push_back(m_cm_test->getForce(1));
+                m_comp_normP.push_back(m_cm_lock->getSpoolPosition());
+                m_comp_shearP.push_back(m_cm_test->getSpoolPosition());
             }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
-                m_stim2_normF.push_back(m_cm_test->getForce(1));
-                m_stim2_shearF.push_back(m_cm_lock->getForce(1));
-                m_stim2_normP.push_back(m_cm_test->getSpoolPosition());
-                m_stim2_shearP.push_back(m_cm_lock->getSpoolPosition());
+                m_comp_normF.push_back(m_cm_test->getForce(1));
+                m_comp_shearF.push_back(m_cm_lock->getForce(1));
+                m_comp_normP.push_back(m_cm_test->getSpoolPosition());
+                m_comp_shearP.push_back(m_cm_lock->getSpoolPosition());
             }
         }else if(whichStim == PsychTest::Adjust){
             if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
@@ -1295,15 +1295,15 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     }
 
     void PsychGui::avgSensorData(){
-        m_stim1_avgNormF = mean(m_stim1_normF.get_vector());
-        m_stim1_avgShearF = mean(m_stim1_shearF.get_vector());
-        m_stim1_avgNormP = mean(m_stim1_normP.get_vector());
-        m_stim1_avgShearP = mean(m_stim1_shearP.get_vector());
+        m_ref_avgNormF = mean(m_ref_normF.get_vector());
+        m_ref_avgShearF = mean(m_ref_shearF.get_vector());
+        m_ref_avgNormP = mean(m_ref_normP.get_vector());
+        m_ref_avgShearP = mean(m_ref_shearP.get_vector());
 
-        m_stim2_avgNormF = mean(m_stim2_normF.get_vector());
-        m_stim2_avgShearF = mean(m_stim2_shearF.get_vector());
-        m_stim2_avgNormP = mean(m_stim2_normP.get_vector());
-        m_stim2_avgShearP = mean(m_stim2_shearP.get_vector());
+        m_comp_avgNormF = mean(m_comp_normF.get_vector());
+        m_comp_avgShearF = mean(m_comp_shearF.get_vector());
+        m_comp_avgNormP = mean(m_comp_normP.get_vector());
+        m_comp_avgShearP = mean(m_comp_shearP.get_vector());
 
         m_adjust_avgNormF = mean(m_adjust_normF.get_vector());
         m_adjust_avgShearF = mean(m_adjust_shearF.get_vector());

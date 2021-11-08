@@ -126,7 +126,7 @@ public:
 
     void userLimitsExceeded();
 
-    void collectSensorData(PsychTest::WhichStim whichStim);
+    void collectSensorData(PsychTest::WhichStim whichStim, int refOrder);
 
     void avgSensorData();
 
@@ -151,30 +151,30 @@ public:
     Csv csv;
 
     // Create buffers for calculating the forces and positions during each cue
-    mahi::util::RingBuffer<double> m_stim1_normF{50};
-    mahi::util::RingBuffer<double> m_stim1_shearF{50};
-    mahi::util::RingBuffer<double> m_stim1_normP{50};
-    mahi::util::RingBuffer<double> m_stim1_shearP{50};
+    mahi::util::RingBuffer<double> m_ref_normF{50};
+    mahi::util::RingBuffer<double> m_ref_shearF{50};
+    mahi::util::RingBuffer<double> m_ref_normP{50};
+    mahi::util::RingBuffer<double> m_ref_shearP{50};
 
-    mahi::util::RingBuffer<double> m_stim2_normF{50};
-    mahi::util::RingBuffer<double> m_stim2_shearF{50};
-    mahi::util::RingBuffer<double> m_stim2_normP{50};
-    mahi::util::RingBuffer<double> m_stim2_shearP{50};
+    mahi::util::RingBuffer<double> m_comp_normF{50};
+    mahi::util::RingBuffer<double> m_comp_shearF{50};
+    mahi::util::RingBuffer<double> m_comp_normP{50};
+    mahi::util::RingBuffer<double> m_comp_shearP{50};
 
     mahi::util::RingBuffer<double> m_adjust_normF{50};
     mahi::util::RingBuffer<double> m_adjust_shearF{50};
     mahi::util::RingBuffer<double> m_adjust_normP{50};
     mahi::util::RingBuffer<double> m_adjust_shearP{50};
     
-    double m_stim1_avgNormF;
-    double m_stim1_avgShearF;
-    double m_stim1_avgNormP;
-    double m_stim1_avgShearP;
+    double m_ref_avgNormF;
+    double m_ref_avgShearF;
+    double m_ref_avgNormP;
+    double m_ref_avgShearP;
 
-    double m_stim2_avgNormF;
-    double m_stim2_avgShearF;
-    double m_stim2_avgNormP;
-    double m_stim2_avgShearP;
+    double m_comp_avgNormF;
+    double m_comp_avgShearF;
+    double m_comp_avgNormP;
+    double m_comp_avgShearP;
 
     double m_adjust_avgNormF;
     double m_adjust_avgShearF;
