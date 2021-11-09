@@ -1,0 +1,2 @@
+Mode,Dof,ControlType,Trial,Stimulus1,Stimulus2,Standard,Comparison,Adjust,Dir,Change,FinalVal,NormF1,ShearF1,NormP1,ShearP1,NormF2,ShearF2,NormP2,ShearP2
+1,1,0,1,8.40041e-312,6.4,1,2,1,2,0,6.4,9.32481e-313,1.06851e-317,9.32481e-313,2.13897e-311,0,0,8.38188e-312,0

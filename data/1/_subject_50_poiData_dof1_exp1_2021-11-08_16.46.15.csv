@@ -1,0 +1,2 @@
+Time,Mode,Dof,ControlType,PointOfInterest,Cycle,Fn,Ft,deltaN,deltaN,eeRadius,CombinedE,ContactRadius,PlanarA,SphericalA,MeanStress,MeanStrain,ElasticStrainEnergy_N,YoungModulusNS,PoissonNS,CouplingBetaNS,ShearModulusNS,ComplianceN_NS,ComplianceT_NS
+30.6571,2,1,0,2,1,0.380714,0.0018665,-0.388556,0.000183975,30,-nan(ind),-nan(ind),-nan(ind),-73.241,-nan(ind),-nan(ind),-nan(ind),-nan(ind),1.63313,1.78973,-nan(ind),-nan(ind),0
