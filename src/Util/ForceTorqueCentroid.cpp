@@ -9,8 +9,11 @@ FTC::FTC(const double* ch0, const double* ch1, const double* ch2, const double* 
 const double* ch4, const double* ch5, const std::string& filepath):
 ati(ch0, ch1, ch2, ch3, ch4, ch5, filepath)
 {
+    std::cout << "sono qui" << std::endl;
     withAti = 1;
+    std::cout << "sono qui" << std::endl;
     FTC::update();
+    std::cout << "sono qui" << std::endl;
 }
 
 FTC::FTC(std::vector<double> forces, std::vector<double> torques){

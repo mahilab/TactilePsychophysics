@@ -9,6 +9,7 @@
 #include "CMHub.hpp"
 #include "UserParams.hpp"
 #include "Util/HertzianContact.hpp"
+#include "Util/ForceTorqueCentroid.hpp"
 
 #include <Mahi/Daq.hpp>
 #include <Mahi/Util.hpp>
@@ -58,23 +59,23 @@ public:
 
     /// ContactMechGui Parameter Configuration
     struct Params {
-        double start_height         = -5.0;   // [mm]
-        double initial_force        = 0.5;    // [N]  Question - what is 1G of force ?????????????
+        double start_height         = -5.0; // [mm]
+        double initial_force        = 1.0;  // [N]  contact, the pub says 1G of force
         double normalForceForTan    = 3;    // [N]
         double stimulus_velocity    = 0.5;  // [mm/s]
         double travel_velocity      = 4.0;  // [mm/s]
         double trial_break          = 30;   // [s]
         int    n_ind_trials         = 5;
-        double ind_final_force      = 2;    // [N]  Question - what is 5-10G of force ?????????
+        double ind_final_force      = 5.0;  // [N]  subject max, the pub says 5-10G of force
         int    n_creep_trials       = 5;
         double creep_hold           = 30;   // [s]
-        double creep_final_force    = 500;  // [N]  Question - is this ok???????
+        double creep_final_force    = 5.0;  // [N]  subject max, the pub says 500N ...
         int    n_relax_trials       = 5;    
         double relax_hold           = 30;   // [s]
-        double relax_final_force    = 500;  // [N]  Question - is this ok???????
+        double relax_final_force    = 5.0;  // [N] subject max, the pub says 500N ...
         int    n_cycle_cycles       = 5;
-        double relax_min_force      = 500;  // [N]  subject min
-        double relax_peak_force     = 500;  // [N]  subject max
+        double cycle_min_force      = -1;   // [N]  subject min
+        double cycle_peak_force     = -1;  // [N]  subject max
     };
 
         /// ContactMechGui QueryMCS
@@ -197,28 +198,35 @@ private:
     // General Experiment Variables
     PointInterest m_poi = Other;
     ControlType m_controller = Position;
-    int     m_cyclenum             = 0;
-    double  m_Fn                   = 0;
-    double  m_Ft                   = 0;
-    double  m_deltaN               = 0;
-    double  m_deltaT               = 0;
-    bool    m_debug                = false;
-    bool    m_flag_presentStims    = false;
-    bool    m_flag_reachedMAValue  = false;
+    QueryContact  m_q;        //< most recent QueryInd point
+    int     m_cyclenum                  = 0;
+    double  m_Fn                        = 0;
+    double  m_Ft                        = 0;
+    double  m_deltaN                    = 0;
+    double  m_deltaT                    = 0;
+    bool    m_debug                     = false;
+    bool    m_flag_presentStims         = false;
+    bool    m_flag_reachedMAValue       = false;
     bool    m_flag_first_to_start;
-    double  m_maxRangePercent = 0.8;
-    double  m_userStimulusMin      = 0;
-    double  m_userStimulusMax      = 0;
-    double  m_userStimulusContact  = 0;
-    double  m_userShearTestNormPos = 0;
-    double  m_targetPosLock        = 0;
-    double  m_targetPosTest        = 0;
-    QueryContact                m_q;        //< most recent QueryInd point
+    double  m_maxRangePercent           = 0.8;
+    double  m_userStimulusForceMin      = 0;
+    double  m_userStimulusForceMax      = 0;
+    double  m_userStimulusForceContact  = 0;
+    double  m_userStimulusPosMin        = 0;
+    double  m_userStimulusPosMax        = 0;
+    double  m_userStimulusPosContact    = 0;
+    double  m_userShearTestNormPos      = 0;
+    double  m_targetPosLock             = 0;
+    double  m_targetPosTest             = 0;
 
     // Hertzian Contact
     HertzianContact             m_hz;
     HertzianContact::QueryHZ    m_q_hz_ns;  // Hertzian contact query - no slip
     double                      m_R = 30;       // [mm] - Radius of the spherical end effector
+
+    // force-torque centroid
+    FTC m_ftc;
+    std::vector<double> m_ftc_centroid;
 
     // Plotting variables
     ScrollingBuffer lockForce, lockPosition, testForce, testPosition, testCmd, lockCmd;

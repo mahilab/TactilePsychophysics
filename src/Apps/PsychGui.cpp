@@ -1216,13 +1216,13 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 stopExp();
             }
             
-            if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
-                LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
-                stopExp();
-            }else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
-                LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
-                stopExp();
-            }
+            // if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
+            //     LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
+            //     stopExp();
+            // }else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
+            //     LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
+            //     stopExp();
+            // }
     
         }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
             if(m_cm_test->getForce(1) > m_pt.m_userparams.forceMax_n){
@@ -1233,13 +1233,13 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 stopExp();
             }
             
-            if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
-                LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
-                stopExp();
-            } else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
-                LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
-                stopExp();
-            }
+            // if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
+            //     LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
+            //     stopExp();
+            // } else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
+            //     LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
+            //     stopExp();
+            // }
     
         }
 

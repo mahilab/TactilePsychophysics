@@ -293,7 +293,7 @@ public:
 public:
 double m_torque=0;
 //Force Ringbuffer
-mahi::util::RingBuffer<double> FBuff{50};
+mahi::util::RingBuffer<double> FBuff{30};
 //Params      m_params;    ///< parameters
 Butterworth  m_outputFilter;
 

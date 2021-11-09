@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include "CapstanModule.hpp"
+#include "Util/ForceTorqueCentroid.hpp"
 
 // Written by Janelle Clark, based off code by Evan Pezent
 

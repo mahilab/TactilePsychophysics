@@ -39,6 +39,8 @@ public:
 
     FTC(std::vector<double> forces, std::vector<double> torques);
 
+    FTC(){};
+
     ~FTC(){};
 
     std::vector<double> getCentroid();
