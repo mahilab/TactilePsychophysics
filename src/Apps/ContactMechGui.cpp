@@ -1,5 +1,7 @@
 #include "ContactMechGui.hpp"
 
+// Written by Janelle Clark with Nathan Dunkelberger
+
 using namespace mahi::gui;
 using namespace mahi::util;
 using namespace mahi::robo;
@@ -7,9 +9,9 @@ using namespace mahi::robo;
 ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF) : 
     Application(600,600,"Contact Mechanics Test (Subject " + std::to_string(subject) + ")" ,false),
     ts(),
-    filename_timeseries("C:/Git/TactilePsychophysics/data/" + std::to_string(whichExp) + "/_subject_" + std::to_string(subject) + "_timeseries_dof" + std::to_string(whichDOF) + "_exp" + std::to_string(whichExp) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
+    filename_timeseries("C:/Git/TactilePsychophysics/data/" + expchoice[whichExp] + "/_subject_" + std::to_string(subject) + "_timeseries_" + dofChoice[whichDOF] + "_dof_" + expchoice[whichExp] + "_exp_" + std::to_string(whichExp) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
     csv_timeseries(filename_timeseries),
-    filename("C:/Git/TactilePsychophysics/data/" + std::to_string(whichExp) + "/_subject_" + std::to_string(subject) + "_poiData_dof" + std::to_string(whichDOF) + "_exp" + std::to_string(whichExp) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
+    filename("C:/Git/TactilePsychophysics/data/" + expchoice[whichExp] + "/_subject_" + std::to_string(subject) + "_poiData_" + dofChoice[whichDOF] + "_dof_" + expchoice[whichExp] + "_exp_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
     csv(filename),
     m_ftc()
     {       
@@ -189,7 +191,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
     }
 
     void ContactMechGui::writeOutputVariables(Csv& csv){
-        csv.write_row("Time", "Mode","Dof","ControlType", "PointOfInterest","Cycle","Fn","Ft","deltaN","deltaN", "eeRadius", "CombinedE","ContactRadius","PlanarA","SphericalA","MeanStress","MeanStrain","ElasticStrainEnergy_N","YoungModulusNS","PoissonNS","CouplingBetaNS","ShearModulusNS","ComplianceN_NS","ComplianceT_NS","CentroidX","CentroidY","CentroidZ");
+        csv.write_row("Time", "Mode","Dof","ControlType", "PointOfInterest","Cycle","Fn","Ft","deltaN","deltaS", "eeRadius", "CombinedE","ContactRadius","PlanarA","SphericalA","MeanStress","MeanStrain","ElasticStrainEnergy_N","YoungModulusNS","PoissonNS","CouplingBetaNS","ShearModulusNS","ComplianceN_NS","ComplianceT_NS","CentroidX","CentroidY","CentroidZ");
     }
     
     void ContactMechGui::writeOutputData(Csv& csv){
@@ -432,6 +434,9 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             m_cm_test = m_hub.getDevice(2);
             m_cm_lock = m_hub.getDevice(1);
         }
+
+        m_cm_test->setForceFilterMode(CM::FilterMode::Lowpass);
+        m_cm_lock->setForceFilterMode(CM::FilterMode::Lowpass);
      }
 
      void ContactMechGui::importUserHardwareParams(){
@@ -489,7 +494,6 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         }
         m_params.cycle_min_force = m_userparams.positionMin_n;
         m_params.cycle_peak_force = m_maxRangePercent*m_userparams.positionMax_n;
-
 
     }
 

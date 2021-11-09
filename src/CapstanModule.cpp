@@ -19,12 +19,12 @@ CM::CM(const std::string &name, Io io, Params config) :
     m_positionPd(config.positionKp, config.positionKd),
     m_forcePID(0,0,0),
     m_ctrlFilter(2, 0.02, Butterworth::Lowpass),
-    m_forceFiltMode(FilterMode::Median),
-    m_forceFilterL(2, 1000),
-    m_forceFilterM(50),
+    m_forceFiltMode(FilterMode::Lowpass),
+    m_forceFilterL(2,0.02),
+    m_forceFilterM(100),
     m_dFdtFiltMode(FilterMode::Median),
-    m_dFdtFilterL(2, 1000),
-    m_dFdtFilterM(20),
+    m_dFdtFilterL(2, 0.02),
+    m_dFdtFilterM(100),
     m_outputFilter(2,config.outputFilterCutoff,Butterworth::Lowpass),
     m_posDiff(),
     m_velocityFilter(2,0.1),
@@ -84,7 +84,7 @@ void CM::setParams(CM::Params config) {
     m_forcePd.kp = m_params.forceKp;
     m_forcePd.kd = m_params.forceKd;
     m_ctrlFilter.configure(2, m_params.cvFilterCutoff);
-    m_forceFilterL.configure(2, m_params.forceFilterCutoff);
+    // m_forceFilterL.configure(2, m_params.forceFilterCutoff);
     m_forceFilterM.resize(m_params.forceFilterN);
     m_dFdtFilterL.configure(2, m_params.dFdtFilterCutoff);
     m_dFdtFilterM.resize(m_params.forceFilterN);
@@ -429,7 +429,7 @@ void CM::setControlValue(double value) {
 void CM::setForceFilter(double cutoff) {
     TASBI_LOCK
     LOG(Info) << "Set CM " << name() << "force filter cutoff ratio to " << cutoff;
-    m_forceFilterL.configure(2, cutoff);
+    // m_forceFilterL.configure(2, cutoff);
 }
 
 void CM::setdFdtFilter(double cutoff) {
@@ -520,8 +520,8 @@ void CM::controlSpoolPosition(double degrees) {
 }
 
 void CM::controlForce(double newtons) {
-    double f_act  = getForce(CM::Lowpass);
-    double dfdt_act = getdFdt(CM::Lowpass);
+    double f_act  = getForce(1);
+    double dfdt_act = getdFdt(1);
     double torque = m_forcePd.calculate(newtons,f_act,0,dfdt_act);
     // ff term
     double torque_ff = scaleCtrlValue(m_params.forceKff, ControlMode::Torque);
@@ -599,7 +599,7 @@ double CM::getForce(bool filtered) {
         case None:    return raw;
         case Lowpass: {
             auto filtered = m_forceFilterL.update(raw);
-            std::cout << "m_forceFilterL.update(raw)" << filtered << std::endl;
+            // std::cout << "raw" << raw << std::endl;
             return filtered;
         }
         case Median:  return m_forceFilterM.filter(raw);
@@ -609,7 +609,7 @@ double CM::getForce(bool filtered) {
 }
 
 double CM::getdFdt(bool filtered) {
-    double diff = m_forceDiff.update(getForce(), m_t);
+    double diff = m_forceDiff.update(getForce(0), m_t);
     double raw = m_forceDiff.get_value();
     if (!filtered)
         return raw;

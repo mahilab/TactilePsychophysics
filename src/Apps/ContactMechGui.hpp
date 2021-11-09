@@ -1,5 +1,21 @@
-#pragma once
+// MIT License
+//
+// AtiWindowCal - Mechatronics Engine & Library
+// Copyright (c) 2021 Mechatronics and Haptic Interfaces Lab - Rice University
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// Author(s): Janelle Clark (janelle.clark@rice.edu) and Nathan Dunkelberger
 
+#pragma once
 #include <Mahi/Gui.hpp>
 #include <Mahi/Robo.hpp>
 #include <Mahi/Util/Logging/Log.hpp>
@@ -10,7 +26,6 @@
 #include "UserParams.hpp"
 #include "Util/HertzianContact.hpp"
 #include "Util/ForceTorqueCentroid.hpp"
-
 #include <Mahi/Daq.hpp>
 #include <Mahi/Util.hpp>
 
@@ -180,6 +195,12 @@ private:
     Gender      m_sex;
     Handedness  m_hand;
 
+    std::array<std::string,4> expchoice = { "Ind", "Creep", "Relax", "Cycle"};
+    std::array<std::string,4> method = { "Indentation", "Creep", "Stress Relaxation", "Cycle Between Bounds"};
+    std::vector<std::string> dofChoice = { "Shear", "Normal"};
+    std::array<std::string,3> currdirection = {"Up", "Down", "None"};
+    std::array<std::string,6> currpoi  = { "Start", "Peak", "Min", "HoldInitial", "HoldFinal", "Other"};
+    
     Timestamp ts;
     std::string filename_timeseries;
     Csv csv_timeseries;
@@ -189,12 +210,6 @@ private:
     UserParams::Params m_userparams;
     UserParams m_up;
 
-    std::array<std::string,4> expchoice = { "Ind", "Creep", "Relax", "Cycle"};
-    std::array<std::string,4> method = { "Indentation", "Creep", "Stress Relaxation", "Cycle Between Bounds"};
-    std::vector<std::string> dofChoice = { "Shear", "Normal"};
-    std::array<std::string,3> currdirection = {"Up", "Down", "None"};
-    std::array<std::string,6> currpoi  = { "Start", "Peak", "Min", "HoldInitial", "HoldFinal", "Other"};
-    
     // General Experiment Variables
     PointInterest m_poi = Other;
     ControlType m_controller = Position;
@@ -222,7 +237,7 @@ private:
     // Hertzian Contact
     HertzianContact             m_hz;
     HertzianContact::QueryHZ    m_q_hz_ns;  // Hertzian contact query - no slip
-    double                      m_R = 30;       // [mm] - Radius of the spherical end effector
+    double                      m_R = 15;       // [mm] - Radius of the spherical end effector
 
     // force-torque centroid
     FTC m_ftc;

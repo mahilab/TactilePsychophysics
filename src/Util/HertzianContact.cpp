@@ -7,29 +7,29 @@
 namespace ContactMechanics{
 
 HertzianContact::QueryHZ HertzianContact::makeQuery_Normal(double R, double Fn, double deltaN){
-    m_q.R = R;
+    m_q.R = R*1e-3;
     m_q.Fn = Fn;
-    m_q.deltaN = deltaN;
+    m_q.deltaN = deltaN*1e-3;
     fillQuery_Normal();
     return m_q;
 }
 
 HertzianContact::QueryHZ HertzianContact::makeQuery_TanNoSlip(double R, double Fn, double Ft, double deltaN, double deltaT){
-    m_q.R = R;
+    m_q.R = R*1e-3;
     m_q.Fn = Fn;
     m_q.Ft = Ft;
-    m_q.deltaN = deltaN;
-    m_q.deltaT = deltaT;
+    m_q.deltaN = deltaN*1e-3;
+    m_q.deltaT = deltaT*1e-3;
     fillQuery_TanNoSlip();
     return m_q;
 }
 
 HertzianContact::QueryHZ HertzianContact::makeQuery_TanPartialSlip(double R, double Fn, double Ft, double deltaN, double deltaT, double mu){
-    m_q.R = R;
+    m_q.R = R*1e-3;
     m_q.Fn = Fn;
     m_q.Ft = Ft;
-    m_q.deltaN = deltaN;
-    m_q.deltaT = deltaT;
+    m_q.deltaN = deltaN*1e-3;
+    m_q.deltaT = deltaT*1e-3;
     m_q.mu = mu;
     fillQuery_TanPartialSlip();
     return m_q;
@@ -40,14 +40,14 @@ HertzianContact::QueryHZ HertzianContact::makeQuery_TanPartialSlip(double R, dou
 ////////////////////////////////////////////////////////////////////
 
 void HertzianContact::printQuery(){
-    std::cout << "R " << m_q.R << std::endl;                    // Radius of the indentor
-    std::cout << "a " << m_q.a << std::endl;                    // radius of the contact area of the indentor
-    std::cout << "planarA " << m_q.planarA << std::endl;        // contact area calculated as if 2D
-    std::cout << "sphericalA " << m_q.sphericalA << std::endl;  // contact area calculated as if 3D
-    std::cout << "Fn " << m_q.Fn << std::endl;                  // Normal Load
-    std::cout << "Ft " << m_q.Ft << std::endl;                  // Tangential Load
-    std::cout << "deltaN " << m_q.deltaN << std::endl;          // Normal Displacement, indentation depth
-    std::cout << "deltaT " << m_q.deltaT << std::endl;          // Tangential Displacement
+    std::cout << "R " << m_q.R << std::endl;                    // [mm] Radius of the indentor
+    std::cout << "a " << m_q.a << std::endl;                    // [mm] radius of the contact area of the indentor
+    std::cout << "planarA " << m_q.planarA << std::endl;        // [m^2] contact area calculated as if 2D
+    std::cout << "sphericalA " << m_q.sphericalA << std::endl;  // [m^2] contact area calculated as if 3D
+    std::cout << "Fn " << m_q.Fn << std::endl;                  // [N] Normal Load
+    std::cout << "Ft " << m_q.Ft << std::endl;                  // [N] Tangential Load
+    std::cout << "deltaN " << m_q.deltaN << std::endl;          // [mm] Normal Displacement, indentation depth
+    std::cout << "deltaT " << m_q.deltaT << std::endl;          // [mm] Tangential Displacement
     std::cout << "combinedE " << m_q.combinedE << std::endl;    // combined Young's modulus, E*
     std::cout << "Wn " << m_q.Wn << std::endl;                  // [??? N^(7/3)/mm^(5/3)] Normal elastic strain energy
     std::cout << "couplingP " << m_q.couplingP << std::endl;    // beta - coupling parameter between normal and tangential load
@@ -68,12 +68,12 @@ void HertzianContact::printQuery(){
 
 // Normal Loading
 double HertzianContact::getCombinedE_Normal(double R, double Fn, double deltaN){
-    double combinedE = 3.0*Fn/(4.0*pow(R,0.5)*pow(deltaN,1.5));
+    double combinedE = 3.0*Fn/(4.0*pow(R*1e-3,0.5)*pow(deltaN*1e-3,1.5));
     return combinedE;
 }
 
 double HertzianContact::getContactRadius_Normal(double R, double deltaN){
-    double a = std::sqrt(deltaN*R);
+    double a = std::sqrt(deltaN*1e-3*R*1e-3);
     return a;
 }
 
@@ -84,25 +84,26 @@ double HertzianContact::getPlanarA_Normal(double R, double deltaN){
 }
 
 double HertzianContact::getSphericalA_Normal(double R, double deltaN){
-    double A = 2.0*m_pi*R*deltaN;
+    double a = getContactRadius_Normal(R,deltaN);
+    double A = 2.0*m_pi*a*deltaN*1e-3;
     return A;
 }
 
 double HertzianContact::getMeanStress_Normal(double R, double Fn, double deltaN){
     double a = getContactRadius_Normal(R, deltaN);
-    double meanStress = Fn/(m_pi*pow(a,2.0));
+    double meanStress = 0.2*Fn/(m_pi*pow(a,2.0));
     return meanStress;
 }
 
 double HertzianContact::getMeanStrain_Normal(double R, double deltaN){
     double a = getContactRadius_Normal(R, deltaN);
-    double meanStrain = 0.2*a/R;
+    double meanStrain = 0.2*a/R*1e-3;
     return meanStrain;
 }
 
 double HertzianContact::getElasticStrainEnergy_Normal(double R, double Fn, double deltaN){
     double Ec = getCombinedE_Normal(R,Fn,deltaN);
-    double W = (2.0/5.0)*pow(9*pow(Ec,2.0)*pow(Fn,5.0)/(16.0/R),1.0/3.0);
+    double W = (2.0/5.0)*pow(9*pow(Ec,2.0)*pow(Fn,5.0)/(16.0/(R*1e-3)),1.0/3.0);
     return W;
 }
 
@@ -115,17 +116,17 @@ double HertzianContact::getCouplingParameter_Tan(double v){
 
 std::vector<double> HertzianContact::getYoungAndPoisson_TanNoSlip(double R, double Fn, double Ft, double deltaN, double deltaT){
     double a = getContactRadius_Normal(R, deltaN);
-    double C = 6.0*Fn*deltaT/(Ft*deltaN);
+    double C = 6.0*Fn*deltaT*1e-3/(Ft*deltaN*1e-3);
     double v = (C-2)/(C-1);
-    double E = 3.0*Fn*(1-pow(v,2.0))/(4.0*a*deltaN);
+    double E = 3.0*Fn*(1-pow(v,2.0))/(4.0*a*deltaN*1e-3);
     return {E,v};
 }
 
 std::vector<double> HertzianContact::getYoungAndPoisson_TanPartialSlip(double R, double Fn, double Ft, double deltaN, double deltaT, double mu){
     double a = getContactRadius_Normal(R, deltaN);
-    double C = (4.0*deltaT/deltaN)/(1.0-pow(1.0 - (Ft/mu*Fn),2.0/3.0));
+    double C = (4.0*deltaT*1e-3/(deltaN*1e-3))/(1.0-pow(1.0 - (Ft/mu*Fn),2.0/3.0));
     double v = (C-2)/(C-1);
-    double E = 3.0*Fn*(1.0-pow(v,2.0))/(4.0*a*deltaN);
+    double E = 3.0*Fn*(1.0-pow(v,2.0))/(4.0*a*deltaN*1e-3);
     return {E,v};
 }
 
@@ -199,11 +200,11 @@ void HertzianContact::getPlanarA_Normal(){
 }
 
 void HertzianContact::getSphericalA_Normal(){
-    m_q.sphericalA = 2.0*m_pi*m_q.R*m_q.deltaN;
+    m_q.sphericalA = 2.0*m_pi*m_q.a*m_q.deltaN;
 }
 
 void HertzianContact::getMeanStress_Normal(){
-    m_q.meanStress = m_q.Fn/(m_pi*pow(m_q.a,2.0));
+    m_q.meanStress = 0.2*m_q.Fn/(m_pi*pow(m_q.a,2.0));
 }
 
 void HertzianContact::getMeanStrain_Normal(){
@@ -241,7 +242,7 @@ void HertzianContact::getShearModulus_Tan(){
 
 void  HertzianContact::getCompliance_Tan(){
     m_q.complianceN = (1.0-m_q.v)/(2*m_q.G*m_q.a);
-    m_q.complianceN = (2.0-m_q.v)/(4*m_q.G*m_q.a);
+    m_q.complianceT = (2.0-m_q.v)/(4*m_q.G*m_q.a);
 }
 
 void HertzianContact::getWorkofCycle_Tan(){ // valid at peak Ft

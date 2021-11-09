@@ -195,7 +195,7 @@ public:
     // Hertzian Contact
     HertzianContact             m_hz;
     HertzianContact::QueryHZ    m_q_hz_ns;  // Hertzian contact query - no slip
-    double                      m_R = 30;       // [mm] - Radius of the spherical end effector
+    double                      m_R = 15;       // [mm] - Radius of the spherical end effector
 
     // CM
     CMHub m_hub;

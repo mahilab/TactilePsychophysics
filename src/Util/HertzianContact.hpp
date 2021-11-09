@@ -30,24 +30,24 @@ public:
     struct QueryHZ {
         double R = 0;           // [mm] Radius of the indentor
         double a = 0;           // [mm] radius of the contact area of the indentor
-        double planarA = 0;     // [mm^2] contact area calculated as if 2D
-        double sphericalA = 0;  // [mm^2] contact area calculated as if 3D
+        double planarA = 0;     // [m^2] contact area calculated as if 2D
+        double sphericalA = 0;  // [m^2] contact area calculated as if 3D
         double Fn = 0;          // [N] Normal Load
         double Ft = 0;          // [N] Tangential Load
         double deltaN = 0;      // [mm] Normal Displacement, indentation depth
         double deltaT = 0;      // [mm] Tangential Displacement
-        double combinedE = 0;   // [N/mm^2] [MPa] combined Young's modulus, E* of the two interacting materials
+        double combinedE = 0;   // [N/m^2] [MPa] combined Young's modulus, E* of the two interacting materials
         double Wn = 0;          // [??? N^(7/3)/mm^(5/3)] Normal elastic strain energy. Johnson (6.42)
         double couplingP = 0;   // [-] beta - coupling parameter between normal and tangential load
-        double E = 0;           // [N/mm^2] [MPa] Young's Modulus for elasticity for the infinite plane
+        double E = 0;           // [N/m^2] [MPa] Young's Modulus for elasticity for the infinite plane
         double v = 0;           // [-] nu - Poisson's ratio for the infinite plane
-        double G = 0;           // [N/mm^2] [MPa] Shear Modulus of Rigidity of the two interfacing materials
-        double meanStress = 0;  // [N/mm^2] mean stress, sigma*
+        double G = 0;           // [N/m^2] [MPa] Shear Modulus of Rigidity of the two interfacing materials
+        double meanStress = 0;  // [N/m^2] mean stress, sigma*
         double meanStrain = 0;  // [-] mean strain, epsilon*
         double Wt = 0;          // Work done by the tangential force during a complete cycle with microslip. Johnson (7.60)
         double mu = 0;          // [-] mu - frictional coefficient
-        double complianceN = 0; // [mm/N] normal compliance (d deltaN/ d Fn)
-        double complianceT = 0; // [mm/N] tangential compliance (d deltaT/ d Ft)
+        double complianceN = 0; // [m/N] normal compliance (d deltaN/ d Fn)
+        double complianceT = 0; // [m/N] tangential compliance (d deltaT/ d Ft)
     };
 
     ////////////////////////////////////////////////////////////////////

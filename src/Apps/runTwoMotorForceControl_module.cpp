@@ -65,6 +65,10 @@ public:
         cm_n->setForceRange(forceMin, forceMax); //(-2, 2); //[N]
         cm_n->setForceGains(1500.0/1e6,0.0,20.0/1e6);
         cm_n->setControlValue(0.0);
+        // cm_n->setForceFilterMode(CM::FilterMode::Lowpass);
+        // cm_n->setForceFilter(1000);
+        // cm_n->setdFdtFilterMode(CM::FilterMode::Lowpass);
+        // cm_n->setdFdtFilter(1000);
     
         // initialize tangential capstan module
         cm_t->zeroPosition(); //makes wherever it is when the program starts the zero position
@@ -77,8 +81,10 @@ public:
         cm_t->setForceRange(forceMin, forceMax); //(-2, 2); //[N]
         cm_t->setForceGains(1500.0/1e6,0.0,20.0/1e6);
         cm_t->setControlValue(0.0);
-
-        // cm_n->setForceFilter(500);
+        // cm_t->setForceFilterMode(CM::FilterMode::Lowpass);
+        // cm_t->setForceFilter(1000);
+        // cm_t->setdFdtFilterMode(CM::FilterMode::Lowpass);
+        // cm_t->setdFdtFilter(1000);
     }
 
     ~MyGui(){
@@ -137,25 +143,8 @@ public:
         }
 
         ImGui::Separator();
-
-        // if(ImGui::Button("Configure Filter Cutoffs")){
-        //     cm_n->setForceFilterMode(CM::Lowpass);
-        //     cm_n->setForceFilter(cutoffForce);
-        //     //cm_n->m_params.outputFilterCutoff = cutoffOut;
-        //     cm_n->m_outputFilter.configure(2, cutoffOut);
-
-        //     cm_t->setForceFilterMode(CM::Lowpass);
-        //     cm_t->setForceFilter(cutoffForce);
-        //     //cm_t->m_params.outputFilterCutoff = cutoffOut;
-        //     cm_t->m_outputFilter.configure(2, cutoffOut);
-        // }
-
-        // ImGui::DragDouble("Force Filter Cutoff", &cutoffForce, 0.1f, 0, 500);
-        // ImGui::DragDouble("Output Filter Cutoff", &cutoffOut, 0.1f, 0, 500);
-
-
         
-        cm_n->setForceGains(kp1/1e6,0,kd1/1e6);
+        cm_n->setForceGains(kp1/1e6,0,kd1/1e6);        
         cm_n->setControlValue(cm_n->scaleRefToCtrlValue(f_ref1));
         cm_n->limits_exceeded();
 
@@ -278,9 +267,6 @@ public:
 
     double forceMax = 25.0;
     double forceMin = -25.0;
-
-    double cutoffForce = 0.2;
-    double cutoffOut = 200;
 
     CM::Query queryN;
     CM::Query queryT;
