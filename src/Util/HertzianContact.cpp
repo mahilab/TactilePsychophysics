@@ -103,7 +103,7 @@ double HertzianContact::getMeanStrain_Normal(double R, double deltaN){
 
 double HertzianContact::getElasticStrainEnergy_Normal(double R, double Fn, double deltaN){
     double Ec = getCombinedE_Normal(R,Fn,deltaN);
-    double W = (2.0/5.0)*pow(9*pow(Ec,2.0)*pow(Fn,5.0)/(16.0/(R*1e-3)),1.0/3.0);
+    double W = (2.0/5.0)*pow(9*pow(Fn,5.0)/(16.0*(R*1e-3)*pow(Ec,2.0)),1.0/3.0);
     return W;
 }
 
@@ -212,7 +212,7 @@ void HertzianContact::getMeanStrain_Normal(){
 }
 
 void HertzianContact::getElasticStrainEnergy_Normal(){
-    m_q.Wn = (2.0/5.0)*pow(9*pow(m_q.combinedE,2.0)*pow(m_q.Fn,5.0)/(16.0/m_q.R),1.0/3.0);
+    m_q.Wn = (2.0/5.0)*pow(9*pow(m_q.Fn,5.0)/(16.0*m_q.R*pow(m_q.combinedE,2.0)),1.0/3.0);
 }
 
 
