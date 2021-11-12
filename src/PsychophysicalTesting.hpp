@@ -201,7 +201,7 @@ public:
     double      m_jnd_stimulus_reference;
     double      m_jnd_stimulus_comparison = 0;
     double      m_jnd_stimulus_interval = 0;
-    double      m_maxRangePercent = 0.8;
+    double      m_maxRangePercent = 0.92;
     double      m_userStimulusMin;
     double      m_userStimulusMax;
     double      m_userStimulusContact; 

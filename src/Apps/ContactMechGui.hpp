@@ -81,13 +81,16 @@ public:
         double travel_velocity      = 4.0;  // [mm/s]
         double trial_break          = 30;   // [s]
         int    n_ind_trials         = 5;
-        double ind_final_force      = 5.0;  // [N]  subject max, the pub says 5-10G of force
+        double ind_final_force_n      = 5.0;  // [N]  subject max, the pub says 5-10G of force
+        double ind_final_force_t      = 2.5;  
         int    n_creep_trials       = 5;
         double creep_hold           = 30;   // [s]
-        double creep_final_force    = 5.0;  // [N]  subject max, the pub says 500N ...
+        double creep_final_force_n    = 5.0;  // [N]  subject max, the pub says 500N ...
+        double creep_final_force_t    = 2.5; 
         int    n_relax_trials       = 5;    
         double relax_hold           = 30;   // [s]
-        double relax_final_force    = 5.0;  // [N] subject max, the pub says 500N ...
+        double relax_final_force_n    = 5.0;  // [N] subject max, the pub says 500N ...
+        double relax_final_force_t    = 2.5; 
         int    n_cycle_cycles       = 5;
         double cycle_min_force      = -1;   // [N]  subject min
         double cycle_peak_force     = -1;  // [N]  subject max
@@ -223,7 +226,7 @@ private:
     bool    m_flag_presentStims         = false;
     bool    m_flag_reachedMAValue       = false;
     bool    m_flag_first_to_start;
-    double  m_maxRangePercent           = 0.8;
+    double  m_maxRangePercent           = 0.92;
     double  m_userStimulusForceMin      = 0;
     double  m_userStimulusForceMax      = 0;
     double  m_userStimulusForceContact  = 0;

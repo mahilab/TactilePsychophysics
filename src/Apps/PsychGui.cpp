@@ -430,8 +430,19 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 std::cout << "trial num: " << m_pt.m_q_sm.trialnum << ", stair num: " << m_pt.m_q_sm.num_staircase << std::endl;
                 if ( m_pt.m_q_sm.trialnum == 1 && m_pt.m_q_sm.num_staircase > 0){ // bring to contact if new stair, but not the first staircase (is from setcontroldofs)
                     std::cout << "Set control dof" << std::endl;
-                    // Set controller for testing DOF
+                    // Set controller/position for testing and lock DOFs
                     if (m_pt.m_whichDof == PsychTest::Shear){ // already at 0, directly commanded
+                        // move normal dof to testing location
+                        std::cout << "     move normal direction to 85% of the range for testing  (t)" << std::endl;
+                        double elapsed = 0;
+                        double travelT = 4*m_psychparams.travel_time;
+                        while ( travelT > elapsed) {
+                            rampLock(m_cm_lock->getSpoolPosition(), m_pt.m_userShearTestNormPos, travelT, elapsed); 
+                            elapsed += delta_time().as_seconds();
+                            co_yield nullptr;
+                        }
+                        setLock(m_pt.m_userShearTestNormPos);
+                        
                         if (m_pt.m_controller == PsychTest::Force){
                             std::cout << "     set to Force control" << std::endl;
                             setForceControl(1);
@@ -801,7 +812,12 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 collectSensorData(PsychTest::Adjust, m_pt.m_q_ma.standard);
 
                 double stimChange = m_whatChange*m_pt.m_jnd_stimulus_interval;
-                setTest(m_jnd_current_stimulus += stimChange);
+                double stimSet = m_jnd_current_stimulus += stimChange;
+                if((stimSet<m_pt.m_userStimulusMin)||(stimSet>m_pt.m_userStimulusMax)){
+                    LOG(Warning) << "stimulus value " << stimSet <<" clamped by thresholds " << m_pt.m_userStimulusMin << " and " << m_pt.m_userStimulusMax;
+                }
+                double stimSet_clamp = clamp(stimSet, m_pt.m_userStimulusMin, m_pt.m_userStimulusMax);
+                setTest(stimSet_clamp);
 
                 if (m_adjust != -1) {
                     m_pt.setResponseMA(m_adjust,m_jnd_current_stimulus);
@@ -913,18 +929,18 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         m_hub.start();
 
         if (m_pt.m_whichDof == PsychTest::Shear) { // test shear direction
-            m_cm_lock->setPositionRange(m_pt.m_userparams.positionMin_n, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_n); // [mm] subject-specific
-            m_cm_lock->setForceRange(m_pt.m_userparams.forceMin_n, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_n); // [N] subject-specific
+            m_cm_lock->setPositionRange(m_paramsLock.positionMin, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_n); // [mm] subject-specific
+            m_cm_lock->setForceRange(m_paramsLock.forceMin, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_n); // [N] subject-specific
 
-            m_cm_test->setPositionRange(m_pt.m_userparams.positionMin_t, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_t); // [mm] subject-specific
-            m_cm_test->setForceRange(m_pt.m_userparams.forceMin_t, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_t); // [N] subject-specific
+            m_cm_test->setPositionRange(m_paramsTest.positionMin, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_t); // [mm] subject-specific
+            m_cm_test->setForceRange(m_paramsTest.forceMin, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_t); // [N] subject-specific
 
         }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal direction
-            m_cm_lock->setPositionRange(m_pt.m_userparams.positionMin_t, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_t); // [mm] subject-specific
-            m_cm_lock->setForceRange(m_pt.m_userparams.forceMin_t, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_t); // [N] subject-specific
+            m_cm_lock->setPositionRange(m_paramsLock.positionMin, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_t); // [mm] subject-specific
+            m_cm_lock->setForceRange(m_paramsLock.forceMin, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_t); // [N] subject-specific
             
-            m_cm_test->setPositionRange(m_pt.m_userparams.positionMin_n, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_n); // [mm] subject-specific
-            m_cm_test->setForceRange(m_pt.m_userparams.forceMin_n, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_n); // [N] subject-specific
+            m_cm_test->setPositionRange(m_paramsTest.positionMin, m_pt.m_maxRangePercent*m_pt.m_userparams.positionMax_n); // [mm] subject-specific
+            m_cm_test->setForceRange(m_paramsTest.forceMin, m_pt.m_maxRangePercent*m_pt.m_userparams.forceMax_n); // [N] subject-specific
         }
     }
 
@@ -947,8 +963,8 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
     Enumerator PsychGui::findContact(){ // Put both in position control for now
         std::cout << "Bring to contact" << std::endl;
         // disable while switching controllers
-        setPositionControl(1);
         setPositionControl(0);
+        setPositionControl(1);
         std::cout << "     set to position control in current location" << std::endl;
 
         if (m_pt.m_whichDof == PsychTest::Shear){
@@ -1009,7 +1025,8 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         m_cm_lock->zeroPosition();
         setPositionControl(0);
         std::cout << "     zero and set back to position control" << std::endl;
-        std::cout << "     READY" << std::endl;        
+        if( m_pt.m_controller == PsychTest::Position){std::cout << "     READY" << std::endl;}
+           
     }
 
     Enumerator PsychGui::bringToStartPosition(){ // above arm, Idle/pre-experiment position, assume already in position control
@@ -1020,17 +1037,19 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             // move shear to center
             double elapsed = 0;
             while (elapsed < m_psychparams.travel_time) {
+                std::cout << "m_cm_test->getSpoolPosition()" << m_cm_test->getSpoolPosition() << " m_pt.m_userparams.positionStart_t " << m_pt.m_userparams.positionStart_t << std::endl;
                 rampStimulus(m_cm_test->getSpoolPosition(), m_pt.m_userparams.positionStart_t, m_psychparams.travel_time, elapsed);
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
             }
             std::cout << "     set shear (test) to zero position" << std::endl;
-            setTest(m_pt.m_userparams.positionStart_t);
+            //setTest(m_pt.m_userparams.positionStart_t);
 
             // move out of stimulus to starting position above the arm
             elapsed = 0;
             while (elapsed < m_psychparams.travel_time) {
-                rampStimulus(m_cm_lock->getSpoolPosition(), m_pt.m_userparams.positionStart_n, m_psychparams.travel_time, elapsed);
+                std::cout << "m_cm_lock->getSpoolPosition()" << m_cm_lock->getSpoolPosition() << " m_pt.m_userparams.positionStart_n " << m_pt.m_userparams.positionStart_n << std::endl;
+                rampLock(m_cm_lock->getSpoolPosition(), m_pt.m_userparams.positionStart_n, m_psychparams.travel_time, elapsed);
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
             }
@@ -1057,21 +1076,22 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             }
             std::cout << "     ramp normal (test) to start position" << std::endl;
             setTest(m_pt.m_userparams.positionStart_n);
-            std::cout << "     READY" << std::endl;
         }
+        std::cout << "     READY" << std::endl;
     }
 
     Enumerator PsychGui::lockExtraDofs(){ // starting from centered an inch above arm, assume already in position control
         std::cout << "Lock extra dofs" << std::endl;
-        m_pt.m_userShearTestNormPos = 0.75*(m_pt.m_userparams.positionMax_n - m_pt.m_userparams.positionMin_n) + m_pt.m_userparams.positionMin_n;
+        m_pt.m_userShearTestNormPos = 0.8*(m_pt.m_userparams.positionMax_n - m_pt.m_userparams.positionMin_n) + m_pt.m_userparams.positionMin_n;
 
         std::cout << "     set lock in position control in the current location" << std::endl;
         if (m_pt.m_whichDof == PsychTest::Shear){
             // move normal dof to testing location
-            std::cout << "     move normal direction to 75% of the range for testing  (t)" << std::endl;
+            std::cout << "     move normal direction to 80% of the range for testing  (t)" << std::endl;
             double elapsed = 0;
-            while (m_psychparams.travel_time > elapsed) {
-                rampLock(m_cm_lock->getSpoolPosition(), m_pt.m_userShearTestNormPos, m_psychparams.travel_time, elapsed); 
+            double travelT = 4*m_psychparams.travel_time;
+            while ( travelT > elapsed) {
+                rampLock(m_cm_lock->getSpoolPosition(), m_pt.m_userShearTestNormPos, travelT, elapsed); 
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
             }
@@ -1114,7 +1134,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
                 setForceControl(1);
                 setTest(m_pt.m_userparams.forceCont_n);
             }
-
         }
         std::cout << "     READY" << std::endl;
     }
@@ -1208,38 +1227,47 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
 
     void PsychGui::userLimitsExceeded(){
         if (m_pt.m_whichDof == PsychTest::Shear){ // test shear
-            if(m_cm_test->getForce(1) > m_pt.m_userparams.forceMax_t){
-                LOG(Warning) << "Exceeded User Shear Force Limit, " << m_pt.m_userparams.forceMax_t << " N with a value of " << m_cm_test->getForce(1) << " N.";
-                stopExp();
-            } else if(m_cm_lock->getForce(1) > m_pt.m_userparams.forceMax_n){
-                LOG(Warning) << "Exceeded User Normal Force Limit, " << m_pt.m_userparams.forceMax_n << " N with a value of " << m_cm_lock->getForce(1) << " N.";
-                stopExp();
+            if(m_pt.m_controller == PsychTest::Force){
+                if(m_cm_test->getForce(1) > m_pt.m_userparams.forceMax_t){
+                    LOG(Warning) << "Exceeded User Shear Force Limit, " << m_pt.m_userparams.forceMax_t << " N with a value of " << m_cm_test->getForce(1) << " N.";
+                    stopExp();
+                } else if(m_cm_lock->getForce(1) > m_pt.m_userparams.forceMax_n){
+                    LOG(Warning) << "Exceeded User Normal Force Limit, " << m_pt.m_userparams.forceMax_n << " N with a value of " << m_cm_lock->getForce(1) << " N.";
+                    stopExp();
+                }
             }
-            
-            // if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
-            //     LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
-            //     stopExp();
-            // }else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
-            //     LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
-            //     stopExp();
-            // }
+
+            if(m_pt.m_controller == PsychTest::Position){
+                if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
+                    LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
+                    stopExp();
+                }else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
+                    LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
+                    stopExp();
+                }
+            }
     
         }else if (m_pt.m_whichDof == PsychTest::Normal){ // test normal
-            if(m_cm_test->getForce(1) > m_pt.m_userparams.forceMax_n){
-                LOG(Warning) << "Exceeded User Normal Force Limit, " << m_pt.m_userparams.forceMax_n << " N with a value of " << m_cm_test->getForce(1) << " N.";
-                stopExp();
-            } else if(m_cm_lock->getForce(1) > m_pt.m_userparams.forceMax_t){
-                LOG(Warning) << "Exceeded User Shear Force Limit, " << m_pt.m_userparams.forceMax_t << " N with a value of " << m_cm_lock->getForce(1) << " N.";
-                stopExp();
+
+            if(m_pt.m_controller == PsychTest::Force){
+                if(m_cm_test->getForce(1) > m_pt.m_userparams.forceMax_n){
+                    LOG(Warning) << "Exceeded User Normal Force Limit, " << m_pt.m_userparams.forceMax_n << " N with a value of " << m_cm_test->getForce(1) << " N.";
+                    stopExp();
+                } else if(m_cm_lock->getForce(1) > m_pt.m_userparams.forceMax_t){
+                    LOG(Warning) << "Exceeded User Shear Force Limit, " << m_pt.m_userparams.forceMax_t << " N with a value of " << m_cm_lock->getForce(1) << " N.";
+                    stopExp();
+                }
             }
-            
-            // if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
-            //     LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
-            //     stopExp();
-            // } else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
-            //     LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
-            //     stopExp();
-            // }
+
+            if(m_pt.m_controller == PsychTest::Position){
+                if(m_cm_test->getSpoolPosition() > m_pt.m_userparams.positionMax_n){
+                    LOG(Warning) << "Exceeded User Normal Position Limit, " << m_pt.m_userparams.positionMax_n << " mm with a value of " << m_cm_test->getSpoolPosition() << " mm.";
+                    stopExp();
+                } else if(m_cm_lock->getSpoolPosition() > m_pt.m_userparams.positionMax_t){
+                    LOG(Warning) << "Exceeded User Shear Position Limit, " << m_pt.m_userparams.positionMax_t << " mm with a value of " << m_cm_lock->getSpoolPosition() << " mm.";
+                    stopExp();
+                }
+            }
     
         }
 

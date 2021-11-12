@@ -19,7 +19,7 @@ CM::CM(const std::string &name, Io io, Params config) :
     m_positionPd(config.positionKp, config.positionKd),
     m_forcePID(0,0,0),
     m_ctrlFilter(2, 0.02, Butterworth::Lowpass),
-    m_forceFiltMode(FilterMode::Lowpass),
+    m_forceFiltMode(FilterMode::Median),
     m_forceFilterL(2,0.02),
     m_forceFilterM(100),
     m_dFdtFiltMode(FilterMode::Median),
@@ -524,8 +524,9 @@ void CM::controlForce(double newtons) {
     double dfdt_act = getdFdt(1);
     double torque = m_forcePd.calculate(newtons,f_act,0,dfdt_act);
     // ff term
+    double sign = (f_act<newtons) ? 1.0 : -1.0;
     double torque_ff = scaleCtrlValue(m_params.forceKff, ControlMode::Torque);
-    torque += torque_ff * newtons;
+    torque += sign*torque_ff * newtons;
     setMotorTorque(torque);
 }
 
@@ -568,13 +569,20 @@ double CM::getMotorTorqueCommand() {
 double CM::getMotorPosition() { 
     double senseSign = m_params.posSenseSignFlip ? -1.0 : 1.0;
     double pp = senseSign*m_io.encoderCh.get_pos();
+    //std::cout << "senseSign" << senseSign << "enc pos" << m_io.encoderCh.get_pos() << "adjusted pos" << pp << std::endl;
+
     // if(pp == 0) {
     //     LOG(Warning) << "motor position is not recorded for cm " << name();
     // }
     return pp;
 }
 
-double CM::getMotorVelocity() { return m_params.useSoftwareVelocity ? m_velocityFilter.get_value() : *m_io.vel; }
+double CM::getMotorVelocity() { 
+    double senseSign = m_params.posSenseSignFlip ? -1.0 : 1.0;
+    double vel =  m_params.useSoftwareVelocity ? m_velocityFilter.get_value() : *m_io.vel; 
+    //std::cout << "senseSign" << senseSign << "enc vel" << vel << "adjusted vel" << senseSign*vel << std::endl;
+    return senseSign*vel;
+}
 
 double CM::getSpoolPosition() { 
     double pp = getMotorPosition() * m_params.gearRatio;
@@ -609,7 +617,7 @@ double CM::getForce(bool filtered) {
 }
 
 double CM::getdFdt(bool filtered) {
-    double diff = m_forceDiff.update(getForce(0), m_t);
+    double diff = m_forceDiff.update(getForce(1), m_t);
     double raw = m_forceDiff.get_value();
     if (!filtered)
         return raw;

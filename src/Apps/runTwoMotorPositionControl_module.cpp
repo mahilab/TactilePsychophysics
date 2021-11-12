@@ -48,7 +48,7 @@ public:
         cm_n->zeroPosition(); //makes wherever it is when the program starts the zero position
         cm_n->setControlMode(CM::ControlMode::Position);
         cm_n->setPosCtrlCmdSign(1);
-        cm_n->setForceSenseSign(1);
+        cm_n->setForceSenseSign(0);
         cm_n->setPositionSenseSign(0);
         cm_n->setVelocityMax(2500, 1);
         cm_n->setTorqueMax(0.75,1);
@@ -59,9 +59,9 @@ public:
         // initialize tangential capstan module
         cm_t->zeroPosition(); //makes wherever it is when the program starts the zero position
         cm_t->setControlMode(CM::ControlMode::Position);
-        cm_t->setPosCtrlCmdSign(1);
+        cm_t->setPosCtrlCmdSign(0); // ???????
         cm_t->setForceSenseSign(0);
-        cm_t->setPositionSenseSign(0);
+        cm_t->setPositionSenseSign(1);
         cm_t->setVelocityMax(2500, 1);
         cm_t->setTorqueMax(0.75,1);
         cm_t->setPositionRange(posMin, posMax); //(0, 65); //[mm]
@@ -122,6 +122,7 @@ public:
         cm_n->setControlValue(cm_n->scaleRefToCtrlValue(x_ref1));
         cm_n->limits_exceeded();
 
+        std::cout << "ref " << x_ref2 << " pos " << cm_t->getMotorPosition() << " vel " << cm_t->getMotorVelocity() << std::endl;
         cm_t->setPositionGains(kp/1e3,kd/1e3);
         cm_t->setControlValue(cm_t->scaleRefToCtrlValue(x_ref2));
         cm_t->limits_exceeded();

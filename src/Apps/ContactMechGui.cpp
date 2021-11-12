@@ -42,7 +42,6 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
         ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{600,1000}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         ImGui::BeginDisabled(m_testmode == ContactMechGui::Run);
-        m_flag_first_to_start = 0;
 
         // Flags to walk through menus
         static bool flag_confirm_exp_settings = 0;
@@ -169,6 +168,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         if (isTest == Test){
             m_targetPosTest += sign*vel*elapsed;
             ContactMechGui::setTest(m_targetPosTest);
+            //std::cout << "m_targetPosTest " << m_targetPosTest << "current position" << getTestPos() << std::endl;
         }else if (isTest == Lock) {
             m_targetPosLock += sign*vel*elapsed;
             ContactMechGui::setLock(m_targetPosLock);
@@ -230,15 +230,15 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         double holdTime;
         if (m_whichExp == Ind){
             n_trials =  m_params.n_ind_trials;
-            finalForce = m_params.ind_final_force;
+            finalForce = (m_whichDof == Normal) ? m_params.ind_final_force_n : m_params.ind_final_force_t;
             holdTime = 0.1;
         }else if (m_whichExp == Creep){
             n_trials =  m_params.n_creep_trials;
-            finalForce = m_params.creep_final_force;
+            finalForce = (m_whichDof == Normal) ? m_params.creep_final_force_n : m_params.creep_final_force_t;
             holdTime = m_params.creep_hold;
         }else if (m_whichExp == Relax){
             n_trials =  m_params.n_relax_trials;
-            finalForce = m_params.relax_final_force;
+            finalForce = (m_whichDof == Normal) ? m_params.relax_final_force_n : m_params.relax_final_force_t;
             holdTime = m_params.relax_hold;
         }
 
@@ -247,6 +247,17 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             std::cout << "start trial " << m_cyclenum << std::endl;
             ////////////////////////////////////// run trial
             // go to intitial cycle stimulus, at contact
+            if(m_whichDof == Shear){
+                // move normal dof to testing location
+                std::cout << "     move normal direction to 85% of the range for testing  (t)" << std::endl;
+                m_targetPosLock = m_cm_lock->getSpoolPosition();
+                while (m_cm_lock->getSpoolPosition() < m_userShearTestNormPos) {
+                    moveConstVel(delta_time().as_seconds(), Lock, Calibration, m_cm_lock->getSpoolPosition(), m_userShearTestNormPos);
+                    co_yield nullptr;
+                }
+                setLock(m_userShearTestNormPos);
+            }
+
             std::cout << "      from start to min, stop at " <<  m_params.initial_force << " N" << std::endl;
             m_targetPosTest = getTestPos();
             while (getTestForce() < m_params.initial_force) { // normal force less than 1G
@@ -256,6 +267,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             } 
             m_poi = Min;
             writeOutputData(csv);
+            m_poi = Other;
             std::cout << "      at " << currpoi[m_poi] << std::endl;
 
             // increase stimulus to peak
@@ -269,6 +281,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             std::cout << "      finished moving " << m_cyclenum << std::endl;
             m_poi = (m_whichExp == Ind) ? Peak : HoldInitial;
             writeOutputData(csv);
+            m_poi = Other;
             std::cout << "      at " << currpoi[m_poi] << std::endl;
 
             // Switch controllers to Force Control for Creep Experiment
@@ -285,6 +298,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             if(m_whichExp != Ind){
                 m_poi = HoldFinal;
                 writeOutputData(csv);
+                m_poi = Other;
             }
 
             // Switch controllers back to Position Control for Creep Experiment
@@ -301,21 +315,43 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             }
             m_poi = Min;
             writeOutputData(csv);
+            m_poi = Other;
 
-            std::cout << "      from min to start, stop at " <<  m_params.start_height << " mm" << std::endl;
-            // decrease to starting point, at contact
-            m_targetPosTest = getTestPos();
-            while (getTestPos() > m_params.start_height) {
-                std::cout << "      start: move up to " << m_params.start_height << " mm, currently at" << getTestPos() << " mm" << std::endl;
-                moveConstVel(delta_time().as_seconds(), Test, Experiment, getTestPos(), m_params.start_height);
-                co_yield nullptr;
+            // move back to start position
+            if(m_whichDof == Normal){
+                std::cout << "      from min to start, stop at " <<  m_params.start_height << " mm" << std::endl;
+                // decrease to starting point, at contact
+                m_targetPosTest = getTestPos();
+                while (m_targetPosTest > m_params.start_height) {
+                    std::cout << "      start: move up to " << m_params.start_height << " mm, currently at" << getTestPos() << " mm" << std::endl;
+                    moveConstVel(delta_time().as_seconds(), Test, Experiment, getTestPos(), m_params.start_height);
+                    co_yield nullptr;
+                }
+            }else if(m_whichDof == Shear){
+                std::cout << "      from min to start, stop at 0.0 mm" << std::endl;
+                // decrease to starting point, at contact
+                m_targetPosTest = getTestPos();
+                while (m_targetPosTest > 0.0) {
+                    std::cout << "      start: over to " << 0.0 << " mm, currently at " << getTestPos() << " mm" << std::endl;
+                    moveConstVel(delta_time().as_seconds(), Test, Experiment, getTestPos(), 0.0);
+                    co_yield nullptr;
+                }
+
+                std::cout << "      lift tactor to start position, stop at " <<  m_params.start_height << " mm" << std::endl;
+                // decrease to starting point, at contact
+                m_targetPosLock = getLockPos();
+                while (m_targetPosLock > m_params.start_height) {
+                    std::cout << "      start: move up to " << m_params.start_height << " mm, currently at" << getLockPos() << " mm" << std::endl;
+                    moveConstVel(delta_time().as_seconds(), Lock, Experiment, getLockPos(), m_params.start_height);
+                    co_yield nullptr;
+                }
             }
             m_poi = Start;
             writeOutputData(csv);
+            m_poi = Other;
 
             // thirty second delay unless last trial
             if ((m_cyclenum + 1) < m_params.n_ind_trials){
-                std::cout << "last trial" << std::endl;
                 double remaining = 30;
                 while (remaining > 0) {
                     ImGui::Text("Break (%.3f)", remaining);
@@ -330,7 +366,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         double remaining = 10;
         while (remaining > 0) {
             ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{500,500}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-            ImGui::Text("Break (%.3f)", remaining);
+            ImGui::Text("End of Experiment. Notify experimentor to remove you from the device");
             ImGui::End();
             remaining -= delta_time().as_seconds();
             co_yield nullptr;
@@ -366,24 +402,26 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             if(m_cyclenum == 1){
                 // go to intiial cycle stimulus, at contact
                 m_targetPosTest = m_cm_test->getSpoolPosition();
-                while (getTestPos() < m_userStimulusPosMin) { // user absolute threshold
+                while(m_targetPosTest < m_userStimulusPosMin) { // user absolute threshold
                     moveConstVel(delta_time().as_seconds(), Test, Experiment, m_cm_test->getSpoolPosition(), m_userStimulusPosMin);
                     co_yield nullptr;
                 } 
                 m_poi = Min;
                 writeOutputData(csv);
+                m_poi = Other;
             }
 
             std::cout << " from min to final, stop at " <<  m_userStimulusPosMax << " mm" << std::endl;
 
             // increase stimulus to peak
             m_targetPosTest = m_cm_test->getSpoolPosition();
-            while (getTestPos() < m_userStimulusPosMax) { // user maximum comfort threshold
+            while(m_targetPosTest < m_userStimulusPosMax) { // user maximum comfort threshold
                 moveConstVel(delta_time().as_seconds(), Test, Experiment, m_cm_test->getSpoolPosition(), m_userStimulusPosMax);
                 co_yield nullptr;
             }
             m_poi = Peak;
             writeOutputData(csv);
+            m_poi = Other;
             std::cout << " at peak " << std::endl;
             
             // hold peak for some amount
@@ -396,12 +434,13 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             std::cout << " from final to min, stop at " <<  m_userStimulusPosMin << " mm" << std::endl;
             // decrease to intial cycle stimulus, at contact
             m_targetPosTest = m_cm_test->getSpoolPosition();
-            while (getTestPos() > m_userStimulusPosMin) {
+            while(m_targetPosTest > m_userStimulusPosMin) {
                 moveConstVel(delta_time().as_seconds(), Test, Experiment, m_cm_test->getSpoolPosition(), m_userStimulusPosMin);
                 co_yield nullptr;
             }
             m_poi = Min;
             writeOutputData(csv);
+            m_poi = Other;
             m_cyclenum++;
         }  // for trials   
 
@@ -461,18 +500,18 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
         m_hub.start();
 
         if (m_whichDof == ContactMechGui::Shear) { // test shear direction
-            m_cm_lock->setPositionRange(m_userparams.positionMin_n, m_maxRangePercent*m_userparams.positionMax_n); // [mm] subject-specific
-            m_cm_lock->setForceRange(m_userparams.forceMin_n, m_maxRangePercent*m_userparams.forceMax_n); // [N] subject-specific
+            m_cm_lock->setPositionRange(m_paramsCMLock.positionMin, m_maxRangePercent*m_userparams.positionMax_n); // [mm] subject-specific
+            m_cm_lock->setForceRange(m_paramsCMLock.forceMin, m_maxRangePercent*m_userparams.forceMax_n); // [N] subject-specific
 
-            m_cm_test->setPositionRange(m_userparams.positionMin_t, m_maxRangePercent*m_userparams.positionMax_t); // [mm] subject-specific
-            m_cm_test->setForceRange(m_userparams.forceMin_t, m_maxRangePercent*m_userparams.forceMax_t); // [N] subject-specific
+            m_cm_test->setPositionRange(m_paramsCMTest.positionMin, m_maxRangePercent*m_userparams.positionMax_t); // [mm] subject-specific
+            m_cm_test->setForceRange(m_paramsCMTest.forceMin, m_maxRangePercent*m_userparams.forceMax_t); // [N] subject-specific
 
         }else if (m_whichDof == ContactMechGui::Normal){ // test normal direction
-            m_cm_lock->setPositionRange(m_userparams.positionMin_t, m_maxRangePercent*m_userparams.positionMax_t); // [mm] subject-specific
-            m_cm_lock->setForceRange(m_userparams.forceMin_t, m_maxRangePercent*m_userparams.forceMax_t); // [N] subject-specific
+            m_cm_lock->setPositionRange(m_paramsCMLock.positionMin, m_maxRangePercent*m_userparams.positionMax_t); // [mm] subject-specific
+            m_cm_lock->setForceRange(m_paramsCMLock.forceMin, m_maxRangePercent*m_userparams.forceMax_t); // [N] subject-specific
             
-            m_cm_test->setPositionRange(m_userparams.positionMin_n, m_maxRangePercent*m_userparams.positionMax_n); // [mm] subject-specific
-            m_cm_test->setForceRange(m_userparams.forceMin_n, m_maxRangePercent*m_userparams.forceMax_n); // [N] subject-specific
+            m_cm_test->setPositionRange(m_paramsCMTest.positionMin, m_maxRangePercent*m_userparams.positionMax_n); // [mm] subject-specific
+            m_cm_test->setForceRange(m_paramsCMTest.forceMin, m_maxRangePercent*m_userparams.forceMax_n); // [N] subject-specific
         }
 
         if (m_whichDof == ContactMechGui::Shear){ // test shear
@@ -613,12 +652,12 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
     Enumerator ContactMechGui::lockExtraDofs(){
         std::cout << "Lock extra dofs" << std::endl;
-        m_userShearTestNormPos = 0.75*(m_maxRangePercent*m_userparams.positionMax_n - m_userparams.positionMin_n) + m_userparams.positionMin_n;
+        m_userShearTestNormPos = 0.8*(m_maxRangePercent*m_userparams.positionMax_n - m_userparams.positionMin_n) + m_userparams.positionMin_n;
 
         std::cout << "     set lock in position control in the current location" << std::endl;
         if (m_whichDof == ContactMechGui::Shear){
             // move normal dof to testing location
-            std::cout << "     move normal direction to 75% of the range for testing  (t)" << std::endl;
+            std::cout << "     move normal direction to 85% of the range for testing  (t)" << std::endl;
             m_targetPosLock = m_cm_lock->getSpoolPosition();
             while (m_cm_lock->getSpoolPosition() < m_userShearTestNormPos) {
                 moveConstVel(delta_time().as_seconds(), Lock, Calibration, m_cm_lock->getSpoolPosition(), m_userShearTestNormPos);
@@ -712,12 +751,16 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
     }
 
     void ContactMechGui::setTest(double N) {
-        m_cm_test->setControlValue(m_cm_test->scaleRefToCtrlValue(N));
+        double cv = m_cm_test->scaleRefToCtrlValue(N);
+        if (abs(cv) > 1.0){ LOG(Warning) << "test control value clamped between 0 and 1 from " << cv;}
+        m_cm_test->setControlValue(cv);
         m_cm_test->limits_exceeded();
         userLimitsExceeded();
     }
 
     void ContactMechGui::setLock(double N) {
+        double cv = m_cm_lock->scaleRefToCtrlValue(N);
+        if (abs(cv) > 1.0){ LOG(Warning) << "lock control value clamped between 0 and 1 from " << cv;}
         m_cm_lock->setControlValue(m_cm_lock->scaleRefToCtrlValue(N));
         m_cm_lock->limits_exceeded();
         userLimitsExceeded();
@@ -743,20 +786,25 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
     void  ContactMechGui::userLimitsExceeded(){
         getFNUpdate();
-        if(m_Ft > m_userparams.forceMax_t){
-            LOG(Warning) << "Exceeded User Shear Force Limit, " << m_userparams.forceMax_t << " N with a value of " << getTestForce() << " N.";
-            stopExp();
-        } else if(m_Fn > m_userparams.forceMax_n){
-            LOG(Warning) << "Exceeded User Normal Force Limit, " << m_userparams.forceMax_n << " N with a value of " << getLockForce() << " N.";
-            stopExp();
+
+        if(m_controller == Force){
+            if(m_Ft > m_userparams.forceMax_t){
+                LOG(Warning) << "Exceeded User Shear Force Limit, " << m_userparams.forceMax_t << " N with a value of " << getTestForce() << " N.";
+                stopExp();
+            } else if(m_Fn > m_userparams.forceMax_n){
+                LOG(Warning) << "Exceeded User Normal Force Limit, " << m_userparams.forceMax_n << " N with a value of " << getLockForce() << " N.";
+                stopExp();
+            }
         }
-        
-        if(m_deltaT > m_userparams.positionMax_t){
-            LOG(Warning) << "Exceeded User Shear Position Limit, " << m_userparams.positionMax_t << " mm with a value of " << getTestPos() << " mm.";
-            stopExp();
-        }else if(m_deltaN > m_userparams.positionMax_n){
-            LOG(Warning) << "Exceeded User Normal Position Limit, " << m_userparams.positionMax_n << " mm with a value of " << getLockPos() << " mm.";
-            stopExp();
+
+        if(m_controller == Position){
+            if(m_deltaT > m_userparams.positionMax_t){
+                LOG(Warning) << "Exceeded User Shear Position Limit, " << m_userparams.positionMax_t << " mm with a value of " << getTestPos() << " mm.";
+                stopExp();
+            }else if(m_deltaN > m_userparams.positionMax_n){
+                LOG(Warning) << "Exceeded User Normal Position Limit, " << m_userparams.positionMax_n << " mm with a value of " << getLockPos() << " mm.";
+                stopExp();
+            }
         }
 
     }

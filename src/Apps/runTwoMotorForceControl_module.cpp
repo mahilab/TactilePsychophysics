@@ -75,7 +75,7 @@ public:
         cm_t->setControlMode(CM::ControlMode::Force);
         cm_t->setForceCtrlCmdSign(0);
         cm_t->setForceSenseSign(0);
-        cm_t->setPositionSenseSign(0);
+        cm_t->setPositionSenseSign(1);
         cm_t->setVelocityMax(2500, 1);
         cm_t->setTorqueMax(0.75,1);
         cm_t->setForceRange(forceMin, forceMax); //(-2, 2); //[N]

@@ -16,6 +16,7 @@ PsychTest::PsychTest(int subnum, Params config, PsychTest::WhichExp whichExp, Wh
     m_whichExp = whichExp;
     m_whichDof = whichdof;
     m_controller = controller;
+    std::cout << "m_controller " << m_controller << std::endl;
     if (m_whichExp == PsychTest::MCS){
         m_stim_trials_mcs.reserve(300); // arbitrary, more than we'll need
     } else if (m_whichExp == PsychTest::SM) {
@@ -76,7 +77,7 @@ void PsychTest::setParams(Params config) {
     
     if (m_whichExp == PsychTest::MCS){
         m_jnd_stimulus_reference = 0.75*(m_userStimulusMax - m_userStimulusMin) + m_userStimulusMin;
-        m_jnd_stimulus_interval  = 0.02*(m_userStimulusMax - m_userStimulusMin); /// ????????????? base this value on lit/pilots. Based on default param file values if not found yet
+        m_jnd_stimulus_interval  = 0.04*(m_userStimulusMax - m_userStimulusMin); /// ????????????? base this value on lit/pilots. Based on default param file values if not found yet
         buildComparisonVector();
     } else if (m_whichExp == PsychTest::SM){
         m_jnd_stimulus_reference = 0;
