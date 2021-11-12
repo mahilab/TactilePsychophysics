@@ -270,9 +270,9 @@ public:
     /// Returns the spool velocity in [deg/s]
     double getSpoolVelocity();
     /// Returns the force sensor reading in [N]
-    virtual double getForce(bool filtered = true);
+    virtual double getForce(bool filtered = true, bool forUpdate = false);
     /// Returns the derivative of the force sensor reading in [N/s]
-    virtual double getdFdt(bool filtered = false);
+    virtual double getdFdt(bool filtered = true, bool forUpdate = false);
     /// Ensures the velocity does not exceed the velocity limit
     bool velocity_limit_exceeded();
     /// Ensures the torque does not exceed the torque limit
@@ -294,7 +294,7 @@ public:
 double m_torque=0;
 //Force Ringbuffer
 mahi::util::RingBuffer<double> FBuff{30};
-//Params      m_params;    ///< parameters
+Params      m_params;    ///< parameters
 Butterworth  m_outputFilter;
 
 protected:
@@ -302,7 +302,7 @@ protected:
     Status      m_status;    ///< status
     Time        m_t;
     Io          m_io;        ///< IO config
-    Params      m_params;    ///< parameters
+    //Params      m_params;    ///< parameters
     ControlMode m_ctrlMode;  ///< mode of control
     Query       m_q;         ///< most recent Query point
     RingBuffer<Query> m_Q;   ///< 10k Query history

@@ -20,10 +20,10 @@ CM::CM(const std::string &name, Io io, Params config) :
     m_forcePID(0,0,0),
     m_ctrlFilter(2, 0.02, Butterworth::Lowpass),
     m_forceFiltMode(FilterMode::Median),
-    m_forceFilterL(2,0.02),
+    m_forceFilterL(2,1.0),
     m_forceFilterM(100),
     m_dFdtFiltMode(FilterMode::Median),
-    m_dFdtFilterL(2, 0.02),
+    m_dFdtFilterL(2, 0.2),
     m_dFdtFilterM(100),
     m_outputFilter(2,config.outputFilterCutoff,Butterworth::Lowpass),
     m_posDiff(),
@@ -58,6 +58,8 @@ void CM::update(const Time &t) {
     auto vel = m_posDiff.update(getMotorPosition(), t);
     m_velocityFilter.update(vel);
     // control update
+    getForce(true, true);
+    getdFdt(true, true);
     if (m_status == Status::Enabled)
         controlUpdate(ctrlValueUsed);
     // update feedrate
@@ -524,11 +526,28 @@ void CM::controlForce(double newtons) {
     double dfdt_act = getdFdt(1);
     double torque = m_forcePd.calculate(newtons,f_act,0,dfdt_act);
     // ff term
-    double sign = (f_act<newtons) ? 1.0 : -1.0;
     double torque_ff = scaleCtrlValue(m_params.forceKff, ControlMode::Torque);
-    torque += sign*torque_ff * newtons;
+    // std::cout << "torque_ff" <<  torque_ff << std::endl;
+    // std::cout << "m_params.forceKff" <<  m_params.forceKff << std::endl;
+    torque += torque_ff * newtons;
     setMotorTorque(torque);
 }
+
+// void CM::controlForce(double newtons) {
+//     double f_act  = getForce(1);
+//     double dfdt_act = getdFdt(1);
+//     double torque = m_forcePd.calculate(newtons,f_act,0,dfdt_act);
+//     // ff term
+//     double currVel = getMotorVelocity(); // are we stationary? (then we need help to overcome static friction)
+//     double torqueKff = scaleCtrlValue(m_params.forceKff, ControlMode::Torque); // this will be between 0 and stall torque
+//     double initialBoostScale = 1-4*abs(currVel)/m_params.velocityMax; // so when it gets to a quarter of the max vel the term is no longer applied
+//     initialBoostScale = clamp(initialBoostScale,0.0,1.0); // but it's capped at 0 
+//     double forceHighScale = 1.5 - f_act/m_params.forceMax; //is this a high or low force situation?, decrease boost effect at high forces since viscoelastic material is assisting
+//     forceHighScale = clamp(forceHighScale,0.5,1.0); // but it's capped at 0.5
+//     double torque_ff = torqueKff*(initialBoostScale*forceHighScale); // help should be something like a V shape, lots of help to increase at static/low-force, less hinderance at high force situation
+//     torque += torque_ff;
+//     setMotorTorque(torque);
+// }
 
 void CM::controlForceHybrid(double newtons) {
     double f_act  = getForce();
@@ -594,38 +613,55 @@ double CM::getSpoolPosition() {
 
 double CM::getSpoolVelocity() { return getMotorVelocity() * m_params.gearRatio; }
 
-double CM::getForce(bool filtered) {
+double CM::getForce(bool filtered, bool forUpdate) {
     double senseSign = m_params.forceSenseSignFlip ? -1.0 : 1.0;
     double raw = senseSign*m_io.forceCh.get_force(m_io.forceaxis);
-    // if(abs(raw) < 1e-100) {
-    //     LOG(Warning) << "Force is not recorded for cm " << name();
-    // } 
-    // std::cout << "raw" << raw << std::endl;
+    if(forUpdate ==1){
+        if (!filtered)
+            return raw;
+        switch(m_forceFiltMode) {
+            case None:    return raw;
+            case Lowpass: m_forceFilterL.update(raw);
+            case Median:  m_forceFilterM.filter(raw);
+            case Cascade: m_forceFilterL.update(m_forceFilterM.filter(raw));
+            default:      raw = raw;
+        }
+    }
+
     if (!filtered)
         return raw;
     switch(m_forceFiltMode) {
         case None:    return raw;
-        case Lowpass: {
-            auto filtered = m_forceFilterL.update(raw);
-            // std::cout << "raw" << raw << std::endl;
-            return filtered;
-        }
-        case Median:  return m_forceFilterM.filter(raw);
-        case Cascade: return m_forceFilterL.update(m_forceFilterM.filter(raw));
+        case Lowpass: return m_forceFilterL.get_value();
+        case Median:  return m_forceFilterM.get_value();
+        case Cascade: return m_forceFilterL.get_value();
         default:      return raw;
     }
+
 }
 
-double CM::getdFdt(bool filtered) {
-    double diff = m_forceDiff.update(getForce(1), m_t);
+double CM::getdFdt(bool filtered, bool forUpdate) {
+    double diff = m_forceDiff.update(getForce(), m_t);
     double raw = m_forceDiff.get_value();
+    if(forUpdate ==1){
+        if (!filtered)
+            return raw;
+        switch(m_dFdtFiltMode) {
+            case None:    return raw;
+            case Lowpass: m_dFdtFilterL.update(raw);
+            case Median:  m_dFdtFilterM.filter(raw);
+            case Cascade: m_dFdtFilterL.update(m_dFdtFilterM.filter(raw));
+            default:      return raw;
+        }
+    }
+
     if (!filtered)
         return raw;
     switch(m_dFdtFiltMode) {
         case None:    return raw;
-        case Lowpass: return m_dFdtFilterL.update(raw);
-        case Median:  return m_dFdtFilterM.filter(raw);
-        case Cascade: return m_dFdtFilterL.update(m_forceFilterM.filter(raw));
+        case Lowpass: return m_dFdtFilterL.get_value();
+        case Median:  return m_dFdtFilterM.get_value();
+        case Cascade: return m_dFdtFilterL.get_value();
         default:      return raw;
     }
 }
@@ -686,7 +722,7 @@ double CM::scaleRefToCtrlValue(double ref) {
 
 double CM::scaleCtrlValue(double ctrlValue, ControlMode mode) {
     if (mode == ControlMode::Torque)
-        return m_params.motorStallTorque * ctrlValue;
+        return m_params.torqueMax * ctrlValue;
     else if (mode == ControlMode::Position)
         return m_params.positionMin + ctrlValue * (m_params.positionMax - m_params.positionMin);
     else if (mode == ControlMode::Force)

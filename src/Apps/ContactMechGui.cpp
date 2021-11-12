@@ -146,6 +146,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
         // idle mode
         if (m_testmode == ContactMechGui::Idle) {
+            ImGui::Text("Idle Mode, cycle %f out of 5", m_cyclenum);
             //When not coducting trials, go to neutral contact position
             if(!m_flag_first_to_start && flag_start_calibration){
                 std::cout << "m_flag_first_to_start" << m_flag_first_to_start << std::endl;
@@ -240,6 +241,10 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             n_trials =  m_params.n_relax_trials;
             finalForce = (m_whichDof == Normal) ? m_params.relax_final_force_n : m_params.relax_final_force_t;
             holdTime = m_params.relax_hold;
+        }
+
+        if(m_whichDof == Shear){
+            finalForce = 1.5;
         }
 
         m_cyclenum = 1;
@@ -363,7 +368,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             m_cyclenum++;
         }  // for trials   
 
-        double remaining = 10;
+        double remaining = 30;
         while (remaining > 0) {
             ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{500,500}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
             ImGui::Text("End of Experiment. Notify experimentor to remove you from the device");

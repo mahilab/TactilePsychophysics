@@ -18,7 +18,7 @@
     "has_velocity_limit_": true,
     "has_torque_limit_": true,
     "velocityMax": 2500.0,
-    "torqueMax": 0.030,
+    "torqueMax": 0.060,
     "positionMin": 0,
     "positionMax": 0,
     "positionKp": 0.0005,

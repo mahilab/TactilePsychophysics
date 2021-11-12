@@ -151,32 +151,32 @@ public:
 
         }
 
-        ImGui::PushItemWidth(100);
-        ImGui::Text("Motor 1 - Normal Dir - Encoder Info");
-        ImGui::LabelText("normal motor encoder counts", "%d", q8.encoder[0]);
-        ImGui::LabelText("normal motor encoder position", "%f", q8.encoder.positions[0]);
-        ImGui::LabelText("normal motor encoder velocity", "%f", q8.velocity.velocities[0]);
-        ImGui::Spacing(); 
+        // ImGui::PushItemWidth(100);
+        // ImGui::Text("Motor 1 - Normal Dir - Encoder Info");
+        // ImGui::LabelText("normal motor encoder counts", "%d", q8.encoder[0]);
+        // ImGui::LabelText("normal motor encoder position", "%f", q8.encoder.positions[0]);
+        // ImGui::LabelText("normal motor encoder velocity", "%f", q8.velocity.velocities[0]);
+        // ImGui::Spacing(); 
 
-        ImGui::Text("Motor 2 - Shear Dir - Encoder Info");
-        ImGui::LabelText("shear motor encoder counts", "%d", q8.encoder[1]);
-        ImGui::LabelText("shear motor encoder position", "%f", q8.encoder.positions[1]);
-        ImGui::LabelText("shear motor encoder velocity", "%f", q8.velocity.velocities[1]);
-        ImGui::Spacing();
+        // ImGui::Text("Motor 2 - Shear Dir - Encoder Info");
+        // ImGui::LabelText("shear motor encoder counts", "%d", q8.encoder[1]);
+        // ImGui::LabelText("shear motor encoder position", "%f", q8.encoder.positions[1]);
+        // ImGui::LabelText("shear motor encoder velocity", "%f", q8.velocity.velocities[1]);
+        // ImGui::Spacing();
 
-        ImGui::Text("Motor 1 - Normal Dir - Spool Info");
-        ImGui::LabelText("normal motor translational position", "%f", p_spool1);
-        ImGui::LabelText("normal motor translational velocity", "%f", v_spool1);
-        ImGui::LabelText("normal motor translational commanded torque", "%f", torque1);
-        ImGui::LabelText("normal motor translational commanded volts", "%f", volts1);
-        ImGui::Spacing(); 
+        // ImGui::Text("Motor 1 - Normal Dir - Spool Info");
+        // ImGui::LabelText("normal motor translational position", "%f", p_spool1);
+        // ImGui::LabelText("normal motor translational velocity", "%f", v_spool1);
+        // ImGui::LabelText("normal motor translational commanded torque", "%f", torque1);
+        // ImGui::LabelText("normal motor translational commanded volts", "%f", volts1);
+        // ImGui::Spacing(); 
 
-        ImGui::Text("Motor 2 - Shear Dir - Spool Info");
-        ImGui::LabelText("shear motor translational position", "%f", p_spool2);
-        ImGui::LabelText("shear motor translational velocity", "%f", v_spool2);
-        ImGui::LabelText("shear motor translational commanded torque", "%f", torque2);
-        ImGui::LabelText("normal motor translational commanded volts", "%f", volts2);
-        ImGui::Spacing(); 
+        // ImGui::Text("Motor 2 - Shear Dir - Spool Info");
+        // ImGui::LabelText("shear motor translational position", "%f", p_spool2);
+        // ImGui::LabelText("shear motor translational velocity", "%f", v_spool2);
+        // ImGui::LabelText("shear motor translational commanded torque", "%f", torque2);
+        // ImGui::LabelText("normal motor translational commanded volts", "%f", volts2);
+        // ImGui::Spacing(); 
 
         ImGui::Text("ATI Forces");
         ImGui::LabelText("ati z force - motor 1", "%f", f_act1);

@@ -13,7 +13,6 @@ using namespace mahi::util;
 using namespace mahi::robo;
 using namespace mahi::daq;
 
-
 struct ScrollingBuffer {
     int MaxSize;
     int Offset;
@@ -144,11 +143,13 @@ public:
 
         ImGui::Separator();
         
-        cm_n->setForceGains(kp1/1e6,0,kd1/1e6);        
+        cm_n->setForceGains(kp1/1e6,0,kd1/1e6);
+        cm_n->m_params.forceKff = forceKff1;      
         cm_n->setControlValue(cm_n->scaleRefToCtrlValue(f_ref1));
         cm_n->limits_exceeded();
 
         cm_t->setForceGains(kp2/1e6,0,kd2/1e6);
+        cm_t->m_params.forceKff = forceKff2;  
         cm_t->setControlValue(cm_t->scaleRefToCtrlValue(f_ref2));
         cm_t->limits_exceeded();
 
@@ -172,34 +173,35 @@ public:
         // std::cout << "cv " << cm_n->scaleRefToCtrlValue(f_ref1) << std::endl;
 
         ImGui::PushItemWidth(100);
-        ImGui::Text("Motor 1 - Normal Dir - Encoder Info");
-        ImGui::LabelText("normal motor encoder counts", "%d", cm_n->getEncoderCounts());
-        ImGui::LabelText("normal motor angular position [deg]", "%f", cm_n->getMotorPosition());
-        ImGui::LabelText("normal motor angular velocity [deg/s]", "%f", cm_n->getMotorVelocity());
-        ImGui::Spacing(); 
+        // ImGui::Text("Motor 1 - Normal Dir - Encoder Info");
+        // ImGui::LabelText("normal motor encoder counts", "%d", cm_n->getEncoderCounts());
+        // ImGui::LabelText("normal motor angular position [deg]", "%f", cm_n->getMotorPosition());
+        // ImGui::LabelText("normal motor angular velocity [deg/s]", "%f", cm_n->getMotorVelocity());
+        // ImGui::Spacing(); 
 
-        ImGui::Text("Motor 2 - Shear Dir - Encoder Info");
-        ImGui::LabelText("shear motor encoder counts", "%d", cm_t->getEncoderCounts());
-        ImGui::LabelText("shear motor angular position [deg]", "%f", cm_t->getMotorPosition());
-        ImGui::LabelText("shear motor angular velocity [deg/s]", "%f", cm_t->getMotorVelocity());
-        ImGui::Spacing();
+        // ImGui::Text("Motor 2 - Shear Dir - Encoder Info");
+        // ImGui::LabelText("shear motor encoder counts", "%d", cm_t->getEncoderCounts());
+        // ImGui::LabelText("shear motor angular position [deg]", "%f", cm_t->getMotorPosition());
+        // ImGui::LabelText("shear motor angular velocity [deg/s]", "%f", cm_t->getMotorVelocity());
+        // ImGui::Spacing();
 
-        ImGui::Text("Motor 1 - Normal Dir - Spool Info");
-        ImGui::LabelText("normal motor translational position", "%f", cm_n->getSpoolPosition());
-        ImGui::LabelText("normal motor translational velocity", "%f", vn);
-        ImGui::LabelText("normal motor translational commanded torque", "%f", cm_n->getMotorTorqueCommand());
-        ImGui::Spacing(); 
+        // ImGui::Text("Motor 1 - Normal Dir - Spool Info");
+        // ImGui::LabelText("normal motor translational position", "%f", cm_n->getSpoolPosition());
+        // ImGui::LabelText("normal motor translational velocity", "%f", vn);
+        // ImGui::LabelText("normal motor translational commanded torque", "%f", cm_n->getMotorTorqueCommand());
+        // ImGui::Spacing(); 
 
-        ImGui::Text("Motor 2 - Shear Dir - Spool Info");
-        ImGui::LabelText("shear motor translational position", "%f", cm_t->getSpoolPosition());
-        ImGui::LabelText("shear motor translational velocity", "%f", vt);
-        ImGui::LabelText("shear motor translational commanded torque", "%f", cm_t->getMotorTorqueCommand());
-        ImGui::Spacing(); 
+        // ImGui::Text("Motor 2 - Shear Dir - Spool Info");
+        // ImGui::LabelText("shear motor translational position", "%f", cm_t->getSpoolPosition());
+        // ImGui::LabelText("shear motor translational velocity", "%f", vt);
+        // ImGui::LabelText("shear motor translational commanded torque", "%f", cm_t->getMotorTorqueCommand());
+        // ImGui::Spacing(); 
+        // ImGui::PopItemWidth();
 
         ImGui::Text("ATI Forces");
         ImGui::LabelText("ati z force - motor 1", "%f", f_act1);
         ImGui::LabelText("ati x force - motor 2", "%f", f_act2);
-        ImGui::PopItemWidth();
+        // ImGui::PopItemWidth();
 
         t += ImGui::GetIO().DeltaTime;
         fdata1.AddPoint(t, f_act1* 1.0f);
