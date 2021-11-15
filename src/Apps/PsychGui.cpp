@@ -6,7 +6,7 @@ using namespace mahi::robo;
 using namespace xbox;
 
 PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDof whichDOF, PsychTest::ControlType controller) : 
-    Application(600,600,"Capstan Module Psychophysical Test (Subject " + std::to_string(subject) + ")" ,false), 
+    Application(600,1000,"Capstan Module Psychophysical Test (Subject " + std::to_string(subject) + ")" ,false), 
     m_pt(subject, PsychTest::Params(), whichExp, whichDOF, controller), // Hardware specific
     ts(),
     filename_timeseries("C:/Git/TactilePsychophysics/data/" + m_pt.expchoice[m_pt.m_whichExp] + "/_subject_" + std::to_string(m_pt.m_subject) + "_timeseries_" + m_pt.dofChoice[m_pt.m_whichDof] + "_" + m_pt.controlChoice[m_pt.m_controller] + "_" + m_pt.expchoice[m_pt.m_whichExp] + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
@@ -385,6 +385,15 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         } // for window
         std::cout << "set idle" << std::endl;
         m_pt.m_testmode = PsychTest::Idle;
+        // End of Experiment
+        double remaining = 10;
+        while (remaining > 0) {
+            ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{500,500}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+            ImGui::Text("Experiment Complete, Notify the Experimentor to Remove You from the Device");
+            ImGui::End();
+            remaining -= delta_time().as_seconds();
+            co_yield nullptr;
+        } 
         set_window_title("CM " + m_pt.method[m_pt.m_whichExp] + " (Subject " + std::to_string(m_pt.m_subject) + ") (Test " + m_pt.dofChoice[m_pt.m_whichDof] + " dof, " + m_pt.controlChoice[m_pt.m_controller] + " Control)"); // Hardware specific
     }
     
@@ -1037,7 +1046,6 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
             // move shear to center
             double elapsed = 0;
             while (elapsed < m_psychparams.travel_time) {
-                std::cout << "m_cm_test->getSpoolPosition()" << m_cm_test->getSpoolPosition() << " m_pt.m_userparams.positionStart_t " << m_pt.m_userparams.positionStart_t << std::endl;
                 rampStimulus(m_cm_test->getSpoolPosition(), m_pt.m_userparams.positionStart_t, m_psychparams.travel_time, elapsed);
                 elapsed += delta_time().as_seconds();
                 co_yield nullptr;
@@ -1173,7 +1181,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         if(isTest){
             double currentF = m_cm_test->getForce(1);
             m_cm_test->disable();
-            m_cm_test->setControlMode(CM::Force);
+            m_cm_test->setControlMode(CM::ForceHybrid);
             setTest(currentF);
             m_cm_test->enable();
             m_cm_test->limits_exceeded();
@@ -1191,7 +1199,7 @@ PsychGui::PsychGui(int subject, PsychTest::WhichExp whichExp, PsychTest::WhichDo
         }else{
             double currentF = m_cm_lock->getForce(1);
             m_cm_lock->disable();
-            m_cm_lock->setControlMode(CM::Force);
+            m_cm_lock->setControlMode(CM::ForceHybrid);
             setLock(currentF);
             m_cm_lock->enable();
             m_cm_lock->limits_exceeded();

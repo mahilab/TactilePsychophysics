@@ -55,7 +55,7 @@ public:
 
         // initialize normal capstan module
         cm_n->zeroPosition(); //makes wherever it is when the program starts the zero position
-        cm_n->setControlMode(CM::ControlMode::Force);
+        cm_n->setControlMode(CM::ControlMode::ForceHybrid);
         cm_n->setForceCtrlCmdSign(1);
         cm_n->setForceSenseSign(1);
         cm_n->setPositionSenseSign(0);
@@ -71,7 +71,7 @@ public:
     
         // initialize tangential capstan module
         cm_t->zeroPosition(); //makes wherever it is when the program starts the zero position
-        cm_t->setControlMode(CM::ControlMode::Force);
+        cm_t->setControlMode(CM::ControlMode::ForceHybrid);
         cm_t->setForceCtrlCmdSign(0);
         cm_t->setForceSenseSign(0);
         cm_t->setPositionSenseSign(1);

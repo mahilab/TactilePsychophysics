@@ -41,6 +41,7 @@ public:
     enum Gender { NA, Male, Female, Other };
     enum Control { None, Position, Force };
     enum DOF { Undefined, Normal, Shear };
+    enum Haptic { New, Some, Extensive, Unanswered };
     enum Experiment { MCS, SM, MA, Cycle, Unspecified };
 
     enum Response {
@@ -53,7 +54,7 @@ public:
     };
 
     /// Constructor
-    Likert() : Application(500,500,"",false) { 
+    Likert() : Application(1000,1000,"",false) { 
         ImGui::DisableViewports();
         std::cout << "constructor before" << std::endl;
         loaded = load();
@@ -70,7 +71,7 @@ public:
             if (ImGui::BeginCombo("ID", subject != -1 ? std::to_string(subject).c_str() : "")) {
                     for (int i = 0; i < 100; ++i) {
                     if (ImGui::Selectable(std::to_string(i).c_str(), i == subject))
-                        subject = i;
+                        subject = 9000 + i;
                     if (subject == i)
                         ImGui::SetItemDefaultFocus();
                 }
@@ -138,6 +139,19 @@ public:
             ImGui::SameLine();
             if (ImGui::RadioButton("Shear", dof == Shear))
                 dof = Shear;
+
+            ImGui::Separator();
+
+            ImGui::Text("Prior Haptics Experience:");
+            ImGui::SameLine();
+            if (ImGui::RadioButton("None", haptic == New))
+                haptic = New;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Some", haptic == Some))
+                haptic = Some;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Extensive", haptic == Extensive))
+                haptic = Extensive;
 
             // Header
             ImGui::Separator();
@@ -275,12 +289,17 @@ public:
             return false;
         }
         if (control == None) {
-            message = "Please which controller";
+            message = "Please enter which controller";
             ImGui::OpenPopup("Message");
             return false;
         }
         if (dof == Undefined) {
-            message = "Please which dof";
+            message = "Please enter which dof";
+            ImGui::OpenPopup("Message");
+            return false;
+        }
+        if (haptic == Unanswered) {
+            message = "Please enter how much haptic experience ";
             ImGui::OpenPopup("Message");
             return false;
         }
@@ -326,6 +345,7 @@ public:
         j["order"] = order;
         j["control"] = controllers[control]; //(control == Position ? "Position" : control == Force ? "Force" : "None");
         j["dof"] = dofs[dof]; //(dof == Normal ? "Normal" : dof == Shear ? "Shear" : "Undefined");
+        j["dof"] = haptics[haptic];
         j["exp"] = exps[exp]; //(exp == MCS ? "MCS" : exp == SM ? "SM" : exp == MA ? "MA" : exp == Cycle ? "Cycle" : "Unspecified");;
         std::ofstream file("C:/Git/TactilePsychophysics/data/Likert/likert_subject_" + std::to_string(subject) + "_exp_" + exps[exp] + "_dof_" + dofs[dof] + "_control_" + controllers[control] + ".json");
         if (file.is_open())
@@ -336,6 +356,7 @@ public:
         age = -1;
         control = None;
         dof = Undefined;
+        haptic = Unanswered;
         exp = Unspecified;
         responses = std::vector<Response>(responses.size(), NoResponse);
         message = "Thank you for participating!";
@@ -347,6 +368,7 @@ public:
     std::string controllers[3] = { "None", "Position", "Force" };
     std::string dofs[3] = { "Undefined", "Normal", "Shear" };
     std::string exps[5] = { "MCS", "SM", "MA", "Cycle", "Unspecified" };
+    std::string haptics[5] = { "New", "Some", "Extensive", "Unanswered" };
 
     int subject = -1;                    ///< subject input text
     bool loaded = false;                 ///< was the Likert config loaded?
@@ -358,6 +380,7 @@ public:
     Gender sex = NA;               ///< is subject male?
     Control control = None;
     DOF dof = Undefined;
+    Haptic haptic = Unanswered;
     Experiment exp = Unspecified;
     int age = -1;                        ///< subject age
     bool autoClose = false;              ///< should the app close when the user submits a response?

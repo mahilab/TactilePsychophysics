@@ -19,10 +19,10 @@ CM::CM(const std::string &name, Io io, Params config) :
     m_positionPd(config.positionKp, config.positionKd),
     m_forcePID(0,0,0),
     m_ctrlFilter(2, 0.02, Butterworth::Lowpass),
-    m_forceFiltMode(FilterMode::Median),
-    m_forceFilterL(2,1.0),
+    m_forceFiltMode(FilterMode::Lowpass),
+    m_forceFilterL(2,0.2),
     m_forceFilterM(100),
-    m_dFdtFiltMode(FilterMode::Median),
+    m_dFdtFiltMode(FilterMode::Lowpass),
     m_dFdtFilterL(2, 0.2),
     m_dFdtFilterM(100),
     m_outputFilter(2,config.outputFilterCutoff,Butterworth::Lowpass),
@@ -641,9 +641,10 @@ double CM::getForce(bool filtered, bool forUpdate) {
 }
 
 double CM::getdFdt(bool filtered, bool forUpdate) {
-    double diff = m_forceDiff.update(getForce(), m_t);
-    double raw = m_forceDiff.get_value();
+    double raw;
     if(forUpdate ==1){
+        m_forceDiff.update(getForce(), m_t);
+        raw = m_forceDiff.get_value();
         if (!filtered)
             return raw;
         switch(m_dFdtFiltMode) {
@@ -654,7 +655,8 @@ double CM::getdFdt(bool filtered, bool forUpdate) {
             default:      return raw;
         }
     }
-
+    
+    raw = m_forceDiff.get_value();
     if (!filtered)
         return raw;
     switch(m_dFdtFiltMode) {
@@ -713,7 +715,7 @@ double CM::scaleRefToCtrlValue(double ref) {
     }
     else if (m_ctrlMode == ControlMode::ForceHybrid){
          double cv = (ref - m_params.forceMin)/(m_params.forceMax - m_params.forceMin);
-         LOG(Info) << "Reference value " << ref << " N for CM " << name() << " converted to " << cv << " for force 2 control.";
+         //LOG(Info) << "Reference value " << ref << " N for CM " << name() << " converted to " << cv << " for force 2 control.";
          return cv;
     }
     else

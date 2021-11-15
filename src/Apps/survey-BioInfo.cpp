@@ -102,10 +102,16 @@ public:
         ImGui::InputFloat("BMI",&bmi);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(50);
-        ImGui::InputFloat("Arm Circumference",&armC);
+        ImGui::InputFloat("Max Arm Circumference",&armC_max);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(50);
-        ImGui::InputFloat("Skin Fold",&skinFold);
+        ImGui::InputFloat("Elbow Forearm Circumference",&armC_elbow);
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputFloat("Wrist Circumference",&armC_wrist);
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputFloat("Tricep Skin Fold",&skinFold_tricep);
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputFloat("Forearm Skin Fold",&skinFold_forearm);
 
         ImGui::Separator();
         ImGui::Separator();
@@ -153,13 +159,28 @@ public:
             ImGui::OpenPopup("Message");
             return false;
         }
-        if (armC == -1) {
-            message = "Please enter your arm circumference";
+        if (armC_max == -1) {
+            message = "Please enter your max arm circumference";
             ImGui::OpenPopup("Message");
             return false;
         }
-        if (skinFold == -1) {
-            message = "Please enter your skin fold measurement";
+        if (armC_elbow == -1) {
+            message = "Please enter your elbow forearm circumference";
+            ImGui::OpenPopup("Message");
+            return false;
+        }
+        if (armC_wrist == -1) {
+            message = "Please enter your wrist circumference";
+            ImGui::OpenPopup("Message");
+            return false;
+        }
+        if (skinFold_tricep == -1) {
+            message = "Please enter your tricep skin fold measurement";
+            ImGui::OpenPopup("Message");
+            return false;
+        }
+        if (skinFold_forearm == -1) {
+            message = "Please enter your forearm skin fold measurement";
             ImGui::OpenPopup("Message");
             return false;
         }
@@ -184,8 +205,11 @@ public:
         j["subject"] = subject;
         j["age"] = age;
         j["BMI"] = bmi; 
-        j["Arm Circumference"] = armC; 
-        j["Skin Fold"] = skinFold; 
+        j["Arm Circumference, Max"] = armC_max;
+        j["Arm Circumference, Elbow"] = armC_elbow;
+        j["Arm Circumference, Wrist"] = armC_wrist; 
+        j["Skin Fold, Tricep"] = skinFold_tricep;
+        j["Skin Fold, Forearm"] = skinFold_forearm; 
         j["Hair Length"] = hairL;
         j["Hair Thickness"] = hairT; 
         j["Hair Density"] = hairDensity; 
@@ -197,8 +221,11 @@ public:
         sex = NA;
         age = -1;
         bmi = -1;
-        armC = -1;
-        skinFold = -1;
+        armC_max = -1;
+        armC_elbow = -1;
+        armC_wrist = -1;
+        skinFold_tricep = -1;
+        skinFold_forearm = -1;
         hairL = -1;
         hairT = -1;
         hairDensity = -1;
@@ -211,8 +238,11 @@ public:
     Gender sex = NA;               ///< is subject male?
     int age = -1;                        ///< subject age
     float bmi = -1;
-    float armC = -1;
-    float skinFold = -1;
+    float armC_max = -1;
+    float armC_elbow = -1;
+    float armC_wrist = -1;
+    float skinFold_tricep = -1;
+    float skinFold_forearm = -1;
     float hairL = -1;
     float hairT = -1;
     float hairDensity = -1;

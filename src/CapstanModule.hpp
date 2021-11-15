@@ -136,7 +136,7 @@ public:
         int    forceFilterN        = 31;  
         double cvFilterCutoff      = 0.02;           // normalized [0,1]
         bool   filterControlValue  = false;           // [true/false]
-        double outputFilterCutoff  = 0.2;            //
+        double outputFilterCutoff  = 0.2;            //0.2
         bool   filterOutputValue   = true;          //
         double velFilterCutoff     = 0.2;
         bool   useSoftwareVelocity = false;

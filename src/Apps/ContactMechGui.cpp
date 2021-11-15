@@ -7,7 +7,7 @@ using namespace mahi::util;
 using namespace mahi::robo;
 
 ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF) : 
-    Application(600,600,"Contact Mechanics Test (Subject " + std::to_string(subject) + ")" ,false),
+    Application(600,1000,"Contact Mechanics Test (Subject " + std::to_string(subject) + ")" ,false),
     ts(),
     filename_timeseries("C:/Git/TactilePsychophysics/data/" + expchoice[whichExp] + "/_subject_" + std::to_string(subject) + "_timeseries_" + dofChoice[whichDOF] + "_dof_" + expchoice[whichExp] + "_exp_" + std::to_string(whichExp) + "_" + ts.yyyy_mm_dd_hh_mm_ss() + ".csv"),
     csv_timeseries(filename_timeseries),
@@ -41,6 +41,9 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
 
 
         ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{600,1000}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(ImVec2(main_viewport->GetWorkPos().x + 650, main_viewport->GetWorkPos().y + 20), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
         ImGui::BeginDisabled(m_testmode == ContactMechGui::Run);
 
         // Flags to walk through menus
@@ -449,10 +452,11 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             m_cyclenum++;
         }  // for trials   
 
+        // End of Experiment
         double remaining = 10;
         while (remaining > 0) {
             ImGui::BeginFixed("##MainWindow", ImGui::GetMainViewport()->Pos,{500,500}, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-            ImGui::Text("Break (%.3f)", remaining);
+            ImGui::Text("Experiment Complete, Notify the Experimentor to Remove You from the Device");
             ImGui::End();
             remaining -= delta_time().as_seconds();
             co_yield nullptr;
@@ -737,7 +741,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             std::cout << "Set test dof to force control" << std::endl;
             double currentF = m_cm_test->getForce(1);
             m_cm_test->disable();
-            m_cm_test->setControlMode(CM::Force);
+            m_cm_test->setControlMode(CM::ForceHybrid);
             setTest(currentF);
             m_cm_test->enable();
             m_cm_test->limits_exceeded();
@@ -747,7 +751,7 @@ ContactMechGui::ContactMechGui(int subject, WhichExp whichExp, WhichDof whichDOF
             std::cout << "Set lock dof to force control" << std::endl;
             double currentF = m_cm_lock->getForce(1);
             m_cm_lock->disable();
-            m_cm_lock->setControlMode(CM::Force);
+            m_cm_lock->setControlMode(CM::ForceHybrid);
             setLock(currentF);
             m_cm_lock->enable();
             m_cm_lock->limits_exceeded();
