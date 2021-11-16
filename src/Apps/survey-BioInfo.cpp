@@ -100,10 +100,10 @@ public:
         ImGui::Text("Body Measures:");            
         ImGui::SetNextItemWidth(50);
         ImGui::InputFloat("BMI",&bmi);
-        ImGui::SameLine();
         ImGui::SetNextItemWidth(50);
-        ImGui::InputFloat("Max Arm Circumference",&armC_max);
-        ImGui::SameLine();
+        ImGui::InputFloat("Forearm Length",&armL);
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputFloat("Max Forearm Circumference",&armC_max);
         ImGui::SetNextItemWidth(50);
         ImGui::InputFloat("Elbow Forearm Circumference",&armC_elbow);
         ImGui::SetNextItemWidth(50);
@@ -205,9 +205,11 @@ public:
         j["subject"] = subject;
         j["age"] = age;
         j["BMI"] = bmi; 
-        j["Arm Circumference, Max"] = armC_max;
-        j["Arm Circumference, Elbow"] = armC_elbow;
-        j["Arm Circumference, Wrist"] = armC_wrist; 
+        j["Forearm Length"] = armL;
+        j["Forearm Circumference, Max"] = armC_max;
+        j["Forearm Circumference, Max"] = armC_max;
+        j["Forearm Circumference, Elbow"] = armC_elbow;
+        j["Forearm Circumference, Wrist"] = armC_wrist; 
         j["Skin Fold, Tricep"] = skinFold_tricep;
         j["Skin Fold, Forearm"] = skinFold_forearm; 
         j["Hair Length"] = hairL;
@@ -221,6 +223,7 @@ public:
         sex = NA;
         age = -1;
         bmi = -1;
+        armL = -1;
         armC_max = -1;
         armC_elbow = -1;
         armC_wrist = -1;
@@ -238,6 +241,7 @@ public:
     Gender sex = NA;               ///< is subject male?
     int age = -1;                        ///< subject age
     float bmi = -1;
+    float armL = -1;
     float armC_max = -1;
     float armC_elbow = -1;
     float armC_wrist = -1;
